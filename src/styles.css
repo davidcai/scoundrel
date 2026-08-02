@@ -1,0 +1,383 @@
+:root {
+  --bg: #14141f;
+  --panel: #1e1e2d;
+  --panel-2: #262638;
+  --text: #e8e6df;
+  --muted: #9a97a8;
+  --accent: #d4a53f;
+  --blood: #b03a48;
+  --blood-dark: #7e2833;
+  --card-w: clamp(84px, 14vw, 128px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- stats bar ---------- */
+
+.stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 18px;
+  background: var(--panel);
+  border-bottom: 1px solid #000;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 20px;
+  margin: 0;
+  letter-spacing: 2px;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.health-bar {
+  position: relative;
+  width: 190px;
+  height: 20px;
+  background: #0c0c13;
+  border: 1px solid #3a3a4c;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.health-fill {
+  height: 100%;
+  background: linear-gradient(180deg, #d6566a, var(--blood));
+  transition: width 0.25s ease;
+}
+
+.health-fill--low {
+  animation: pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    filter: brightness(1.5);
+  }
+}
+
+.health-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px #000;
+}
+
+.stat-badge {
+  font-size: 13px;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid #3a3a4c;
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+
+.stat-badge--dim {
+  color: var(--muted);
+  opacity: 0.65;
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* ---------- buttons ---------- */
+
+.btn {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid #4a4a60;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    transform 0.1s;
+}
+
+.btn:hover:not(:disabled) {
+  background: #33334a;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn--ghost {
+  border-color: #33334a;
+  color: var(--muted);
+}
+
+.btn--big {
+  font-size: 17px;
+  padding: 12px 26px;
+  background: var(--accent);
+  color: #1a1a10;
+  border: none;
+  font-weight: 700;
+}
+
+.btn--big:hover:not(:disabled) {
+  background: #e5b84e;
+}
+
+/* ---------- table ---------- */
+
+.table {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 12px;
+  gap: 12px;
+}
+
+.room-row {
+  display: flex;
+  justify-content: center;
+  gap: clamp(8px, 2vw, 20px);
+  padding: 18px 6px;
+  min-height: calc(var(--card-w) * 1.45 + 36px);
+}
+
+.card {
+  position: relative;
+  width: var(--card-w);
+  aspect-ratio: 5 / 7;
+  user-select: none;
+}
+
+.card img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 6px;
+  box-shadow: 0 3px 8px rgb(0 0 0 / 0.55);
+}
+
+.card--clickable {
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.card--clickable:hover {
+  transform: translateY(-8px);
+}
+
+.card--selected img {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgb(8 8 14 / 0.88);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  z-index: 5;
+}
+
+.fight-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.btn--fight {
+  font-size: clamp(10px, 1.2vw, 13px);
+  padding: 8px 6px;
+  line-height: 1.25;
+}
+
+.btn--bare {
+  border-color: var(--blood-dark);
+}
+
+.fight-note {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ---------- under row ---------- */
+
+.under-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 4px 12px;
+}
+
+.weapon-pile {
+  min-width: calc(var(--card-w) + 48px);
+}
+
+.weapon-stack {
+  position: relative;
+  width: var(--card-w);
+  padding: 0 46px 26px 0;
+}
+
+.weapon-kill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--card-w);
+}
+
+.weapon-kill .card {
+  width: 100%;
+}
+
+.card-slot {
+  width: var(--card-w);
+  aspect-ratio: 5 / 7;
+  border: 2px dashed #3a3a4c;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pile-caption {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.hints {
+  flex: 1;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.hints p {
+  margin: 2px 0;
+}
+
+.discard-badge {
+  background: var(--panel-2);
+  border: 1px solid #3a3a4c;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
+/* ---------- log ---------- */
+
+.log-panel {
+  height: 110px;
+  overflow-y: auto;
+  background: #0f0f17;
+  border: 1px solid #2a2a3a;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.log-entry {
+  margin: 2px 0;
+  color: var(--muted);
+}
+
+.log-entry:last-child {
+  color: var(--text);
+}
+
+/* ---------- end screen ---------- */
+
+.end-screen {
+  position: fixed;
+  inset: 0;
+  background: rgb(5 5 10 / 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.end-panel {
+  background: var(--panel);
+  border-radius: 14px;
+  padding: 36px 56px;
+  text-align: center;
+  border: 2px solid var(--accent);
+  max-width: 90vw;
+}
+
+.end-panel--lost {
+  border-color: var(--blood);
+}
+
+.end-panel h2 {
+  margin: 0 0 10px;
+  font-size: 30px;
+}
+
+.end-panel--won h2 {
+  color: var(--accent);
+}
+
+.end-panel--lost h2 {
+  color: #d6566a;
+}
+
+.end-score {
+  font-size: 19px;
+  margin: 6px 0;
+}
+
+.end-flavor {
+  color: var(--muted);
+  font-style: italic;
+  margin-bottom: 22px;
+}
+
+@media (max-width: 640px) {
+  .under-row {
+    flex-wrap: wrap;
+  }
+
+  .health-bar {
+    width: 130px;
+  }
+}

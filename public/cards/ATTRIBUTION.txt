@@ -1,0 +1,3 @@
+Card artwork: "Vector Playing Cards" by Byron Knoll, released into the public domain.
+https://byronknoll.blogspot.com/2011/03/vector-playing-cards.html
+Files mirrored from https://github.com/hayeah/playing-cards-assets
