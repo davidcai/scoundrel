@@ -51,6 +51,36 @@ describe("fight with a weapon", () => {
     expect(next.discard).toEqual([]);
   });
 
+  it("logs the weapon used in a weapon fight", () => {
+    const next = applyAction(
+      stateWith({
+        room: [c("clubs", 8), c("hearts", 2), c("hearts", 3), c("hearts", 4)],
+        weapon: weaponOf(5),
+      }),
+      { type: "FIGHT", cardId: "C8", useWeapon: true },
+    );
+    expect(next.log.at(-1)).toEqual({
+      kind: "fight",
+      monster: c("clubs", 8),
+      weapon: c("diamonds", 5),
+      damage: 3,
+      healthAfter: 17,
+    });
+  });
+
+  it("does not mutate the weapon's kills array", () => {
+    const weapon = weaponOf(9, [10]);
+    const state = stateWith({
+      room: [c("spades", 8), c("hearts", 2), c("hearts", 3), c("hearts", 4)],
+      weapon,
+    });
+    const snapshot = structuredClone(state);
+    applyAction(state, { type: "FIGHT", cardId: "S8", useWeapon: true });
+    expect(state).toEqual(snapshot);
+    expect(weapon.kills).toHaveLength(1);
+    expect(weapon.kills.map((x) => x.id)).toEqual(["S10"]);
+  });
+
   it("floors damage at zero but still lowers the threshold (rule 6)", () => {
     const next = applyAction(
       stateWith({
@@ -97,6 +127,18 @@ describe("death (rule 9)", () => {
       { type: "FIGHT", cardId: "C14", useWeapon: false },
     );
     expect(next.log.at(-1)).toMatchObject({ kind: "gameOver", outcome: "lost" });
+  });
+
+  it("logs the negative remaining monster value as score on death", () => {
+    const next = applyAction(
+      stateWith({
+        room: [c("clubs", 14), c("spades", 5)],
+        deck: [c("clubs", 10), c("hearts", 2)],
+        health: 5,
+      }),
+      { type: "FIGHT", cardId: "C14", useWeapon: false },
+    );
+    expect(next.log.at(-1)).toMatchObject({ kind: "gameOver", outcome: "lost", score: -15 });
   });
 
   it("rejects any further action", () => {
