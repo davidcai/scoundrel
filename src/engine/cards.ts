@@ -7,19 +7,21 @@ export type Card = {
   readonly rank: number;
 };
 
-export const SUIT_LETTER: Record<Suit, string> = {
+// Private and frozen. Every card id is derived from this table, so a mutation
+// would corrupt every id in the game — and ids are React keys and action payloads.
+const SUIT_LETTER = {
   clubs: "C",
   diamonds: "D",
   hearts: "H",
   spades: "S",
-};
+} as const satisfies Record<Suit, string>;
 
-const ROLE_BY_SUIT: Record<Suit, Role> = {
+const ROLE_BY_SUIT = {
   clubs: "monster",
   spades: "monster",
   diamonds: "weapon",
   hearts: "potion",
-};
+} as const satisfies Record<Suit, Role>;
 
 export function makeCard(suit: Suit, rank: number): Card {
   return { id: `${SUIT_LETTER[suit]}${rank}`, suit, rank };
