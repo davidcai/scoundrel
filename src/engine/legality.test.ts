@@ -162,11 +162,8 @@ describe("runOffer", () => {
 });
 
 describe("isOffered", () => {
-  it("accepts an offered action", () => {
-    const offer = offersFor(base, c("clubs", 8))[0];
-    expect(offer).toBeDefined();
-    if (offer === undefined) return;
-    expect(isOffered(base, offer.action)).toBe(offer.enabled);
+  it("accepts an enabled offer's action", () => {
+    expect(isOffered(base, { type: "FIGHT", cardId: "C8", useWeapon: false })).toBe(true);
   });
 
   it("rejects a disabled offer's action", () => {
