@@ -1181,26 +1181,29 @@ git commit -m "feat(engine): legality offers for every card and the run action"
 
 ---
 
-### Task 6: Reducer — fight, settle, deal
+### Task 6: Scoring and shared test fixtures
 
-Rule interpretations 2, 3, 4, 6, and 9 are proved here.
+Rule interpretation 10 is proved here. This task also creates the state fixtures every later
+engine task builds on.
 
 **Files:**
-- Create: `src/engine/test-fixtures.ts`, `src/engine/reduce.ts`, `src/engine/reduce.test.ts`
+- Create: `src/engine/test-fixtures.ts`, `src/engine/scoring.ts`, `src/engine/scoring.test.ts`
 - Modify: `src/engine/legality.test.ts` (switch onto the shared fixtures)
 
 **Interfaces:**
-- Consumes: `Card`, `makeCard` (Task 2); `Action`, `IllegalActionError` (Task 4); `GameState`, `Weapon`, `MAX_HEALTH`, `ROOM_SIZE`, `createGame` (Task 4); `offersFor`, `isOffered` (Task 5); `finalScore` (Task 9 — write the stub given in Step 4 now, which Task 9 then covers with tests).
+- Consumes: `Card`, `Suit`, `makeCard`, `roleOf`, `buildDungeon` (Task 2); `GameState`, `Weapon` (Task 4).
 - Produces:
   ```ts
-  export function applyAction(state: GameState, action: Action): GameState;
+  export function remainingMonsterValue(state: GameState): number;
+  export function finalScore(state: GameState): number;
   // test-fixtures.ts (test-only, never imported by src/ui or src/storage)
+  export const c: (suit: Suit, rank: number) => Card;
   export function stateWith(patch: Partial<GameState>): GameState;
   export function weaponOf(rank: number, killRanks?: number[]): Weapon;
-  export const c: (suit: Suit, rank: number) => Card;
   ```
 
-`applyAction` throws `IllegalActionError` for anything `isOffered` rejects. `RUN` and `NEW_GAME` are not implemented in this task; their switch arms throw a clearly labelled `IllegalActionError` that Task 8 replaces.
+Scoring comes before the reducer because `reduce.ts` needs `finalScore` for its game-over log
+entry. Every test here builds states by hand, so nothing depends on `applyAction`.
 
 - [ ] **Step 1: Create the shared test fixtures**
 
@@ -1238,6 +1241,166 @@ export function weaponOf(rank: number, killRanks: number[] = []): Weapon {
 ```
 
 - [ ] **Step 2: Write the failing test**
+
+`src/engine/scoring.test.ts`:
+
+```ts
+import { describe, expect, it } from "vitest";
+import { buildDungeon } from "./cards";
+import { finalScore, remainingMonsterValue } from "./scoring";
+import { c, stateWith } from "./test-fixtures";
+
+describe("remainingMonsterValue", () => {
+  it("counts monsters in the deck and the room, ignoring hearts and diamonds", () => {
+    const state = stateWith({
+      deck: [c("clubs", 14), c("hearts", 9), c("diamonds", 8)],
+      room: [c("spades", 13), c("hearts", 2)],
+    });
+    expect(remainingMonsterValue(state)).toBe(27);
+  });
+
+  it("is 208 for a whole unplayed dungeon", () => {
+    expect(remainingMonsterValue(stateWith({ deck: buildDungeon() }))).toBe(208);
+  });
+
+  it("ignores the discard pile and the weapon stack", () => {
+    const state = stateWith({
+      deck: [c("clubs", 5)],
+      discard: [c("clubs", 14)],
+      weapon: { card: c("diamonds", 9), kills: [c("spades", 13)] },
+    });
+    expect(remainingMonsterValue(state)).toBe(5);
+  });
+
+  it("is 0 when nothing is left", () => {
+    expect(remainingMonsterValue(stateWith({}))).toBe(0);
+  });
+});
+
+describe("finalScore", () => {
+  it("is the remaining health on a win", () => {
+    expect(finalScore(stateWith({ status: "won", health: 14 }))).toBe(14);
+  });
+
+  it("is the negated remaining monster value on a loss (rule 10)", () => {
+    const state = stateWith({
+      status: "lost",
+      health: 0,
+      deck: [c("clubs", 14), c("clubs", 13)],
+      room: [c("spades", 12), c("hearts", 5)],
+    });
+    expect(finalScore(state)).toBe(-39);
+  });
+
+  it("excludes the monster that killed you, since it was resolved into the discard", () => {
+    const state = stateWith({
+      status: "lost",
+      health: 0,
+      deck: [c("spades", 3)],
+      room: [c("clubs", 5)],
+      discard: [c("clubs", 14)],
+    });
+    expect(finalScore(state)).toBe(-8);
+  });
+
+  it("is 0 when you die on the dungeon's final card", () => {
+    const state = stateWith({
+      status: "lost",
+      health: 0,
+      deck: [],
+      room: [],
+      discard: [c("clubs", 14)],
+    });
+    expect(finalScore(state)).toBe(0);
+  });
+
+  it("throws while the game is still in progress", () => {
+    expect(() => finalScore(stateWith({ status: "playing" }))).toThrow(/in progress/i);
+  });
+});
+```
+
+- [ ] **Step 3: Run the test to verify it fails**
+
+Run: `npx vitest run src/engine/scoring.test.ts`
+Expected: FAIL — cannot resolve `./scoring`.
+
+- [ ] **Step 4: Write the implementation**
+
+`src/engine/scoring.ts`:
+
+```ts
+import { roleOf, type Card } from "./cards";
+import type { GameState } from "./state";
+
+/** Monster value still unresolved: the deck plus the face-up room, nothing else. */
+export function remainingMonsterValue(state: GameState): number {
+  return [...state.deck, ...state.room]
+    .filter((card: Card) => roleOf(card) === "monster")
+    .reduce((sum, card) => sum + card.rank, 0);
+}
+
+export function finalScore(state: GameState): number {
+  if (state.status === "won") return state.health;
+  if (state.status === "lost") return -remainingMonsterValue(state);
+  throw new Error("finalScore called on a game still in progress");
+}
+```
+
+- [ ] **Step 5: Run the test to verify it passes**
+
+Run: `npx vitest run src/engine/scoring.test.ts`
+Expected: PASS, 10 tests.
+
+- [ ] **Step 6: Move `legality.test.ts` onto the shared fixtures**
+
+In `src/engine/legality.test.ts`, delete the local `base`, `withState`, and `weaponWith` helpers and the `createGame` import. Replace with:
+
+```ts
+import { c, stateWith, weaponOf } from "./test-fixtures";
+
+const base = stateWith({ room: [c("clubs", 8), c("hearts", 7), c("diamonds", 5), c("spades", 13)] });
+const withState = (patch: Parameters<typeof stateWith>[0]) => ({ ...base, ...patch });
+const weaponWith = weaponOf;
+```
+
+The three `isOffered` tests that referenced seed `4F2A9C` fixtures now use this deterministic room, so delete their `throw new Error("fixture")` guards and address the cards directly: `C8` is the monster, `H7` the potion, `D5` the weapon.
+
+- [ ] **Step 7: Run the full suite**
+
+Run: `npm test && npm run typecheck`
+Expected: PASS. All engine tests green, typecheck clean.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add src/engine/test-fixtures.ts src/engine/scoring.ts src/engine/scoring.test.ts src/engine/legality.test.ts
+git commit -m "feat(engine): scoring and shared state fixtures
+
+Scoring lands before the reducer because reduce.ts needs finalScore for its
+game-over log entry. All scoring tests build states by hand, so this task
+does not depend on applyAction."
+```
+
+---
+
+### Task 7: Reducer — fight, settle, deal
+
+Rule interpretations 2, 3, 4, 6, and 9 are proved here.
+
+**Files:**
+- Create: `src/engine/reduce.ts`, `src/engine/reduce.test.ts`
+
+**Interfaces:**
+- Consumes: `Card`, `makeCard` (Task 2); `Action`, `IllegalActionError` (Task 4); `GameState`, `Weapon`, `MAX_HEALTH`, `ROOM_SIZE`, `createGame` (Task 4); `offersFor`, `isOffered` (Task 5); `finalScore` (Task 6); `c`, `stateWith`, `weaponOf` from `test-fixtures` (Task 6).
+- Produces:
+  ```ts
+  export function applyAction(state: GameState, action: Action): GameState;
+  ```
+
+`applyAction` throws `IllegalActionError` for anything `isOffered` rejects. `RUN` and `NEW_GAME` are not implemented in this task; their switch arms throw a clearly labelled `IllegalActionError` that Tasks 8 and 9 replace.
+
+- [ ] **Step 1: Write the failing test**
 
 `src/engine/reduce.test.ts`:
 
@@ -1447,33 +1610,12 @@ describe("guards", () => {
 });
 ```
 
-- [ ] **Step 3: Run the test to verify it fails**
+- [ ] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run src/engine/reduce.test.ts`
 Expected: FAIL — cannot resolve `./reduce`.
 
-- [ ] **Step 4: Write the scoring stub**
-
-`src/engine/scoring.ts` — the real version arrives in Task 9. Write exactly this now so `reduce.ts` compiles:
-
-```ts
-import { roleOf, type Card } from "./cards";
-import type { GameState } from "./state";
-
-export function remainingMonsterValue(state: GameState): number {
-  return [...state.deck, ...state.room]
-    .filter((card: Card) => roleOf(card) === "monster")
-    .reduce((sum, card) => sum + card.rank, 0);
-}
-
-export function finalScore(state: GameState): number {
-  if (state.status === "won") return state.health;
-  if (state.status === "lost") return -remainingMonsterValue(state);
-  throw new Error("finalScore called on a game still in progress");
-}
-```
-
-- [ ] **Step 5: Write `reduce.ts`**
+- [ ] **Step 3: Write `reduce.ts`**
 
 ```ts
 import { IllegalActionError, type Action } from "./actions";
@@ -1490,7 +1632,7 @@ export function applyAction(state: GameState, action: Action): GameState {
   }
 
   if (action.type === "RUN") {
-    throw new IllegalActionError("RUN not implemented until Task 8");
+    throw new IllegalActionError("RUN not implemented until Task 9");
   }
 
   const card = state.room.find((c) => c.id === action.cardId);
@@ -1501,7 +1643,7 @@ export function applyAction(state: GameState, action: Action): GameState {
       return settle(fight(state, card, action.useWeapon));
     case "DRINK":
     case "EQUIP":
-      throw new IllegalActionError(`${action.type} not implemented until Task 7`);
+      throw new IllegalActionError(`${action.type} not implemented until Task 8`);
   }
 }
 
@@ -1585,40 +1727,26 @@ function appendLog(state: GameState, entry: GameState["log"][number]): GameState
 }
 ```
 
-- [ ] **Step 6: Run the test to verify it passes**
+- [ ] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run src/engine/reduce.test.ts`
 Expected: PASS, 17 tests.
 
-- [ ] **Step 7: Move `legality.test.ts` onto the shared fixtures**
-
-In `src/engine/legality.test.ts`, delete the local `base`, `withState`, and `weaponWith` helpers and the `createGame` import. Replace with:
-
-```ts
-import { c, stateWith, weaponOf } from "./test-fixtures";
-
-const base = stateWith({ room: [c("clubs", 8), c("hearts", 7), c("diamonds", 5), c("spades", 13)] });
-const withState = (patch: Parameters<typeof stateWith>[0]) => ({ ...base, ...patch });
-const weaponWith = weaponOf;
-```
-
-The three `isOffered` tests that referenced seed `4F2A9C` fixtures now use this deterministic room, so delete their `throw new Error("fixture")` guards and address the cards directly: `C8` is the monster, `H7` the potion, `D5` the weapon.
-
-- [ ] **Step 8: Run the full suite**
+- [ ] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS. All engine tests green.
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add src/engine/test-fixtures.ts src/engine/reduce.ts src/engine/reduce.test.ts src/engine/scoring.ts src/engine/legality.test.ts
+git add src/engine/reduce.ts src/engine/reduce.test.ts
 git commit -m "feat(engine): reducer with fight, settle, deal, and win/loss detection"
 ```
 
 ---
 
-### Task 7: Reducer — drink and equip
+### Task 8: Reducer — drink and equip
 
 Rule interpretations 5 and 7 are proved here.
 
@@ -1627,7 +1755,7 @@ Rule interpretations 5 and 7 are proved here.
 - Create: `src/engine/reduce-items.test.ts`
 
 **Interfaces:**
-- Consumes: everything from Task 6.
+- Consumes: everything from Task 7.
 - Produces: no new exports. `applyAction` now handles `DRINK` and `EQUIP`.
 
 - [ ] **Step 1: Write the failing test**
@@ -1765,7 +1893,7 @@ describe("equip", () => {
 - [ ] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run src/engine/reduce-items.test.ts`
-Expected: FAIL — "DRINK not implemented until Task 7".
+Expected: FAIL — "DRINK not implemented until Task 8".
 
 - [ ] **Step 3: Replace the stub arms in `reduce.ts`**
 
@@ -1838,7 +1966,7 @@ git commit -m "feat(engine): drink and equip, with per-room potion limit and wea
 
 ---
 
-### Task 8: Reducer — run away and new game
+### Task 9: Reducer — run away and new game
 
 Rule interpretations 1 and 8 are proved here.
 
@@ -1847,7 +1975,7 @@ Rule interpretations 1 and 8 are proved here.
 - Create: `src/engine/reduce-run.test.ts`
 
 **Interfaces:**
-- Consumes: everything from Tasks 6 and 7.
+- Consumes: everything from Tasks 7 and 8.
 - Produces: no new exports. `applyAction` now handles all five action types.
 
 - [ ] **Step 1: Write the failing test**
@@ -1958,7 +2086,7 @@ describe("new game", () => {
 - [ ] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run src/engine/reduce-run.test.ts`
-Expected: FAIL — "RUN not implemented until Task 8".
+Expected: FAIL — "RUN not implemented until Task 9".
 
 - [ ] **Step 3: Replace the RUN stub in `reduce.ts`**
 
@@ -1966,7 +2094,7 @@ Replace:
 
 ```ts
   if (action.type === "RUN") {
-    throw new IllegalActionError("RUN not implemented until Task 8");
+    throw new IllegalActionError("RUN not implemented until Task 9");
   }
 ```
 
@@ -2013,104 +2141,6 @@ Expected: PASS, 11 new tests, whole suite green.
 ```bash
 git add src/engine/reduce.ts src/engine/reduce-run.test.ts
 git commit -m "feat(engine): run away and new game, completing the reducer"
-```
-
----
-
-### Task 9: Scoring
-
-Rule interpretation 10 is proved here.
-
-**Files:**
-- Modify: `src/engine/scoring.ts` (replace the Task 6 stub with the reviewed version — the body is unchanged, but it now has tests)
-- Create: `src/engine/scoring.test.ts`
-
-**Interfaces:**
-- Consumes: `roleOf` (Task 2), `GameState` (Task 4).
-- Produces:
-  ```ts
-  export function remainingMonsterValue(state: GameState): number;
-  export function finalScore(state: GameState): number;
-  ```
-
-- [ ] **Step 1: Write the failing test**
-
-`src/engine/scoring.test.ts`:
-
-```ts
-import { describe, expect, it } from "vitest";
-import { buildDungeon } from "./cards";
-import { applyAction } from "./reduce";
-import { finalScore, remainingMonsterValue } from "./scoring";
-import { c, stateWith } from "./test-fixtures";
-
-describe("remainingMonsterValue", () => {
-  it("counts monsters in the deck and the room, ignoring hearts and diamonds", () => {
-    const state = stateWith({
-      deck: [c("clubs", 14), c("hearts", 9), c("diamonds", 8)],
-      room: [c("spades", 13), c("hearts", 2)],
-    });
-    expect(remainingMonsterValue(state)).toBe(27);
-  });
-
-  it("is 208 for a whole unplayed dungeon", () => {
-    expect(remainingMonsterValue(stateWith({ deck: buildDungeon() }))).toBe(208);
-  });
-
-  it("is 0 when nothing is left", () => {
-    expect(remainingMonsterValue(stateWith({}))).toBe(0);
-  });
-});
-
-describe("finalScore", () => {
-  it("is the remaining health on a win", () => {
-    expect(finalScore(stateWith({ status: "won", health: 14 }))).toBe(14);
-  });
-
-  it("is the negated remaining monster value on a loss (rule 10)", () => {
-    const state = stateWith({
-      status: "lost",
-      health: 0,
-      deck: [c("clubs", 14), c("clubs", 13)],
-      room: [c("spades", 12), c("hearts", 5)],
-    });
-    expect(finalScore(state)).toBe(-39);
-  });
-
-  it("excludes the monster that killed you, since it was resolved", () => {
-    const dead = applyAction(
-      stateWith({ room: [c("clubs", 14), c("clubs", 5)], deck: [c("spades", 3)], health: 4 }),
-      { type: "FIGHT", cardId: "C14", useWeapon: false },
-    );
-    expect(dead.status).toBe("lost");
-    expect(finalScore(dead)).toBe(-8);
-  });
-
-  it("is 0 when you die on the dungeon's final card", () => {
-    const dead = applyAction(
-      stateWith({ room: [c("clubs", 14)], deck: [], health: 3 }),
-      { type: "FIGHT", cardId: "C14", useWeapon: false },
-    );
-    expect(dead.status).toBe("lost");
-    expect(finalScore(dead)).toBe(0);
-  });
-
-  it("throws while the game is still in progress", () => {
-    expect(() => finalScore(stateWith({ status: "playing" }))).toThrow(/in progress/i);
-  });
-});
-```
-
-- [ ] **Step 2: Run the test to verify it fails or passes**
-
-Run: `npx vitest run src/engine/scoring.test.ts`
-Expected: PASS — the Task 6 stub is already correct. This task exists to prove it. If anything fails, fix `scoring.ts` to match the tests.
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add src/engine/scoring.ts src/engine/scoring.test.ts
-git commit -m "test(engine): cover scoring, including final-card death scoring zero"
 ```
 
 ---
@@ -3926,6 +3956,12 @@ describe("CardView offers", () => {
     expect(screen.getAllByRole("button")).toHaveLength(1);
   });
 
+  it("tags every offer button with a stable test id for end-to-end selection", () => {
+    const state = stateWith({ weapon: weaponOf(9) });
+    show(state, c("clubs", 8));
+    expect(screen.getAllByTestId("offer")).toHaveLength(2);
+  });
+
   it("keeps a blocked potion clickable and explains it", () => {
     show(stateWith({ health: 10, potionUsedThisRoom: true }), c("hearts", 7));
     expect(screen.getByRole("button", { name: /Discard/ })).toBeEnabled();
@@ -4025,6 +4061,14 @@ Expected: FAIL — cannot resolve `./CardView`.
   text-transform: uppercase;
   opacity: 0.62;
   margin-top: 4px;
+}
+
+.offerGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
 }
 
 .offer {
@@ -4131,9 +4175,10 @@ export function CardView({ card, offers, state, onAction, exiting = false, dealI
         const reason = offerReason(offer, state);
         const note = offerNote(offer);
         return (
-          <div key={offerKey(offer)} className={styles.slot} style={{ width: "100%", gap: 2 }}>
+          <div key={offerKey(offer)} className={styles.offerGroup}>
             <button
               type="button"
+              data-testid="offer"
               className={`${styles.offer}${barehanded ? ` ${styles.bare}` : ""}`}
               disabled={!offer.enabled}
               onClick={() => onAction(offer.action)}
@@ -5060,8 +5105,8 @@ describe("App", () => {
   it("resolves a card and reflects it in the log", async () => {
     render(<App />);
     const before = screen.getByTestId("log-live").textContent;
-    const firstOffer = screen.getAllByRole("button").find((b) => /dmg|Drink|Equip|Discard/.test(b.textContent ?? ""));
-    if (firstOffer === undefined) throw new Error("no offer button rendered");
+    const firstOffer = screen.getAllByTestId("offer").find((b) => !b.hasAttribute("disabled"));
+    if (firstOffer === undefined) throw new Error("no enabled offer button rendered");
     await userEvent.click(firstOffer);
     expect(screen.getByTestId("log-live").textContent).not.toBe(before);
   });
@@ -5075,9 +5120,7 @@ describe("App", () => {
         expect(within(dialog).getByTestId("score")).toBeInTheDocument();
         return;
       }
-      const offer = screen
-        .getAllByRole("button")
-        .find((b) => !b.hasAttribute("disabled") && /dmg|Drink|Equip|Discard/.test(b.textContent ?? ""));
+      const offer = screen.getAllByTestId("offer").find((b) => !b.hasAttribute("disabled"));
       if (offer === undefined) throw new Error("no enabled offer: the game deadlocked");
       await userEvent.click(offer);
     }
@@ -5422,7 +5465,6 @@ export function useExitTransition<T>(
     }, durationMs);
 
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signature, durationMs]);
 
   return [
