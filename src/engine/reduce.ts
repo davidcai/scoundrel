@@ -11,9 +11,10 @@ export function applyAction(state: GameState, action: Action): GameState {
     throw new IllegalActionError(`Action not offered: ${JSON.stringify(action)}`);
   }
 
-  if (action.type === "RUN") {
-    throw new IllegalActionError("RUN not implemented until Task 9");
-  }
+  // RUN deals its own room because it must set ranLastRoom. It bypasses settle
+  // safely: it cannot change health and always leaves a full room, so neither
+  // the loss nor the win condition is reachable from it.
+  if (action.type === "RUN") return runAway(state);
 
   const card = state.room.find((c) => c.id === action.cardId);
   if (card === undefined) throw new IllegalActionError(`Card not in room: ${action.cardId}`);
@@ -99,6 +100,26 @@ function equip(state: GameState, card: Card): GameState {
       weapon: { card, kills: [] },
     },
     { kind: "equip", weapon: card, discarded: previous?.card ?? null },
+  );
+}
+
+function runAway(state: GameState): GameState {
+  const recycled = [...state.deck, ...state.room];
+  const dealt = recycled.slice(0, ROOM_SIZE);
+  const roomNumber = state.roomNumber + 1;
+
+  const ran = appendLog(state, { kind: "run", roomNumber: state.roomNumber });
+
+  return appendLog(
+    {
+      ...ran,
+      deck: recycled.slice(ROOM_SIZE),
+      room: dealt,
+      potionUsedThisRoom: false,
+      ranLastRoom: true,
+      roomNumber,
+    },
+    { kind: "deal", roomNumber, cards: dealt },
   );
 }
 
