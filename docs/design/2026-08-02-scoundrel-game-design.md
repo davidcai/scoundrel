@@ -81,7 +81,7 @@ rest of the app. `storage/` and `ui/` depend on `engine/`; never the reverse.
 ```
 src/
   engine/            plain TS. no React, no I/O, no human-readable strings
-    cards.ts         Suit, Card, cardValue(), buildDungeon(), roleOf()
+    cards.ts         Suit, Role, Card, makeCard(), roleOf(), buildDungeon()
     rng.ts           mulberry32 + seeded Fisher-Yates shuffle
     state.ts         GameState, createGame(seed)
     actions.ts       Action union, IllegalActionError

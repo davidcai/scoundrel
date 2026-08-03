@@ -435,7 +435,7 @@ export function buildDungeon(): Card[] {
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run src/engine/cards.test.ts`
-Expected: PASS, 8 tests.
+Expected: PASS, 9 tests.
 
 - [ ] **Step 5: Commit**
 
