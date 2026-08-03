@@ -255,6 +255,8 @@ Replace the entire `## Commands` section with:
 - `npm run typecheck` — TypeScript, no emit
 - `npm run build` — typecheck then production build
 
+`npm run dev` and `npm run build` do not work yet; both need `src/main.tsx`, which a later task adds.
+
 Run `npm test` and `npm run typecheck` before considering any change complete.
 ```
 
