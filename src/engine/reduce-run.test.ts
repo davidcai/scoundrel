@@ -99,3 +99,12 @@ describe("new game", () => {
     expect(() => applyAction(stateWith({}), { type: "NEW_GAME", seed: "zzz" })).toThrow(/seed/i);
   });
 });
+
+describe("run-away log aliasing", () => {
+  it("does not share the dealt array between room and log", () => {
+    const next = applyAction(stateWith({ room: fullRoom, deck: deckOf6 }), { type: "RUN" });
+    const dealLog = next.log.at(-1);
+    if (dealLog === undefined || dealLog.kind !== "deal") throw new Error("expected deal log");
+    expect(next.room).not.toBe(dealLog.cards);
+  });
+});

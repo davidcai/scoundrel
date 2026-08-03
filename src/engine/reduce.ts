@@ -119,7 +119,7 @@ function runAway(state: GameState): GameState {
       ranLastRoom: true,
       roomNumber,
     },
-    { kind: "deal", roomNumber, cards: dealt },
+    { kind: "deal", roomNumber, cards: [...dealt] },
   );
 }
 

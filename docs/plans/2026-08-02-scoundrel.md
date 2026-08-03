@@ -2264,7 +2264,7 @@ function runAway(state: GameState): GameState {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run src/engine/reduce-run.test.ts && npm test`
-Expected: PASS, 11 new tests, whole suite green.
+Expected: PASS, 12 new tests, whole suite green.
 
 - [ ] **Step 5: Commit**
 
