@@ -482,6 +482,14 @@ describe("normalizeSeed", () => {
     expect(normalizeSeed("FFFFFF")).toBe("FFFFFF");
   });
 
+  // Pins .trim(). Without this, deleting it passes the whole suite, and a seed
+  // pasted from a URL or a chat message with surrounding whitespace would be
+  // rejected as malformed instead of normalized.
+  it("tolerates surrounding whitespace", () => {
+    expect(normalizeSeed("  4f2a9c  ")).toBe("4F2A9C");
+    expect(normalizeSeed("\t4F2A9C\n")).toBe("4F2A9C");
+  });
+
   it("rejects anything else", () => {
     for (const bad of ["", "4F2A9", "4F2A9C0", "GGGGGG", "4F 2A9C", "-4F2A9", "4F2A9Z"]) {
       expect(normalizeSeed(bad)).toBeNull();
@@ -623,7 +631,7 @@ export function shuffle<T>(items: readonly T[], rng: Rng): T[] {
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run src/engine/rng.test.ts`
-Expected: PASS, 12 tests.
+Expected: PASS, 13 tests.
 
 - [ ] **Step 5: Commit**
 
