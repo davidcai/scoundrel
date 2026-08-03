@@ -198,7 +198,8 @@ type ReasonCode = "NO_WEAPON" | "WEAPON_THRESHOLD" | "RAN_LAST_ROOM" | "ROOM_IN_
 type Effect =
   | { kind: "damage"; amount: number }
   | { kind: "heal"; amount: number; blocked: boolean }
-  | { kind: "equip"; discards: Card | null };
+  | { kind: "equip"; discards: Card | null }
+  | { kind: "run" };
 
 type Offer = {
   readonly action: Action;
@@ -210,6 +211,7 @@ type Offer = {
 
 function offersFor(state: GameState, card: Card): readonly Offer[];
 function runOffer(state: GameState): Offer;
+function isOffered(state: GameState, action: Action): boolean;   // backs the reducer guard
 ```
 
 Offers by role:
