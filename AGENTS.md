@@ -14,6 +14,8 @@ See `README.md` for the project description. The full rule set lives in `docs/ru
 - `npm run typecheck` — TypeScript, no emit
 - `npm run build` — typecheck then production build
 
+`npm run dev` and `npm run build` do not work yet; both need `src/main.tsx`, which a later task adds.
+
 Run `npm test` and `npm run typecheck` before considering any change complete.
 
 ## Project structure
