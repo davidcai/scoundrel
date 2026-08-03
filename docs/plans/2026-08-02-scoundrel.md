@@ -1300,7 +1300,7 @@ function sameAction(a: Action, b: Action): boolean {
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run src/engine/legality.test.ts`
-Expected: PASS, 20 tests. If the `isOffered` "mismatched action" test throws its fixture error, seed `4F2A9C` happens to deal no monster in room 1 — replace the seed in that one test with `000001` and re-check.
+Expected: PASS, 26 tests. If the `isOffered` "mismatched action" test throws its fixture error, seed `4F2A9C` happens to deal no monster in room 1 — replace the seed in that one test with `000001` and re-check.
 
 - [ ] **Step 5: Commit**
 

@@ -24,6 +24,23 @@ describe("offersFor a monster", () => {
     const [weaponOffer] = offersFor(withState({ weapon: null }), monster);
     expect(weaponOffer?.enabled).toBe(false);
     expect(weaponOffer?.reason).toBe("NO_WEAPON");
+    expect(weaponOffer?.effect).toEqual({ kind: "damage", amount: 8 });
+  });
+
+  it("reports the would-be damage on the WEAPON_THRESHOLD offer", () => {
+    const state = withState({ weapon: weaponWith(9, [10]) });
+    const offer = offersFor(state, makeCard("clubs", 13))[0];
+    expect(offer?.effect).toEqual({ kind: "damage", amount: 4 });
+  });
+
+  it("exposes the threshold on an enabled-below-threshold offer", () => {
+    const state = withState({ weapon: weaponWith(9, [10]) });
+    expect(offersFor(state, makeCard("clubs", 9))[0]?.threshold).toBe(10);
+  });
+
+  it("omits threshold on a fresh weapon with no kills", () => {
+    const state = withState({ weapon: weaponWith(5, []) });
+    expect("threshold" in offersFor(state, makeCard("clubs", 14))[0]).toBe(false);
   });
 
   it("enables a fresh weapon against any monster (rule 6)", () => {
@@ -140,6 +157,7 @@ describe("runOffer", () => {
 
   it("is disabled once the game is over", () => {
     expect(runOffer(withState({ status: "lost" })).enabled).toBe(false);
+    expect(runOffer(withState({ status: "lost" })).reason).toBe("ROOM_IN_PROGRESS");
   });
 });
 
@@ -150,6 +168,10 @@ describe("isOffered", () => {
     const offer = offersFor(base, card)[0];
     if (offer === undefined) throw new Error("fixture");
     expect(isOffered(base, offer.action)).toBe(offer.enabled);
+  });
+
+  it("rejects a disabled offer's action", () => {
+    expect(isOffered(base, { type: "FIGHT", cardId: "S6", useWeapon: true })).toBe(false);
   });
 
   it("rejects an action for a card not in the room", () => {
@@ -163,6 +185,15 @@ describe("isOffered", () => {
     const monster = base.room.find((c) => c.suit === "clubs" || c.suit === "spades");
     if (monster === undefined) throw new Error("fixture: seed 4F2A9C has no monster in room 1");
     expect(isOffered(base, { type: "DRINK", cardId: monster.id })).toBe(false);
+  });
+
+  it("rejects DRINK on a weapon card and EQUIP on a potion card", () => {
+    const diamond = base.room.find((c) => c.suit === "diamonds");
+    if (diamond === undefined) throw new Error("fixture: seed 4F2A9C has no weapon in room 1");
+    expect(isOffered(base, { type: "DRINK", cardId: diamond.id })).toBe(false);
+    const heart = base.room.find((c) => c.suit === "hearts");
+    if (heart === undefined) throw new Error("fixture: seed 4F2A9C has no potion in room 1");
+    expect(isOffered(base, { type: "EQUIP", cardId: heart.id })).toBe(false);
   });
 
   it("always accepts NEW_GAME", () => {
