@@ -719,6 +719,13 @@ describe("createGame", () => {
     expect(state.log).toEqual([{ kind: "deal", roomNumber: 1, cards: state.room }]);
   });
 
+  it("copies the dealt cards into the log rather than aliasing the room", () => {
+    const entry = state.log[0];
+    if (entry === undefined || entry.kind !== "deal") throw new Error("expected a deal entry");
+    expect(entry.cards).not.toBe(state.room);
+    expect(entry.cards).toEqual(state.room);
+  });
+
   it("accounts for all 44 cards", () => {
     expect(new Set([...state.deck, ...state.room].map((c) => c.id)).size).toBe(44);
   });
@@ -888,7 +895,7 @@ export function createGame(seed: string): GameState {
 - [ ] **Step 5: Run the test to verify it passes**
 
 Run: `npx vitest run src/engine/state.test.ts`
-Expected: PASS, 14 tests.
+Expected: PASS, 15 tests.
 
 - [ ] **Step 6: Commit**
 
