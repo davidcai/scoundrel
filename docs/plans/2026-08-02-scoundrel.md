@@ -678,7 +678,17 @@ git commit -m "feat(engine): seeded PRNG, seed validation, and shuffle"
 ```ts
 import { describe, expect, it } from "vitest";
 import { makeCard } from "./cards";
-import { MAX_HEALTH, createGame, weaponThreshold } from "./state";
+import { MAX_HEALTH, ROOM_SIZE, createGame, weaponThreshold } from "./state";
+
+describe("rule constants", () => {
+  // Pinned to the rulebook, not to themselves. Every other assertion compares
+  // these constants to values derived from them, so a wrong value here would
+  // rebalance the whole game with a green suite.
+  it("match docs/rules.md", () => {
+    expect(MAX_HEALTH).toBe(20);
+    expect(ROOM_SIZE).toBe(4);
+  });
+});
 
 describe("createGame", () => {
   const state = createGame("4F2A9C");
@@ -868,7 +878,9 @@ export function createGame(seed: string): GameState {
     ranLastRoom: false,
     roomNumber: 1,
     status: "playing",
-    log: [{ kind: "deal", roomNumber: 1, cards: room }],
+    // Copied, not aliased: `readonly` is compile-time only, so sharing the
+    // array would let a future in-place room mutation silently rewrite history.
+    log: [{ kind: "deal", roomNumber: 1, cards: [...room] }],
   };
 }
 ```
@@ -876,7 +888,7 @@ export function createGame(seed: string): GameState {
 - [ ] **Step 5: Run the test to verify it passes**
 
 Run: `npx vitest run src/engine/state.test.ts`
-Expected: PASS, 13 tests.
+Expected: PASS, 14 tests.
 
 - [ ] **Step 6: Commit**
 
