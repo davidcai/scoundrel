@@ -2,7 +2,7 @@ import { IllegalActionError, type Action } from "./actions";
 import type { Card } from "./cards";
 import { isOffered, offersFor } from "./legality";
 import { finalScore } from "./scoring";
-import { ROOM_SIZE, createGame, type GameState } from "./state";
+import { ROOM_SIZE, MAX_HEALTH, createGame, type GameState } from "./state";
 
 export function applyAction(state: GameState, action: Action): GameState {
   if (action.type === "NEW_GAME") return createGame(action.seed);
@@ -22,8 +22,9 @@ export function applyAction(state: GameState, action: Action): GameState {
     case "FIGHT":
       return settle(fight(state, card, action.useWeapon));
     case "DRINK":
+      return settle(drink(state, card));
     case "EQUIP":
-      throw new IllegalActionError(`${action.type} not implemented until Task 8`);
+      return settle(equip(state, card));
   }
 }
 
@@ -61,6 +62,44 @@ function fight(state: GameState, card: Card, useWeapon: boolean): GameState {
     damage,
     healthAfter: health,
   });
+}
+
+function drink(state: GameState, card: Card): GameState {
+  const offer = offersFor(state, card)[0];
+  if (offer === undefined || offer.effect.kind !== "heal") {
+    throw new IllegalActionError(`No heal offer for ${card.id}`);
+  }
+
+  const { amount, blocked } = offer.effect;
+  const health = Math.min(MAX_HEALTH, state.health + amount);
+
+  return appendLog(
+    {
+      ...state,
+      room: withoutCard(state.room, card),
+      discard: [...state.discard, card],
+      health,
+      potionUsedThisRoom: true,
+    },
+    { kind: "potion", card, healed: amount, blocked, healthAfter: health },
+  );
+}
+
+function equip(state: GameState, card: Card): GameState {
+  const previous = state.weapon;
+  const discard = previous === null
+    ? state.discard
+    : [...state.discard, previous.card, ...previous.kills];
+
+  return appendLog(
+    {
+      ...state,
+      room: withoutCard(state.room, card),
+      discard,
+      weapon: { card, kills: [] },
+    },
+    { kind: "equip", weapon: card, discarded: previous?.card ?? null },
+  );
 }
 
 /** Death, then deal, then win. Order matters: a fatal blow must not deal a new room. */
