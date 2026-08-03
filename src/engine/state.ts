@@ -54,6 +54,8 @@ export function createGame(seed: string): GameState {
     ranLastRoom: false,
     roomNumber: 1,
     status: "playing",
-    log: [{ kind: "deal", roomNumber: 1, cards: room }],
+    // Copied, not aliased: `readonly` is compile-time only, so sharing the
+    // array would let a future in-place room mutation silently rewrite history.
+    log: [{ kind: "deal", roomNumber: 1, cards: [...room] }],
   };
 }

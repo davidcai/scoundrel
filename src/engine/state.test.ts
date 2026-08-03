@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { makeCard } from "./cards";
-import { MAX_HEALTH, createGame, weaponThreshold } from "./state";
+import { MAX_HEALTH, ROOM_SIZE, createGame, weaponThreshold } from "./state";
+
+describe("rule constants", () => {
+  // Pinned to the rulebook, not to themselves. Every other assertion compares
+  // these constants to values derived from them, so a wrong value here would
+  // rebalance the whole game with a green suite.
+  it("match docs/rules.md", () => {
+    expect(MAX_HEALTH).toBe(20);
+    expect(ROOM_SIZE).toBe(4);
+  });
+});
 
 describe("createGame", () => {
   const state = createGame("4F2A9C");
