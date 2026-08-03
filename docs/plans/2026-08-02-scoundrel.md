@@ -143,12 +143,17 @@ Tests are colocated as `*.test.ts` / `*.test.tsx` beside the file under test.
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "noEmit": true,
-    "types": ["vitest/globals", "@testing-library/jest-dom"]
+    "noEmit": true
   },
   "include": ["src", "vite.config.ts"]
 }
 ```
+
+There is deliberately no `types` array. Every test in this plan imports `describe`/`it`/`expect`
+explicitly from `vitest`, so `"vitest/globals"` would be inert. `"@testing-library/jest-dom"` would
+be worse than inert: it resolves to a file augmenting the *Jest* namespace and pulls in a
+`/// <reference types="jest" />` that nothing satisfies. The Vitest matcher augmentation arrives
+through the `test-setup.ts` import instead.
 
 `vite.config.ts` is in `include` deliberately. Left out, `npm run typecheck` silently skips it
 and a typo in the Vitest config would never be caught.
@@ -165,12 +170,14 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   test: {
-    globals: true,
     environment: "jsdom",
     setupFiles: ["./src/test-setup.ts"],
   },
 });
 ```
+
+`globals` stays off. Tests import from `vitest` explicitly — that is the convention for this
+codebase, and it keeps test files honest about their dependencies.
 
 - [ ] **Step 4: Create `src/test-setup.ts`, `src/vite-env.d.ts`, and `index.html`**
 
@@ -215,11 +222,19 @@ describe("toolchain", () => {
     expect(1 + 1).toBe(2);
   });
 
-  it("has a DOM available", () => {
-    expect(typeof document).toBe("object");
+  it("has a live DOM, not just a defined global", () => {
+    expect(document.createElement("div")).toBeInstanceOf(HTMLElement);
+  });
+
+  // Locks in setupFiles: this matcher only exists if test-setup.ts ran.
+  it("has jest-dom matchers from setupFiles", () => {
+    expect(document.createElement("div")).toBeEmptyDOMElement();
   });
 });
 ```
+
+The third test is the only committed proof that `setupFiles` is wired up. Without it, a broken
+`setupFiles` path would stay silent until some later task's first matcher call.
 
 - [ ] **Step 6: Install and verify**
 
@@ -229,7 +244,7 @@ npm test
 npm run typecheck
 ```
 
-Expected: `npm test` PASSES both smoke tests. `npm run typecheck` exits 0.
+Expected: `npm test` PASSES all three smoke tests. `npm run typecheck` exits 0.
 
 `main.tsx` does not exist yet, so `npm run build` fails and `npm run dev` serves a blank page
 with a console error — both expected until Task 14. If `npm install` resolves a major version that breaks `npm test`, pin the offending package down one major and note it in the commit body.
