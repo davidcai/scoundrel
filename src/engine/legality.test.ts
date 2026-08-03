@@ -1,14 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { makeCard } from "./cards";
-import { createGame, type GameState, type Weapon } from "./state";
 import { isOffered, offersFor, runOffer } from "./legality";
+import { c, stateWith, weaponOf } from "./test-fixtures";
 
-const base = createGame("4F2A9C");
-const withState = (patch: Partial<GameState>): GameState => ({ ...base, ...patch });
-const weaponWith = (rank: number, killRanks: number[]): Weapon => ({
-  card: makeCard("diamonds", rank),
-  kills: killRanks.map((r) => makeCard("spades", r)),
-});
+const base = stateWith({ room: [c("clubs", 8), c("hearts", 7), c("diamonds", 5), c("spades", 13)] });
+const withState = (patch: Parameters<typeof stateWith>[0]) => ({ ...base, ...patch });
+const weaponWith = weaponOf;
 
 describe("offersFor a monster", () => {
   const monster = makeCard("clubs", 8);
@@ -166,15 +163,14 @@ describe("runOffer", () => {
 
 describe("isOffered", () => {
   it("accepts an offered action", () => {
-    const card = base.room[0];
-    if (card === undefined) throw new Error("fixture");
-    const offer = offersFor(base, card)[0];
-    if (offer === undefined) throw new Error("fixture");
+    const offer = offersFor(base, c("clubs", 8))[0];
+    expect(offer).toBeDefined();
+    if (offer === undefined) return;
     expect(isOffered(base, offer.action)).toBe(offer.enabled);
   });
 
   it("rejects a disabled offer's action", () => {
-    expect(isOffered(base, { type: "FIGHT", cardId: "S6", useWeapon: true })).toBe(false);
+    expect(isOffered(base, { type: "FIGHT", cardId: "C8", useWeapon: true })).toBe(false);
   });
 
   it("rejects an action for a card not in the room", () => {
@@ -185,18 +181,12 @@ describe("isOffered", () => {
   });
 
   it("rejects a mismatched action for a card in the room", () => {
-    const monster = base.room.find((c) => c.suit === "clubs" || c.suit === "spades");
-    if (monster === undefined) throw new Error("fixture: seed 4F2A9C has no monster in room 1");
-    expect(isOffered(base, { type: "DRINK", cardId: monster.id })).toBe(false);
+    expect(isOffered(base, { type: "DRINK", cardId: "C8" })).toBe(false);
   });
 
   it("rejects DRINK on a weapon card and EQUIP on a potion card", () => {
-    const diamond = base.room.find((c) => c.suit === "diamonds");
-    if (diamond === undefined) throw new Error("fixture: seed 4F2A9C has no weapon in room 1");
-    expect(isOffered(base, { type: "DRINK", cardId: diamond.id })).toBe(false);
-    const heart = base.room.find((c) => c.suit === "hearts");
-    if (heart === undefined) throw new Error("fixture: seed 4F2A9C has no potion in room 1");
-    expect(isOffered(base, { type: "EQUIP", cardId: heart.id })).toBe(false);
+    expect(isOffered(base, { type: "DRINK", cardId: "D5" })).toBe(false);
+    expect(isOffered(base, { type: "EQUIP", cardId: "H7" })).toBe(false);
   });
 
   it("always accepts NEW_GAME", () => {
