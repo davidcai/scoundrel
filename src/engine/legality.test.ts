@@ -40,7 +40,10 @@ describe("offersFor a monster", () => {
 
   it("omits threshold on a fresh weapon with no kills", () => {
     const state = withState({ weapon: weaponWith(5, []) });
-    expect("threshold" in offersFor(state, makeCard("clubs", 14))[0]).toBe(false);
+    const offer = offersFor(state, makeCard("clubs", 14))[0];
+    if (offer === undefined) throw new Error("fixture");
+    expect("threshold" in offer).toBe(false);
+    expect(offer.threshold).toBeUndefined();
   });
 
   it("enables a fresh weapon against any monster (rule 6)", () => {
