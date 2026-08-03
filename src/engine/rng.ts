@@ -11,7 +11,14 @@ export function seedToInt(seed: string): number {
   return Number.parseInt(seed, 16);
 }
 
-/** Small, fast, well-distributed 32-bit PRNG. */
+/**
+ * Small, fast, well-distributed 32-bit PRNG.
+ *
+ * The constants below are a compatibility contract, not an implementation
+ * detail: seeds are published in shared URLs and stored inside saved games,
+ * so altering them remaps every existing run to a different dungeon. The
+ * pinned-first-draw test in rng.test.ts guards this.
+ */
 export function mulberry32(seedInt: number): Rng {
   let state = seedInt >>> 0;
   return () => {
