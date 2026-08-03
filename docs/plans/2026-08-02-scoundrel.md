@@ -396,7 +396,8 @@ export type Card = {
   readonly rank: number;
 };
 
-// Private and frozen. Every card id is derived from this table, so a mutation
+// Private and immutable (compile-time readonly, not Object.freeze). Every card id
+// is derived from this table, so a mutation
 // would corrupt every id in the game — and ids are React keys and action payloads.
 const SUIT_LETTER = {
   clubs: "C",
