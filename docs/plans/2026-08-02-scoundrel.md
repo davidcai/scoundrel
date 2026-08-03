@@ -45,7 +45,7 @@ Every task's requirements implicitly include this section.
 
 | File | Responsibility |
 | --- | --- |
-| `package.json`, `tsconfig.json`, `tsconfig.node.json`, `vite.config.ts`, `index.html` | Toolchain |
+| `package.json`, `tsconfig.json`, `vite.config.ts`, `index.html` | Toolchain |
 | `src/engine/cards.ts` | `Suit`, `Role`, `Card`, `makeCard`, `roleOf`, `buildDungeon` |
 | `src/engine/rng.ts` | `Rng`, `mulberry32`, `shuffle`, seed normalise/generate/parse |
 | `src/engine/log.ts` | `LogEntry` union — data only |
@@ -80,12 +80,13 @@ Tests are colocated as `*.test.ts` / `*.test.tsx` beside the file under test.
 ### Task 1: Toolchain
 
 **Files:**
-- Create: `package.json`, `tsconfig.json`, `tsconfig.node.json`, `vite.config.ts`, `index.html`, `src/vite-env.d.ts`, `src/smoke.test.ts`
-- Modify: `AGENTS.md`
+- Create: `package.json`, `tsconfig.json`, `vite.config.ts`, `index.html`, `src/vite-env.d.ts`, `src/test-setup.ts`, `src/smoke.test.ts`
+- Modify: `AGENTS.md`, `.gitignore`
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces: working `npm test`, `npm run typecheck`, `npm run dev`, `npm run build`.
+- Produces: working `npm test` and `npm run typecheck`. `npm run dev` and `npm run build` only
+  become usable at Task 14, when `src/main.tsx` first exists.
 
 - [ ] **Step 1: Create `package.json`**
 
@@ -145,33 +146,20 @@ Tests are colocated as `*.test.ts` / `*.test.tsx` beside the file under test.
     "noEmit": true,
     "types": ["vitest/globals", "@testing-library/jest-dom"]
   },
-  "include": ["src"]
+  "include": ["src", "vite.config.ts"]
 }
 ```
 
-- [ ] **Step 3: Create `tsconfig.node.json` and `vite.config.ts`**
+`vite.config.ts` is in `include` deliberately. Left out, `npm run typecheck` silently skips it
+and a typo in the Vitest config would never be caught.
 
-`tsconfig.node.json`:
+- [ ] **Step 3: Create `vite.config.ts`**
 
-```json
-{
-  "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "strict": true,
-    "skipLibCheck": true,
-    "noEmit": true
-  },
-  "include": ["vite.config.ts"]
-}
-```
-
-`vite.config.ts`:
+Import `defineConfig` from `vitest/config`, not from `vite`. Vite's own `defineConfig` does not
+type the `test` key, so with `vite.config.ts` in `include` the build fails `TS2769`.
 
 ```ts
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
@@ -243,9 +231,18 @@ npm run typecheck
 
 Expected: `npm test` PASSES both smoke tests. `npm run typecheck` exits 0.
 
-`main.tsx` does not exist yet, so `npm run dev` will fail — that is expected until Task 12. If `npm install` resolves a major version that breaks `npm test`, pin the offending package down one major and note it in the commit body.
+`main.tsx` does not exist yet, so `npm run build` fails and `npm run dev` serves a blank page
+with a console error — both expected until Task 14. If `npm install` resolves a major version that breaks `npm test`, pin the offending package down one major and note it in the commit body.
 
-- [ ] **Step 7: Update `AGENTS.md`**
+- [ ] **Step 7: Add the TypeScript build artifact to `.gitignore`**
+
+`tsc -b` writes `tsbuildinfo` even under `--noEmit`. Append to `.gitignore`:
+
+```
+*.tsbuildinfo
+```
+
+- [ ] **Step 8: Update `AGENTS.md`**
 
 Replace the entire `## Commands` section with:
 
@@ -271,10 +268,10 @@ Then append to `## Project structure`:
 - `src/ui/` — React presentation layer, owns all user-visible strings
 ```
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
-git add package.json package-lock.json tsconfig.json tsconfig.node.json vite.config.ts index.html src AGENTS.md
+git add package.json package-lock.json tsconfig.json vite.config.ts index.html src AGENTS.md .gitignore
 git commit -m "chore: scaffold Vite + React + TypeScript + Vitest"
 ```
 
