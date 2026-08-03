@@ -507,6 +507,16 @@ describe("mulberry32", () => {
     }
   });
 
+  // Kills the non-advancing mutant. A generator returning one constant forever
+  // satisfies every other assertion here: the range check accepts a constant,
+  // the cross-instance check compares [x,x,x] to [x,x,x], and the cross-seed
+  // check only compares first draws. Downstream that mutant yields a deck in
+  // near-build order — a visibly unshuffled dungeon with a green suite.
+  it("advances its state, so successive draws from one instance differ", () => {
+    const rng = mulberry32(999);
+    expect(new Set([rng(), rng(), rng()]).size).toBe(3);
+  });
+
   it("is deterministic for a given seed", () => {
     const a = mulberry32(999);
     const b = mulberry32(999);
@@ -515,6 +525,18 @@ describe("mulberry32", () => {
 
   it("differs across seeds", () => {
     expect(mulberry32(1)()).not.toBe(mulberry32(2)());
+  });
+
+  // Localizes a constant change to this file. Task 4 pins the whole
+  // seed -> dungeon contract, but that test cannot say WHICH layer moved:
+  // PRNG constants, buildDungeon's order, and shuffle's bounds all fail it
+  // identically. This one fingers the PRNG specifically.
+  //
+  // These constants are a compatibility contract. Seeds appear in shared URLs
+  // and inside saved games, so changing them silently remaps every existing
+  // run. If this fails and you did not intend that, do not update the value.
+  it("emits a pinned first draw for a known seed", () => {
+    expect(mulberry32(seedToInt("4F2A9C"))()).toBe(0.07600133842788637);
   });
 });
 
@@ -565,7 +587,14 @@ export function seedToInt(seed: string): number {
   return Number.parseInt(seed, 16);
 }
 
-/** Small, fast, well-distributed 32-bit PRNG. */
+/**
+ * Small, fast, well-distributed 32-bit PRNG.
+ *
+ * The constants below are a compatibility contract, not an implementation
+ * detail: seeds are published in shared URLs and stored inside saved games,
+ * so altering them remaps every existing run to a different dungeon. The
+ * pinned-first-draw test in rng.test.ts guards this.
+ */
 export function mulberry32(seedInt: number): Rng {
   let state = seedInt >>> 0;
   return () => {
@@ -594,7 +623,7 @@ export function shuffle<T>(items: readonly T[], rng: Rng): T[] {
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run src/engine/rng.test.ts`
-Expected: PASS, 10 tests.
+Expected: PASS, 12 tests.
 
 - [ ] **Step 5: Commit**
 
