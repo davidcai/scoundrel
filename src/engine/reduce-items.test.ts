@@ -122,4 +122,26 @@ describe("equip", () => {
       kind: "equip", weapon: c("diamonds", 9), discarded: c("diamonds", 4),
     });
   });
+
+  it("logs discarded: null when equipping from unarmed", () => {
+    const next = applyAction(
+      stateWith({ room: room(c("diamonds", 9), c("clubs", 2), c("clubs", 3), c("clubs", 4)) }),
+      { type: "EQUIP", cardId: "D9" },
+    );
+    expect(next.log.at(-1)).toEqual({
+      kind: "equip", weapon: c("diamonds", 9), discarded: null,
+    });
+  });
+
+  it("does not mutate the input state", () => {
+    const state = stateWith({
+      room: room(c("hearts", 7), c("diamonds", 9), c("clubs", 2), c("clubs", 3)),
+      weapon: weaponOf(4, [6]),
+      health: 10,
+    });
+    const snapshot = structuredClone(state);
+    applyAction(state, { type: "DRINK", cardId: "H7" });
+    applyAction(state, { type: "EQUIP", cardId: "D9" });
+    expect(state).toEqual(snapshot);
+  });
 });
