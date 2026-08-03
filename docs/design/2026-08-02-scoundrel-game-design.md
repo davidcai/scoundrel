@@ -282,12 +282,24 @@ Card destinations, which is where conservation of all 44 cards is enforced:
 
 ```ts
 type LogEntry =
-  | { kind: "deal"; roomNumber: number; cards: readonly Card[] }
-  | { kind: "fight"; monster: Card; weapon: Card | null; damage: number; healthAfter: number }
-  | { kind: "equip"; weapon: Card; discarded: Card | null }
-  | { kind: "potion"; card: Card; healed: number; blocked: boolean; healthAfter: number }
-  | { kind: "run"; roomNumber: number }
-  | { kind: "gameOver"; outcome: "won" | "lost"; score: number };
+  | { readonly kind: "deal"; readonly roomNumber: number; readonly cards: readonly Card[] }
+  | {
+      readonly kind: "fight";
+      readonly monster: Card;
+      readonly weapon: Card | null;
+      readonly damage: number;
+      readonly healthAfter: number;
+    }
+  | { readonly kind: "equip"; readonly weapon: Card; readonly discarded: Card | null }
+  | {
+      readonly kind: "potion";
+      readonly card: Card;
+      readonly healed: number;
+      readonly blocked: boolean;
+      readonly healthAfter: number;
+    }
+  | { readonly kind: "run"; readonly roomNumber: number }
+  | { readonly kind: "gameOver"; readonly outcome: "won" | "lost"; readonly score: number };
 ```
 
 Structured data only. The UI formats entries for display.

@@ -645,12 +645,24 @@ git commit -m "feat(engine): seeded PRNG, seed validation, and shuffle"
   ```ts
   // log.ts
   export type LogEntry =
-    | { kind: "deal"; roomNumber: number; cards: readonly Card[] }
-    | { kind: "fight"; monster: Card; weapon: Card | null; damage: number; healthAfter: number }
-    | { kind: "equip"; weapon: Card; discarded: Card | null }
-    | { kind: "potion"; card: Card; healed: number; blocked: boolean; healthAfter: number }
-    | { kind: "run"; roomNumber: number }
-    | { kind: "gameOver"; outcome: "won" | "lost"; score: number };
+    | { readonly kind: "deal"; readonly roomNumber: number; readonly cards: readonly Card[] }
+    | {
+        readonly kind: "fight";
+        readonly monster: Card;
+        readonly weapon: Card | null;
+        readonly damage: number;
+        readonly healthAfter: number;
+      }
+    | { readonly kind: "equip"; readonly weapon: Card; readonly discarded: Card | null }
+    | {
+        readonly kind: "potion";
+        readonly card: Card;
+        readonly healed: number;
+        readonly blocked: boolean;
+        readonly healthAfter: number;
+      }
+    | { readonly kind: "run"; readonly roomNumber: number }
+    | { readonly kind: "gameOver"; readonly outcome: "won" | "lost"; readonly score: number };
 
   // actions.ts
   export type Action =
@@ -743,6 +755,14 @@ describe("createGame", () => {
   it("throws on an invalid seed", () => {
     expect(() => createGame("nope")).toThrow(/seed/i);
   });
+
+  // Storing the raw seed instead of the normalized one passes every other test,
+  // because they all pass canonical seeds. The failure mode is silent and nasty:
+  // the lowercase form goes into the URL and the saved game, then SEED_PATTERN
+  // (uppercase-only) rejects it on load — a run that saves but will not reload.
+  it("stores the normalized seed, not the raw input", () => {
+    expect(createGame("4f2a9c").seed).toBe("4F2A9C");
+  });
 });
 
 describe("seed contract (golden)", () => {
@@ -797,12 +817,24 @@ Expected: FAIL — cannot resolve `./state`.
 import type { Card } from "./cards";
 
 export type LogEntry =
-  | { kind: "deal"; roomNumber: number; cards: readonly Card[] }
-  | { kind: "fight"; monster: Card; weapon: Card | null; damage: number; healthAfter: number }
-  | { kind: "equip"; weapon: Card; discarded: Card | null }
-  | { kind: "potion"; card: Card; healed: number; blocked: boolean; healthAfter: number }
-  | { kind: "run"; roomNumber: number }
-  | { kind: "gameOver"; outcome: "won" | "lost"; score: number };
+  | { readonly kind: "deal"; readonly roomNumber: number; readonly cards: readonly Card[] }
+  | {
+      readonly kind: "fight";
+      readonly monster: Card;
+      readonly weapon: Card | null;
+      readonly damage: number;
+      readonly healthAfter: number;
+    }
+  | { readonly kind: "equip"; readonly weapon: Card; readonly discarded: Card | null }
+  | {
+      readonly kind: "potion";
+      readonly card: Card;
+      readonly healed: number;
+      readonly blocked: boolean;
+      readonly healthAfter: number;
+    }
+  | { readonly kind: "run"; readonly roomNumber: number }
+  | { readonly kind: "gameOver"; readonly outcome: "won" | "lost"; readonly score: number };
 ```
 
 `src/engine/actions.ts`:
@@ -863,8 +895,11 @@ export type GameState = {
  * strictly below the returned threshold. Null means no limit.
  */
 export function weaponThreshold(weapon: Weapon | null): number | null {
-  if (weapon === null || weapon.kills.length === 0) return null;
-  return (weapon.kills[weapon.kills.length - 1] as Card).rank;
+  if (weapon === null) return null;
+  // `.at(-1)` needs no type assertion, so the compiler stays the guarantor of
+  // the empty case rather than a hand-written length guard.
+  const lastKill = weapon.kills.at(-1);
+  return lastKill === undefined ? null : lastKill.rank;
 }
 
 export function createGame(seed: string): GameState {
@@ -895,7 +930,7 @@ export function createGame(seed: string): GameState {
 - [ ] **Step 5: Run the test to verify it passes**
 
 Run: `npx vitest run src/engine/state.test.ts`
-Expected: PASS, 15 tests.
+Expected: PASS, 16 tests.
 
 - [ ] **Step 6: Commit**
 
