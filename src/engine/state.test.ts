@@ -65,6 +65,14 @@ describe("createGame", () => {
   it("throws on an invalid seed", () => {
     expect(() => createGame("nope")).toThrow(/seed/i);
   });
+
+  // Storing the raw seed instead of the normalized one passes every other test,
+  // because they all pass canonical seeds. The failure mode is silent and nasty:
+  // the lowercase form goes into the URL and the saved game, then SEED_PATTERN
+  // (uppercase-only) rejects it on load — a run that saves but will not reload.
+  it("stores the normalized seed, not the raw input", () => {
+    expect(createGame("4f2a9c").seed).toBe("4F2A9C");
+  });
 });
 
 describe("seed contract (golden)", () => {

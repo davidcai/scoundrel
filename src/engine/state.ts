@@ -32,8 +32,11 @@ export type GameState = {
  * strictly below the returned threshold. Null means no limit.
  */
 export function weaponThreshold(weapon: Weapon | null): number | null {
-  if (weapon === null || weapon.kills.length === 0) return null;
-  return (weapon.kills[weapon.kills.length - 1] as Card).rank;
+  if (weapon === null) return null;
+  // `.at(-1)` needs no type assertion, so the compiler stays the guarantor of
+  // the empty case rather than a hand-written length guard.
+  const lastKill = weapon.kills.at(-1);
+  return lastKill === undefined ? null : lastKill.rank;
 }
 
 export function createGame(seed: string): GameState {
