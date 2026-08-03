@@ -658,9 +658,9 @@ describe("createGame", () => {
     expect(state.seed).toBe("4F2A9C");
   });
 
-  it("deals a room of four and leaves 39 in the deck", () => {
+  it("deals a room of four and leaves 40 in the deck", () => {
     expect(state.room).toHaveLength(4);
-    expect(state.deck).toHaveLength(39);
+    expect(state.deck).toHaveLength(40);
   });
 
   it("starts at full health with nothing equipped or discarded", () => {
@@ -696,6 +696,29 @@ describe("createGame", () => {
 
   it("throws on an invalid seed", () => {
     expect(() => createGame("nope")).toThrow(/seed/i);
+  });
+});
+
+describe("seed contract (golden)", () => {
+  // Pins the whole seed -> dungeon mapping: the PRNG constants, the shuffle
+  // algorithm, buildDungeon's base order, and the deal. A seed is public — it
+  // appears in the URL and inside saved games — so changing any of those
+  // silently invalidates every shared link and every stored run, and no other
+  // test in this codebase would notice.
+  //
+  // If this fails and you did not intend to change the mapping, do NOT update
+  // the expected values. Find what moved.
+  it("maps seed 4F2A9C to an exact dungeon", () => {
+    const state = createGame("4F2A9C");
+
+    expect(state.room.map((card) => card.id)).toEqual(["H10", "S6", "D10", "H9"]);
+
+    expect(state.deck.map((card) => card.id)).toEqual([
+      "S12", "S2", "D7", "C9", "S5", "S9", "S7", "C8", "H4", "H3",
+      "D4", "C4", "C13", "C7", "C14", "D9", "D2", "C11", "S4", "H2",
+      "H6", "S8", "H5", "D5", "C2", "H7", "C12", "D6", "H8", "S13",
+      "C6", "D3", "S10", "D8", "C3", "S3", "C10", "S11", "S14", "C5",
+    ]);
   });
 });
 
@@ -824,7 +847,7 @@ export function createGame(seed: string): GameState {
 - [ ] **Step 5: Run the test to verify it passes**
 
 Run: `npx vitest run src/engine/state.test.ts`
-Expected: PASS, 12 tests.
+Expected: PASS, 13 tests.
 
 - [ ] **Step 6: Commit**
 
@@ -2080,7 +2103,7 @@ describe("new game", () => {
     expect(next.seed).toBe("4F2A9C");
     expect(next.health).toBe(20);
     expect(next.room).toHaveLength(4);
-    expect(next.deck).toHaveLength(39);
+    expect(next.deck).toHaveLength(40);
     expect(next.status).toBe("playing");
   });
 
@@ -3736,7 +3759,7 @@ describe("useGame dispatch and persistence", () => {
     render(<Harness />);
     await userEvent.click(screen.getByRole("button", { name: "new" }));
     expect(screen.getByTestId("seed")).toHaveTextContent("ABCDEF");
-    expect(screen.getByTestId("deck")).toHaveTextContent("39");
+    expect(screen.getByTestId("deck")).toHaveTextContent("40");
     expect(new URLSearchParams(window.location.search).get("seed")).toBe("ABCDEF");
   });
 });

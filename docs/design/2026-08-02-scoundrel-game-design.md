@@ -145,7 +145,7 @@ first room:
 
 ```
 seed                 the validated six-hex-character seed
-deck                 39 cards remaining after the deal
+deck                 40 cards remaining after the deal
 room                 the first 4 cards, display order
 discard              []
 weapon               null
