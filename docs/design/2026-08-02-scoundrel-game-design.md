@@ -182,10 +182,13 @@ type Action =
   | { type: "DRINK"; cardId: string }
   | { type: "EQUIP"; cardId: string }
   | { type: "RUN" }
-  | { type: "NEW_GAME"; seed?: string };
+  | { type: "NEW_GAME"; seed: string };
 ```
 
 Dealing is deliberately not a player action; it happens inside the reducer.
+
+`NEW_GAME` carries a required seed. The engine may not touch `crypto`, so the caller supplies
+one; the UI's `newGame()` generates a random seed when the player does not choose one.
 
 ## Legality
 
@@ -248,8 +251,7 @@ Three consequences that would otherwise become silent bugs:
 An action that is not currently offered throws `IllegalActionError`. The UI cannot construct
 one because it renders only from offers, so a throw indicates a genuine bug; tests assert on
 it and a React error boundary is the production backstop. `NEW_GAME` is accepted in any
-status and generates a random seed when `seed` is omitted; every other action requires
-`status === "playing"`.
+status; every other action requires `status === "playing"`.
 
 `DRINK` always sets `potionUsedThisRoom = true`, including when the offer was blocked, in
 which case the flag was already true and the assignment is a no-op.
