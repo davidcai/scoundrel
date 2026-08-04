@@ -10,9 +10,13 @@ import styles from "./App.module.css";
 function Game() {
   const { state, stats, offersFor, runOffer, dispatch, newGame } = useGame();
 
+  const lastEntry = state.log.at(-1);
+  const heavyHit = lastEntry?.kind === "fight" && lastEntry.damage >= 8;
+  const shake = heavyHit ? (state.log.length % 2 === 0 ? styles.shakeA : styles.shakeB) : "";
+
   return (
     <>
-      <div className={styles.stage}>
+      <div className={`${styles.stage}${shake === "" ? "" : ` ${shake}`}`}>
         <Hud state={state} stats={stats} runOffer={runOffer} onAction={dispatch} />
         <Room state={state} offersFor={offersFor} onAction={dispatch} />
         <WeaponStack weapon={state.weapon} />

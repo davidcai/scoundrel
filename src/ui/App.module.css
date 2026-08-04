@@ -35,3 +35,27 @@
   max-height: 220px;
   overflow: auto;
 }
+
+/*
+  Two identical keyframe sets. Alternating between them restarts the animation
+  without remounting the subtree, which would restart the deal animations too.
+*/
+.shakeA {
+  animation: shakeA var(--dur-shake) ease-in-out;
+}
+
+.shakeB {
+  animation: shakeB var(--dur-shake) ease-in-out;
+}
+
+@keyframes shakeA {
+  0%, 100% { transform: none; }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+@keyframes shakeB {
+  0%, 100% { transform: none; }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
