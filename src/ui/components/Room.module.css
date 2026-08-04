@@ -1,0 +1,12 @@
+.room {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: flex-start;
+  background: var(--panel);
+  border: 1px solid var(--table-edge);
+  border-radius: 5px;
+  padding: 18px 12px;
+  min-height: 190px;
+  flex-wrap: wrap;
+}
