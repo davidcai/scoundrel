@@ -1,0 +1,54 @@
+:root {
+  --table: #14100c;
+  --table-edge: #2c2318;
+  --panel: #100d09;
+  --panel-raised: #1c160f;
+  --panel-border: #33291b;
+
+  --card-face-top: #f4e9d2;
+  --card-face-bottom: #e6d6b4;
+  --card-edge: #8b6f47;
+  --card-shadow: #0c0906;
+
+  --ink: #2a2018;
+  --ink-red: #a62b1f;
+
+  --gold: #e8c774;
+  --gold-dim: #6b5423;
+  --ember: #b8452f;
+  --ember-bright: #e0846b;
+  --ember-edge: #6b3524;
+  --leaf: #8fbf7a;
+
+  --text: #c8b48c;
+  --text-dim: #7d6a4a;
+
+  --serif: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+
+  --dur-deal: 260ms;
+  --dur-stagger: 60ms;
+  --dur-exit: 200ms;
+  --dur-health: 400ms;
+  --dur-float: 700ms;
+  --dur-shake: 260ms;
+}
+
+/* Accessibility requirement, and it also makes component tests deterministic. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-deal: 0s;
+    --dur-stagger: 0s;
+    --dur-exit: 0s;
+    --dur-health: 0s;
+    --dur-float: 0s;
+    --dur-shake: 0s;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0s !important;
+  }
+}
