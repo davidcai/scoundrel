@@ -1,0 +1,59 @@
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: rgb(8 6 4 / 78%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--card-edge);
+  border-radius: 7px;
+  padding: 24px 28px;
+  text-align: center;
+  max-width: 380px;
+}
+
+.headline {
+  margin: 0 0 6px;
+  color: var(--gold);
+  font-size: 20px;
+}
+
+.score {
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1.1;
+}
+
+.caption {
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.seed {
+  font-size: 10.5px;
+  color: var(--text-dim);
+  margin: 12px 0 16px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.button {
+  border: 1px solid var(--gold-dim);
+  background: #241c11;
+  color: var(--gold);
+  padding: 7px 14px;
+  border-radius: 3px;
+  font-size: 11px;
+}
