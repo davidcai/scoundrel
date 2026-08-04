@@ -1,0 +1,50 @@
+.drawer {
+  background: var(--panel-raised);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 10.5px;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.newest {
+  color: var(--text);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toggle {
+  color: var(--text-dim);
+  font-size: 8.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.list {
+  margin: 0;
+  padding: 0 12px 10px;
+  list-style: none;
+  max-height: 210px;
+  overflow-y: auto;
+  font-size: 10.5px;
+  line-height: 1.75;
+  color: var(--text-dim);
+}
+
+.list li:first-child {
+  color: var(--text);
+}
