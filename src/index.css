@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --color-dungeon-bg: #1a1a2e;
+  --color-dungeon-surface: #16213e;
+  --color-dungeon-stone: #0f0f23;
+  --color-dungeon-border: #2a2a4a;
+  --color-card-face: #f5e6d3;
+  --color-card-back: #1a1a3e;
+  --color-amber-glow: #f59e0b;
+  --color-health: #f59e0b;
+  --color-danger: #ef4444;
+  --color-success: #22c55e;
+  --color-text-primary: #e2e8f0;
+  --color-text-secondary: #94a3b8;
+  --color-suit-red: #dc2626;
+  --color-suit-dark: #1e293b;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: var(--color-dungeon-stone);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
