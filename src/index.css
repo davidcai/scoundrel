@@ -1,0 +1,743 @@
+:root {
+  --bg-deep: #0f0f1a;
+  --bg-panel: #1a1a2e;
+  --bg-card: #1e1e36;
+  --border: #2a2a4a;
+  --border-light: #3a3a5a;
+  --text: #e0e0f0;
+  --text-dim: #8888aa;
+  --text-faint: #555577;
+  --accent-health: #4ade80;
+  --accent-health-mid: #facc15;
+  --accent-health-low: #ef4444;
+  --accent-monster: #ef4444;
+  --accent-weapon: #60a5fa;
+  --accent-potion: #f472b6;
+  --accent-gold: #fbbf24;
+  --card-face: #f8f8f0;
+  --card-red: #dc2626;
+  --card-black: #1a1a2e;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lift: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --radius: 10px;
+  --transition: 0.2s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg-deep);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ===== Layout ===== */
+.game {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 20px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--accent-gold);
+  text-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 20px;
+}
+
+@media (max-width: 860px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ===== Health Bar ===== */
+.health-bar-container {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+}
+
+.health-bar-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.health-bar-label span:first-child {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+
+.health-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.health-bar-track {
+  height: 14px;
+  background: var(--bg-deep);
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.health-bar-fill {
+  height: 100%;
+  border-radius: 7px;
+  transition: width 0.4s ease, background 0.3s ease;
+}
+
+.health-bar-fill.high {
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+}
+
+.health-bar-fill.mid {
+  background: linear-gradient(90deg, #eab308, #facc15);
+}
+
+.health-bar-fill.low {
+  background: linear-gradient(90deg, #dc2626, #ef4444);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ===== Stats Row ===== */
+.stats-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stat-pill {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 80px;
+}
+
+.stat-pill-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+
+.stat-pill-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.stat-pill-value.warning {
+  color: var(--accent-gold);
+}
+
+.stat-pill-value.danger {
+  color: var(--accent-monster);
+}
+
+/* ===== Room ===== */
+.room-section {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.room-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.room-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.room-title .final-badge {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 2px 10px;
+  font-size: 0.7rem;
+  background: var(--accent-gold);
+  color: var(--bg-deep);
+  border-radius: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.resolve-progress {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.resolve-progress strong {
+  color: var(--text);
+}
+
+.room-cards {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ===== Card ===== */
+.card-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  animation: dealIn 0.3s ease;
+}
+
+@keyframes dealIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) rotate(-5deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0);
+  }
+}
+
+.card {
+  width: 110px;
+  height: 154px;
+  background: var(--card-face);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  position: relative;
+  cursor: default;
+  transition: transform var(--transition), box-shadow var(--transition);
+  user-select: none;
+  border: 2px solid transparent;
+}
+
+.card.interactable:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lift);
+}
+
+.card.role-monster {
+  border-color: var(--accent-monster);
+}
+
+.card.role-weapon {
+  border-color: var(--accent-weapon);
+}
+
+.card.role-potion {
+  border-color: var(--accent-potion);
+}
+
+.card-corner {
+  position: absolute;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card-corner.top-left {
+  top: 6px;
+  left: 8px;
+}
+
+.card-corner.bottom-right {
+  bottom: 6px;
+  right: 8px;
+  transform: rotate(180deg);
+}
+
+.card-corner .rank {
+  font-size: 0.9rem;
+}
+
+.card-corner .suit {
+  font-size: 0.8rem;
+}
+
+.card-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.8rem;
+  line-height: 1;
+}
+
+.card-red {
+  color: var(--card-red);
+}
+
+.card-black {
+  color: var(--card-black);
+}
+
+.card-value-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.card-value-badge.monster {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--accent-monster);
+}
+
+.card-value-badge.weapon {
+  background: rgba(96, 165, 250, 0.15);
+  color: var(--accent-weapon);
+}
+
+.card-value-badge.potion {
+  background: rgba(244, 114, 182, 0.15);
+  color: var(--accent-potion);
+}
+
+/* ===== Card Actions ===== */
+.card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 110px;
+}
+
+.btn {
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 7px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: center;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--border);
+  border-color: var(--text-dim);
+}
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btn-monster {
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.btn-monster:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: var(--accent-monster);
+}
+
+.btn-weapon {
+  border-color: rgba(96, 165, 250, 0.4);
+}
+
+.btn-weapon:hover:not(:disabled) {
+  background: rgba(96, 165, 250, 0.2);
+  border-color: var(--accent-weapon);
+}
+
+.btn-potion {
+  border-color: rgba(244, 114, 182, 0.4);
+}
+
+.btn-potion:hover:not(:disabled) {
+  background: rgba(244, 114, 182, 0.2);
+  border-color: var(--accent-potion);
+}
+
+.btn-run {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: rgba(251, 191, 36, 0.4);
+  color: var(--accent-gold);
+}
+
+.btn-run:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.25);
+}
+
+.btn-primary {
+  background: var(--accent-weapon);
+  border-color: var(--accent-weapon);
+  color: var(--bg-deep);
+  font-weight: 700;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border-light);
+}
+
+.btn-hint {
+  font-size: 0.65rem;
+  color: var(--text-faint);
+  text-align: center;
+  font-weight: 400;
+  padding: 2px 0;
+}
+
+/* ===== Weapon Panel ===== */
+.weapon-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.panel-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+
+.weapon-empty {
+  color: var(--text-faint);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 12px 0;
+  font-style: italic;
+}
+
+.weapon-equipped {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.weapon-card-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.weapon-mini-card {
+  width: 56px;
+  height: 78px;
+  background: var(--card-face);
+  border-radius: 6px;
+  border: 2px solid var(--accent-weapon);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow);
+}
+
+.weapon-mini-card .mini-rank {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.weapon-mini-card .mini-suit {
+  font-size: 1.4rem;
+}
+
+.weapon-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.weapon-info .weapon-strength {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.weapon-degradation {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  padding: 6px 10px;
+  background: var(--bg-deep);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.weapon-degradation .threshold {
+  color: var(--accent-gold);
+  font-weight: 700;
+}
+
+.weapon-degradation.fresh {
+  color: var(--accent-health);
+}
+
+.weapon-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.weapon-stack-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.weapon-stack-cards {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.stack-card {
+  width: 32px;
+  height: 44px;
+  background: var(--card-face);
+  border-radius: 4px;
+  border: 1px solid var(--accent-monster);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.stack-card .stack-suit {
+  font-size: 0.85rem;
+}
+
+/* ===== Log ===== */
+.log-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  flex: 1;
+  min-height: 200px;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.log-entries {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+}
+
+.log-entry {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border-left: 3px solid var(--border-light);
+  color: var(--text-dim);
+}
+
+.log-entry.fight { border-left-color: var(--accent-monster); }
+.log-entry.weapon { border-left-color: var(--accent-weapon); }
+.log-entry.potion { border-left-color: var(--accent-potion); }
+.log-entry.run { border-left-color: var(--accent-gold); color: var(--accent-gold); }
+.log-entry.room { border-left-color: var(--text-dim); color: var(--text); }
+.log-entry.win { border-left-color: var(--accent-health); color: var(--accent-health); font-weight: 700; }
+.log-entry.lose { border-left-color: var(--accent-monster); color: var(--accent-monster); font-weight: 700; }
+.log-entry.info { color: var(--text-faint); }
+
+/* ===== Action Bar ===== */
+.action-bar {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 12px 0;
+}
+
+/* ===== Seed Control ===== */
+.seed-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.seed-input {
+  width: 70px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  padding: 6px 8px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  color: var(--text);
+}
+
+.seed-input:focus {
+  outline: none;
+  border-color: var(--accent-weapon);
+}
+
+/* ===== End Screen ===== */
+.end-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.end-card {
+  background: var(--bg-panel);
+  border: 2px solid var(--border-light);
+  border-radius: 16px;
+  padding: 40px 48px;
+  text-align: center;
+  max-width: 400px;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.6);
+}
+
+.end-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+  letter-spacing: 0.05em;
+}
+
+.end-title.won {
+  color: var(--accent-health);
+  text-shadow: 0 0 30px rgba(74, 222, 128, 0.4);
+}
+
+.end-title.lost {
+  color: var(--accent-monster);
+  text-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+}
+
+.end-subtitle {
+  font-size: 1rem;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+}
+
+.end-score {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 28px;
+}
+
+.end-score.won { color: var(--accent-gold); }
+.end-score.lost { color: var(--accent-monster); }
+
+.end-card .btn {
+  font-size: 1rem;
+  padding: 12px 32px;
+}
+
+/* ===== Scrollbar ===== */
+.log-entries::-webkit-scrollbar {
+  width: 6px;
+}
+
+.log-entries::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+  border-radius: 3px;
+}
+
+.log-entries::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 3px;
+}
