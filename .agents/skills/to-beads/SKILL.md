@@ -78,7 +78,9 @@ Publish the approved breakdown. Prefer **atomic graph creation** so the epic, ch
 
 #### Preferred: `bd create --graph` (atomic)
 
-Write a JSON plan and create everything at once. Verified schema:
+Write a JSON plan and create everything at once. Verified schema (bd 1.1.2):
+
+**Version guard:** run `bd --version` first. The `--graph` flag and edge semantics below are pinned to bd ≥ 1.1.2; if the version is older or `--graph` is absent, use the fallback below regardless of graph size.
 
 ```json
 {
@@ -96,8 +98,8 @@ Write a JSON plan and create everything at once. Verified schema:
 Field rules:
 - `key` — local identifier used by `parent_key` and edge endpoints. Required.
 - `parent_key` — sets the hierarchical parent (the epic). Use this for epic→child links.
-- `priority` — **integer** 0–4 (0 = highest) in the graph JSON. (The CLI `--priority` flag is a string accepting `0`–`4` or `P0`–`P4`.)
-- `edges` — top-level array. `{"from_key": "...", "to_key": "...", "type": "blocks"}` means `from_key` **is blocked by** `to_key` (i.e. `to_key` blocks `from_key`; `from_key` depends on `to_key`). This matches `--deps` semantics — the issue depends on the listed id — so the two APIs agree. **Confirm edge direction against the approved breakdown before publishing.** (Beware: the dry-run does NOT validate edge direction — see Verify below.)
+- `priority` — **integer** 0–4 (0 = highest) in the graph JSON. A node omitting `priority` defaults to 2 (medium). (The CLI `--priority` flag is a string accepting `0`–`4` or `P0`–`P4`.)
+- `edges` — top-level array. `{"from_key": "...", "to_key": "...", "type": "blocks"}` means `from_key` **is blocked by** `to_key` (i.e. `to_key` blocks `from_key`; `from_key` depends on `to_key`). This matches `--deps` semantics — the issue depends on the listed id — so the two APIs agree. Direction empirically verified on bd 1.1.2: with edge `from_key:"b","to_key":"a"`, `bd show <B>` lists a `dependency_type:"blocks"` entry pointing at A and B drops out of `bd ready`. **Confirm edge direction against the approved breakdown before publishing.** (Beware: the dry-run does NOT validate edge direction — see Verify below.)
 - `description` — keep it short; link to the detailed plan doc (see below).
 
 Always dry-run first:
@@ -114,7 +116,7 @@ bd create --graph plan.json --json
 
 #### Fallback: epic + children with `--parent` and `--deps`
 
-If the graph JSON is unwieldy, create the epic first, then each child referencing the epic and its blockers:
+Use this when `--graph` is unavailable (older bd) OR the graph JSON is unwieldy. Create the epic first, then each child referencing the epic and its blockers:
 
 ```bash
 bd create "Auth system redesign" --type epic --json
@@ -133,11 +135,15 @@ So the word "blocks" means exactly what it says. When the new issue is the one b
 
 #### Pre-publish sanity check
 
-Before creating, confirm you're writing to the intended tracker — especially in nested-repo setups where a parent repo's DB may be shared:
+Before creating, confirm you're writing to the intended tracker — especially in nested-repo or worktree setups where a sibling repo's DB may be picked up:
 
 ```bash
-bd info   # check "Database:" path matches the intended repo (bd where also shows it)
+bd info   # "Database:" path must be inside the current repo root
+bd where  # shows the resolved .beads path
+git rev-parse --show-toplevel  # the repo root to compare against
 ```
+
+If the `Database:` path is NOT under `git rev-parse --show-toplevel`, stop — `bd` is resolving to a different project and every create will land in the wrong tracker. This happens silently in worktrees or when a sibling repo shares a parent directory.
 
 #### Republishing / delete + recreate
 
