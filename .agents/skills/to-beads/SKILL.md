@@ -99,9 +99,7 @@ Field rules:
 - `key` — local identifier used by `parent_key` and edge endpoints. Required.
 - `parent_key` — sets the hierarchical parent (the epic). Use this for epic→child links.
 - `priority` — **integer** 0–4 (0 = highest) in the graph JSON. A node omitting `priority` defaults to 2 (medium). (The CLI `--priority` flag is a string accepting `0`–`4` or `P0`–`P4`.)
-- `edges` — top-level array. `{"from_key": "...", "to_key": "...", "type": "blocks"}` means `from_key` **is blocked by** `to_key` (i.e. `to_key` blocks `from_key`; `from_key` depends on `to_key`). This matches `--deps` semantics — the issue depends on the listed id — so the two APIs agree. Direction empirically verified on bd 1.1.2: with edge `from_key:"b","to_key":"a"`, `bd show <B>` lists a `dependency_type:"blocks"` entry pointing at A and B drops out of `bd ready`. **Confirm edge direction against the approved breakdown before publishing.** (Beware: the dry-run does NOT validate edge direction — see Verify below.)
-
-  **Worked example** (so the direction is self-documenting, not just asserted): if ticket B should wait on ticket A, the edge is `{"from_key": "b", "to_key": "a", "type": "blocks"}` — `from_key` is the *blocked* issue, `to_key` is the *blocker*. After the live create, `bd ready --json` lists A (no blockers) but NOT B, and `bd show <B> --json` shows a `dependency_type: "blocks"` entry pointing at A. If you see B in `bd ready` instead, the edge is reversed — flip `from_key`/`to_key` (see step 7 for the delete-and-recreate commands).
+- `edges` — top-level array. **Direction rule:** `{"from_key": "X", "to_key": "Y", "type": "blocks"}` means **X is blocked by Y** (X depends on Y; Y is the blocker). Worked example: if B should wait on A, write `{"from_key": "b", "to_key": "a", "type": "blocks"}`. After the live create, `bd ready --json` lists A but NOT B, and `bd show <B> --json` shows a `dependency_type: "blocks"` entry pointing at A. If B appears ready instead, the edge is reversed — flip `from_key`/`to_key`. (The dry-run does NOT validate edge direction — see step 7.)
 - `description` — keep it short; link to the detailed plan doc (see below).
 
 Always dry-run first:
@@ -129,13 +127,7 @@ bd create "Add OAuth provider" --type feature --parent bd-10 --priority 1 --desc
 bd create "Implement token refresh" --type feature --parent bd-10 --priority 2 --deps bd-11 --description "See docs/spec.md#refresh" --json
 ```
 
-`--deps` accepts native dependency links: `bd-11` (bare) or typed `blocks:bd-11,discovered-from:bd-20`. Direction is **not** uniform across forms (verified against bd 1.1.2):
-
-- **Bare** `--deps bd-11` means *this* issue is **blocked by** `bd-11` (this issue depends on `bd-11`) — same direction as the graph edge.
-- **`discovered-from:bd-20`** means this issue was discovered from `bd-20` — same direction as bare.
-- **`blocks:bd-11`** is **active voice**: it means *this* issue **blocks** `bd-11` (i.e. `bd-11` is blocked by this issue) — the **opposite** direction from the bare form. It is the `--deps` spelling of `bd dep <this-id> --blocks bd-11`.
-
-So the word "blocks" means exactly what it says. When the new issue is the one being blocked, use the bare form: `--deps <blocker-id>`.
+`--deps` accepts native dependency links: `bd-11` (bare) or typed `blocks:bd-11,discovered-from:bd-20`. Direction follows the same rule as graph edges (X depends on Y), with one trap: **`blocks:bd-11` is active voice** — it means *this* issue **blocks** `bd-11` (i.e. `bd-11` is blocked by this issue), the **opposite** direction from the bare form. It is the `--deps` spelling of `bd dep <this-id> --blocks bd-11`. When the new issue is the one being blocked, use the bare form: `--deps <blocker-id>`.
 
 #### Pre-publish sanity check
 
@@ -155,22 +147,18 @@ If the `Database:` path is under `MAIN_ROOT`, you're in the same repo — procee
 
 #### Republishing / delete + recreate
 
-`bd create` / `bd create --graph` do **not** auto-import the export file, so deleting and recreating issues via `bd create` is safe — deleted issues stay deleted (verified on bd 1.1.2). Note `import.auto` actually defaults to `true`, but it only means `bd import` with no file argument reads from `.beads/issues.jsonl` by default; it is **not** triggered by `bd create`.
-
-The resurrection risk comes from **`bd import`** (explicit, or via sync flows), which upserts everything in the JSONL back into the DB. If a stale `.beads/issues.jsonl` exists, `bd import` can resurrect deleted issues and duplicate your graph. Because `import.auto` **defaults to `true`** (confirmed via `bd config show` on bd 1.1.2), treat the JSONL-aside step as the **default** before recreating — only skip it when `bd config show` explicitly reports `import.auto = false`:
+`bd create` does **not** auto-import the export file (`import.auto` only affects `bd import`, not `bd create`), so delete + recreate via `bd create` is safe — deleted issues stay deleted (bd 1.1.2). The resurrection risk is **`bd import`** (explicit or via sync), which upserts the JSONL back into the DB. Because `import.auto` **defaults to `true`** (check with `bd config show`; `bd config get import.auto` returns `(not set)` even when the default is active), treat the JSONL-aside step as the **default** before recreating — only skip it when `bd config show` explicitly reports `import.auto = false`:
 
 - Move the stale JSONL aside, or regenerate it fresh with `bd export -o .beads/issues.jsonl` (bare `bd export` writes to stdout, not the file).
 - Watch for `auto-imported N issues from .../issues.jsonl` in `bd` output — that line is the signal of a stale-export collision.
 
-To check the effective setting, use `bd config show` (look at `import.auto` / `import.path`). Avoid `bd config get import.auto` — it returns `(not set)` even when the effective default is `true`.
-
 ### 7. Verify after publish
 
-The dry-run validates graph **structure** only — it does not validate **edge direction** (it reports parent-child and blocks-edge counts separately but never enumerates which ticket blocks which), and a green dry-run does not guarantee the live create will succeed (bd may reject parent-child blocking paths at create time — see Publish above). So verify direction after the live create:
+The dry-run validates graph **structure** only — not **edge direction** (it reports parent-child and blocks-edge counts but never which ticket blocks which), and a green dry-run does not guarantee the live create will succeed (bd may reject parent-child blocking paths at create time — see Publish above). So verify direction after the live create:
 
 1. **Ready set**: `bd ready --json` must list exactly the tickets with no blockers (plus the epic). If a ticket that should be blocked appears ready, an edge is missing or reversed.
 2. **Spot-check a blocked ticket**: `bd show <id> --json` and confirm each `dependency_type: "blocks"` entry points at the correct blocker id (not back at the blocked ticket).
-3. If direction is wrong, delete the issues, flip the edges, and recreate — `from_key` = the blocked issue, `to_key` = the blocker. Delete with `bd delete <id> --force` (destructive; it removes both-direction dependency links and cannot be undone — batch with `bd delete bd-1 bd-2 --force`). Move the stale JSONL aside before recreating, since `import.auto` defaults to `true` (see Republishing above).
+3. If direction is wrong, delete the issues, flip the edges, and recreate (see the edge direction rule above). Delete with `bd delete <id> --force` (destructive; removes both-direction dependency links and cannot be undone — batch with `bd delete bd-1 bd-2 --force`). Move the stale JSONL aside before recreating, since `import.auto` defaults to `true` (see Republishing above).
 
 ### 8. Keep detailed plans in a doc; link from beads
 
