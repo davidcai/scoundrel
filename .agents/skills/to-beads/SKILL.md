@@ -35,7 +35,7 @@ Break the work into **tracer bullet** tickets under the epic.
 
 <vertical-slice-rules>
 
-- Each slice cuts a narrow but COMPLETE path through every layer (schema, API, UI, tests) — vertical, NOT a horizontal slice of one layer.
+- Each slice cuts a narrow but COMPLETE path through every layer of the system (e.g. schema, API, UI, tests — whatever layers this project actually has) — vertical, NOT a horizontal slice of one layer.
 - A completed slice is demoable or verifiable on its own.
 - Each slice is sized to fit in a single fresh context window.
 - Any pre-factoring should be done first, as its own ticket blocked by nothing (or only by the epic).
@@ -50,7 +50,7 @@ Give each ticket its **blocking edges** — the other tickets that must complete
 2. **Migrate** the call sites in batches sized by blast radius (per package, per directory). Each batch is its own ticket blocked by the expand. CI stays green batch to batch because the old form still exists.
 3. **Contract**: delete the old form once no caller remains, in a ticket blocked by every migrate batch.
 
-When even the batches can't stay green alone, keep the sequence but let them share an integration branch that all block a final integrate-and-verify ticket — green is promised only there.
+When even the batches can't stay green alone, keep the sequence but let the batches share a single integration lane (a beads fan-in: every batch ticket blocks one final integrate-and-verify ticket) — green is promised only at that final ticket, not per batch. (If you also use a shared git branch for the lane, that's incidental; the beads graph is the source of truth for the gating.)
 
 ### 5. Quiz the user (mandatory gate)
 
@@ -70,7 +70,7 @@ Ask the user:
 
 **Iterate until the user approves the breakdown. Do not publish before approval.**
 
-Prefer the `question` tool for the gate so approval is explicit and fast — offer bounded options (e.g. *Approve as-is* / *Merge tickets* / *Split further* / *Adjust blocking edges* / *Change epic title*) plus custom input, rather than a free-form prompt.
+Prefer the host's structured-approval tool (e.g. opencode's `question`) for the gate so approval is explicit and fast — offer bounded options (e.g. *Approve as-is* / *Merge tickets* / *Split further* / *Adjust blocking edges* / *Change epic title*) plus custom input, rather than a free-form prompt.
 
 ### 6. Publish to Beads
 
@@ -100,6 +100,8 @@ Field rules:
 - `parent_key` — sets the hierarchical parent (the epic). Use this for epic→child links.
 - `priority` — **integer** 0–4 (0 = highest) in the graph JSON. A node omitting `priority` defaults to 2 (medium). (The CLI `--priority` flag is a string accepting `0`–`4` or `P0`–`P4`.)
 - `edges` — top-level array. `{"from_key": "...", "to_key": "...", "type": "blocks"}` means `from_key` **is blocked by** `to_key` (i.e. `to_key` blocks `from_key`; `from_key` depends on `to_key`). This matches `--deps` semantics — the issue depends on the listed id — so the two APIs agree. Direction empirically verified on bd 1.1.2: with edge `from_key:"b","to_key":"a"`, `bd show <B>` lists a `dependency_type:"blocks"` entry pointing at A and B drops out of `bd ready`. **Confirm edge direction against the approved breakdown before publishing.** (Beware: the dry-run does NOT validate edge direction — see Verify below.)
+
+  **Worked example** (so the direction is self-documenting, not just asserted): if ticket B should wait on ticket A, the edge is `{"from_key": "b", "to_key": "a", "type": "blocks"}` — `from_key` is the *blocked* issue, `to_key` is the *blocker*. After the live create, `bd ready --json` lists A (no blockers) but NOT B, and `bd show <B> --json` shows a `dependency_type: "blocks"` entry pointing at A. If you see B in `bd ready` instead, the edge is reversed — flip `from_key`/`to_key` (see step 7 for the delete-and-recreate commands).
 - `description` — keep it short; link to the detailed plan doc (see below).
 
 Always dry-run first:
@@ -107,6 +109,8 @@ Always dry-run first:
 ```bash
 bd create --graph plan.json --dry-run
 ```
+
+The dry-run validates graph **structure** only — it reports issue/edge/parent-child counts but never enumerates which ticket blocks which, and it does NOT validate edge direction. It can also pass while a live create is later rejected: bd 1.1.2 prints *"dry-run validates the graph structure only; live create may still reject parent-child blocking paths after resolving stored dependencies"* — i.e. a parent-child link that also implies a blocking path can be rejected at create time even though the dry-run succeeded. So a green dry-run is necessary but not sufficient.
 
 Then publish:
 
@@ -135,21 +139,25 @@ So the word "blocks" means exactly what it says. When the new issue is the one b
 
 #### Pre-publish sanity check
 
-Before creating, confirm you're writing to the intended tracker — especially in nested-repo or worktree setups where a sibling repo's DB may be picked up:
+Before creating, confirm you're writing to the intended tracker — especially in nested-repo or worktree setups where a sibling repo's DB may be picked up. The check must distinguish two cases that look identical to a naive comparison:
+
+- **Same-repo worktree** — the DB lives under the *main* repo root (not the current worktree root) because `bd` resolves to the main repo's `.beads`. This is intended; the worktree shares the main repo's tracker. Do NOT stop.
+- **Sibling-repo leakage** — the DB belongs to an *unrelated* repo. Stop; every create will land in the wrong tracker.
+
+Comparing the DB path to `git rev-parse --show-toplevel` is **wrong in a worktree**: `--show-toplevel` returns the *worktree* root while `bd` resolves to the *main* repo's `.beads`, so a correct same-repo setup would be falsely flagged. Use the common git dir to find the main repo root instead:
 
 ```bash
-bd info   # "Database:" path must be inside the current repo root
-bd where  # shows the resolved .beads path
-git rev-parse --show-toplevel  # the repo root to compare against
+bd info                                                        # "Database:" path to check
+MAIN_ROOT=$(dirname "$(git rev-parse --git-common-dir)")       # main repo root (correct in worktrees)
 ```
 
-If the `Database:` path is NOT under `git rev-parse --show-toplevel`, stop — `bd` is resolving to a different project and every create will land in the wrong tracker. This happens silently in worktrees or when a sibling repo shares a parent directory.
+If the `Database:` path is under `MAIN_ROOT`, you're in the same repo — proceed. If it is NOT under `MAIN_ROOT`, stop — `bd` is resolving to a different project and every create will land in the wrong tracker. This happens silently when a sibling repo shares a parent directory.
 
 #### Republishing / delete + recreate
 
 `bd create` / `bd create --graph` do **not** auto-import the export file, so deleting and recreating issues via `bd create` is safe — deleted issues stay deleted (verified on bd 1.1.2). Note `import.auto` actually defaults to `true`, but it only means `bd import` with no file argument reads from `.beads/issues.jsonl` by default; it is **not** triggered by `bd create`.
 
-The resurrection risk comes from **`bd import`** (explicit, or via sync flows), which upserts everything in the JSONL back into the DB. If a stale `.beads/issues.jsonl` exists, `bd import` can resurrect deleted issues and duplicate your graph. Before recreating:
+The resurrection risk comes from **`bd import`** (explicit, or via sync flows), which upserts everything in the JSONL back into the DB. If a stale `.beads/issues.jsonl` exists, `bd import` can resurrect deleted issues and duplicate your graph. Because `import.auto` **defaults to `true`** (confirmed via `bd config show` on bd 1.1.2), treat the JSONL-aside step as the **default** before recreating — only skip it when `bd config show` explicitly reports `import.auto = false`:
 
 - Move the stale JSONL aside, or regenerate it fresh with `bd export -o .beads/issues.jsonl` (bare `bd export` writes to stdout, not the file).
 - Watch for `auto-imported N issues from .../issues.jsonl` in `bd` output — that line is the signal of a stale-export collision.
@@ -158,11 +166,11 @@ To check the effective setting, use `bd config show` (look at `import.auto` / `i
 
 ### 7. Verify after publish
 
-The dry-run validates graph **structure** only — it does not validate **edge direction** (it reports parent-child and blocks-edge counts separately but never enumerates which ticket blocks which). So verify direction after the live create:
+The dry-run validates graph **structure** only — it does not validate **edge direction** (it reports parent-child and blocks-edge counts separately but never enumerates which ticket blocks which), and a green dry-run does not guarantee the live create will succeed (bd may reject parent-child blocking paths at create time — see Publish above). So verify direction after the live create:
 
 1. **Ready set**: `bd ready --json` must list exactly the tickets with no blockers (plus the epic). If a ticket that should be blocked appears ready, an edge is missing or reversed.
 2. **Spot-check a blocked ticket**: `bd show <id> --json` and confirm each `dependency_type: "blocks"` entry points at the correct blocker id (not back at the blocked ticket).
-3. If direction is wrong, delete the issues, flip the edges, and recreate — `from_key` = the blocked issue, `to_key` = the blocker. (Only move the stale JSONL aside if auto-import is enabled — see Republishing above.)
+3. If direction is wrong, delete the issues, flip the edges, and recreate — `from_key` = the blocked issue, `to_key` = the blocker. Delete with `bd delete <id> --force` (destructive; it removes both-direction dependency links and cannot be undone — batch with `bd delete bd-1 bd-2 --force`). Move the stale JSONL aside before recreating, since `import.auto` defaults to `true` (see Republishing above).
 
 ### 8. Keep detailed plans in a doc; link from beads
 
