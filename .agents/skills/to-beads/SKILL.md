@@ -38,7 +38,7 @@ Break the work into **tracer bullet** tickets under the epic.
 - Each slice cuts a narrow but COMPLETE path through every layer (schema, API, UI, tests) — vertical, NOT a horizontal slice of one layer.
 - A completed slice is demoable or verifiable on its own.
 - Each slice is sized to fit in a single fresh context window.
-- Any prefactoring should be done first, as its own ticket blocked by nothing (or only by the epic).
+- Any pre-factoring should be done first, as its own ticket blocked by nothing (or only by the epic).
 
 </vertical-slice-rules>
 
@@ -57,7 +57,7 @@ When even the batches can't stay green alone, keep the sequence but let them sha
 Present the proposed breakdown as a numbered list. For the epic, show the title (especially flagging any synthesized title for confirmation). For each ticket, show:
 
 - **Title**: short descriptive name
-- **Type**: feature / task / bug / chore (epic for the parent)
+- **Type**: feature / task / bug / chore / decision (epic for the parent)
 - **Blocked by**: which other tickets (if any) must complete first
 - **What it delivers**: the end-to-end behaviour this ticket makes work
 
@@ -69,6 +69,8 @@ Ask the user:
 - Is the epic title right (if synthesized)?
 
 **Iterate until the user approves the breakdown. Do not publish before approval.**
+
+Prefer the `question` tool for the gate so approval is explicit and fast — offer bounded options (e.g. *Approve as-is* / *Merge tickets* / *Split further* / *Adjust blocking edges* / *Change epic title*) plus custom input, rather than a free-form prompt.
 
 ### 6. Publish to Beads
 
@@ -94,8 +96,8 @@ Write a JSON plan and create everything at once. Verified schema:
 Field rules:
 - `key` — local identifier used by `parent_key` and edge endpoints. Required.
 - `parent_key` — sets the hierarchical parent (the epic). Use this for epic→child links.
-- `priority` — **integer** 0–4 (0 = highest). Not a string.
-- `edges` — top-level array. `{"from_key": "...", "to_key": "...", "type": "blocks"}` means *from* blocks *to* (i.e. `to_key` is blocked by `from_key`). Confirm edge direction against the approved breakdown before publishing.
+- `priority` — **integer** 0–4 (0 = highest) in the graph JSON. (The CLI `--priority` flag is a string accepting `0`–`4` or `P0`–`P4`.)
+- `edges` — top-level array. `{"from_key": "...", "to_key": "...", "type": "blocks"}` means `from_key` **is blocked by** `to_key` (i.e. `to_key` blocks `from_key`; `from_key` depends on `to_key`). This matches `--deps` semantics — the issue depends on the listed id — so the two APIs agree. **Confirm edge direction against the approved breakdown before publishing.** (Beware: the dry-run does NOT validate edge direction — see Verify below.)
 - `description` — keep it short; link to the detailed plan doc (see below).
 
 Always dry-run first:
@@ -121,9 +123,42 @@ bd create "Add OAuth provider" --type feature --parent bd-10 --priority 1 --desc
 bd create "Implement token refresh" --type feature --parent bd-10 --priority 2 --deps bd-11 --description "See docs/spec.md#refresh" --json
 ```
 
-`--deps` accepts native blocking links: `bd-11`, or typed `blocks:bd-11,discovered-from:bd-20`.
+`--deps` accepts native dependency links: `bd-11` (bare) or typed `blocks:bd-11,discovered-from:bd-20`. Direction is **not** uniform across forms (verified against bd 1.1.2):
 
-### 7. Keep detailed plans in a doc; link from beads
+- **Bare** `--deps bd-11` means *this* issue is **blocked by** `bd-11` (this issue depends on `bd-11`) — same direction as the graph edge.
+- **`discovered-from:bd-20`** means this issue was discovered from `bd-20` — same direction as bare.
+- **`blocks:bd-11`** is **active voice**: it means *this* issue **blocks** `bd-11` (i.e. `bd-11` is blocked by this issue) — the **opposite** direction from the bare form. It is the `--deps` spelling of `bd dep <this-id> --blocks bd-11`.
+
+So the word "blocks" means exactly what it says. When the new issue is the one being blocked, use the bare form: `--deps <blocker-id>`.
+
+#### Pre-publish sanity check
+
+Before creating, confirm you're writing to the intended tracker — especially in nested-repo setups where a parent repo's DB may be shared:
+
+```bash
+bd info   # check "Database:" path matches the intended repo (bd where also shows it)
+```
+
+#### Republishing / delete + recreate
+
+`bd create` / `bd create --graph` do **not** auto-import the export file, so deleting and recreating issues via `bd create` is safe — deleted issues stay deleted (verified on bd 1.1.2). Note `import.auto` actually defaults to `true`, but it only means `bd import` with no file argument reads from `.beads/issues.jsonl` by default; it is **not** triggered by `bd create`.
+
+The resurrection risk comes from **`bd import`** (explicit, or via sync flows), which upserts everything in the JSONL back into the DB. If a stale `.beads/issues.jsonl` exists, `bd import` can resurrect deleted issues and duplicate your graph. Before recreating:
+
+- Move the stale JSONL aside, or regenerate it fresh with `bd export -o .beads/issues.jsonl` (bare `bd export` writes to stdout, not the file).
+- Watch for `auto-imported N issues from .../issues.jsonl` in `bd` output — that line is the signal of a stale-export collision.
+
+To check the effective setting, use `bd config show` (look at `import.auto` / `import.path`). Avoid `bd config get import.auto` — it returns `(not set)` even when the effective default is `true`.
+
+### 7. Verify after publish
+
+The dry-run validates graph **structure** only — it does not validate **edge direction** (it reports parent-child and blocks-edge counts separately but never enumerates which ticket blocks which). So verify direction after the live create:
+
+1. **Ready set**: `bd ready --json` must list exactly the tickets with no blockers (plus the epic). If a ticket that should be blocked appears ready, an edge is missing or reversed.
+2. **Spot-check a blocked ticket**: `bd show <id> --json` and confirm each `dependency_type: "blocks"` entry points at the correct blocker id (not back at the blocked ticket).
+3. If direction is wrong, delete the issues, flip the edges, and recreate — `from_key` = the blocked issue, `to_key` = the blocker. (Only move the stale JSONL aside if auto-import is enabled — see Republishing above.)
+
+### 8. Keep detailed plans in a doc; link from beads
 
 Beads are intentionally lightweight for tracking execution, not storing full specifications.
 
