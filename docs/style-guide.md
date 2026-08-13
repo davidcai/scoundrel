@@ -53,21 +53,20 @@ box-shadow:
 ## Card anatomy (`.card`)
 
 ```
- ╔══════════════╗  5:7 ratio, --card-w (128px default; ALL interior type
- ║▓▓▓ crown ▓▓▓║  scales off --card-w via calc — cards stay proportioned)
- ║┌──┐        ┌─┐│  crown: 6px suit strip; corner chips: solid parchment pad,
- ║│A♠│  pips  └─┘│  ink frame, hard suit-colored undercut
- ║└──┘ 2-col    ││  pips: 2-stepped columns, lower column rotated 180°
- ║       /court ││  field insets: 30%/20% of width top/bottom — pip rows BEGIN
- ║  ┌─┐        ││  and END clear of the corner chips (no stray-pip confusion)
- ║  └─┘       S│A│  court: big glyph + ink monogram with suit keyline
- ╚══════════════╝  frame: ink border, chamfered corners, hard cast shadow
+ ╔══════════════╗  5:7 ratio, --card-w (128px default); ALL interior type
+ ║▓▓▓ crown ▓▓▓║  scales off --card-w via calc — cards stay proportioned
+ ║ [A♠]         ║  crown: ~5.5% width suit strip; corner chips: SIDE-BY-SIDE
+ ║    pip field ║  rank+glyph badge — 2px ink frame + 2px suit undercut
+ ║    / court   ║  on a solid parchment pad (depth ≈ 0.19w + 12px)
+ ║        [S♥A] ║  pip field insets: 0.30w+14 top / 0.28w+12 bottom —
+ ╚══════════════╝  chips (frame + shadow) clear all pip/face art by ≥4px
 ```
 
-- Parchment face + ink frame, always. Face is **flat** — no stripes, no texture (artwork never gets segmented).
-- **In-card suit shades are darker than scene accents** (contrast ≥4.5:1 on parchment): club `#2e5620`, spade `#42378f`, diamond `#7a5514`, heart `#a1203a`. The bright scene shades (`--club` etc.) are for dark-backdrop use only (HUD hearts, inline glyphs, About rules list).
-- Rank chips: ink rank char (13% of card width — ≥15px on room cards) with a 2px suit-colored hard drop keyline; suit glyph below in the dark in-card shade.
-- Play-screen sizes: room `clamp(112px, 30vw, 148px)` (short windows ≤860px tall drop to 118px so the full table fits; weapon/kill scale 88→78px); About legend 96px; weapon zone 88px.
+- Parchment face + ink frame, always flat — no stripes or texture (artwork never gets segmented).
+- **In-card suit shades are darker than scene accents** (contrast ≥4.5:1 on parchment): club `#2e5620`, spade `#42378f`, diamond `#7a5514`, heart `#a1203a`. Bright scene shades (`--club` etc.) are for dark backdrops only (HUD hearts, inline glyphs).
+- Rank chips: ink rank char (13% of card width ≈ 23px on room cards) with a 2px suit-colored hard drop keyline, suit glyph (9% width) beside it.
+- Pips: 2 stepped columns, lower column rotated 180°; glyph size is parametric on row count (`--pip-size` = 0.24w / 0.185w / 0.15w / 0.115w for ≤2 / 3 / 4 / 5 rows) so 10-pip cards fit the cleared field.
+- Play-screen sizes: room `clamp(112px, 30vw, 176px)` (18px gaps — short desktops ≤860px tall compress chrome, never the cards); weapon zone 96px (84px in the short-window query); About legend 96px.
 - Face-down: raised dark hatch + stepped-dagger glyph.
 - Interactive states: hover/focus lifts −6px; `selected` lifts + focus-yellow ring; `disabled` desaturates, no lift.
 

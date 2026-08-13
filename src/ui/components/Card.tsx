@@ -39,6 +39,9 @@ function CardFace({ parsed }: { parsed: ParsedCard }) {
   const { rank, suit, value } = parsed
   const isCourtOrAce = rank === 'J' || rank === 'Q' || rank === 'K' || rank === 'A'
   const pipRows = Math.ceil(value / 2)
+  /** Glyph width as a fraction of --card-w: denser boards get smaller pips
+   *  so five pip rows always fit inside the chip-cleared field. */
+  const pipSize = pipRows >= 5 ? 0.115 : pipRows === 4 ? 0.15 : pipRows === 3 ? 0.185 : 0.24
   return (
     <>
       <span className="card-corner card-corner--tl">
@@ -52,7 +55,10 @@ function CardFace({ parsed }: { parsed: ParsedCard }) {
             <span className="card-court-letter">{rank}</span>
           </span>
         ) : (
-          <span className="card-pips" style={{ '--pip-rows': pipRows } as CSSProperties}>
+          <span
+            className="card-pips"
+            style={{ '--pip-rows': pipRows, '--pip-size': pipSize } as CSSProperties}
+          >
             {Array.from({ length: value }, (_, i) => (
               <SuitGlyph
                 key={i}

@@ -225,11 +225,11 @@ function Hud({ state, lastEvent }: { state: GameState; lastEvent: string | null 
       <div className="hud-strip">
         <div className="hud-block">
           <span className="hud-label">HP</span>
-          <span className="hp-row" aria-hidden="true">
+          <span className="hp-row">
             <HitPoints hp={state.hp} maxHp={state.maxHp} />
-          </span>
-          <span className="hud-value">
-            {state.hp} / {state.maxHp}
+            <span className="hud-value">
+              {state.hp} / {state.maxHp}
+            </span>
           </span>
         </div>
 

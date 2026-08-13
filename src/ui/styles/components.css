@@ -149,14 +149,18 @@
 }
 
 /* ---------- Card ----------
-   Anatomy: ink frame with chamfered pixel corners, parchment face, a 6px
-   meaning-colored crown strip, corner rank chips (solid backing, ink rank,
-   darker in-card suit glyph), and a pip field. The face is FLAT parchment —
-   no stripes, no texture — so artwork never gets segmented.
+   Anatomy: ink frame with chamfered pixel corners, parchment face, a suit
+   crown strip, SIDE-BY-SIDE corner rank chips (rank keyline + suit glyph in
+   one horizontal badge), and a pip field. The face is FLAT parchment.
 
    width --card-w (default 128px); height follows the 5:7 poker ratio.
-   All interior typography scales off --card-w, so cards stay proportioned
-   at any size. */
+   All interior sizing scales off --card-w via calc:
+     chip = rank (0.13w) + glyph (0.09w) side by side, 2px ink frame +
+            2px suit undercut — total depth ≈ 0.19w + 12px, so
+     pip field insets: top 0.30w + 14px, bottom 0.28w + 12px — every chip
+            (frame + shadow included) clears the field by ≥4px on every card
+            size; pip glyph size is parametric on row count (--pip-size)
+            set by Card.tsx so 10-pip boards fit the cleared field. */
 .card {
   --card-w: 128px;
   --card-accent: var(--steel);
@@ -227,31 +231,31 @@
   content: '';
   position: absolute;
   inset: 0 0 auto;
-  height: max(6px, calc(var(--card-w) * 0.06));
+  height: max(6px, calc(var(--card-w) * 0.055));
   background: var(--card-accent);
   box-shadow: 0 2px 0 0 var(--parchment-dim);
 }
 
 .card-face {
   position: absolute;
-  /* Deep top/bottom insets: the pip field starts and ends clear of both
-     corner chips, so nothing in the field can be mistaken for a stray pip. */
-  inset: calc(var(--card-w) * 0.3) 6px calc(var(--card-w) * 0.2);
+  /* Clearance formula: field starts below (chip bottom + 4px shadow + 4px
+     gap) and ends above the mirrored chip — see the anatomy comment. */
+  inset: calc(var(--card-w) * 0.3 + 14px) 6px calc(var(--card-w) * 0.28 + 12px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 
-/* Corner chip: solid parchment pad with an ink frame and a hard suit-colored
-   undercut — real separation from the artwork in every suit. */
+/* Corner chip: rank + glyph side by side on a solid parchment pad with an
+   ink frame and a hard suit-colored undercut. */
 .card-corner {
   position: absolute;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  gap: 3px;
   line-height: 1;
-  padding: calc(var(--card-w) * 0.03);
+  padding: 3px 6px;
   background: var(--parchment);
   border: 2px solid var(--ink);
   box-shadow: 2px 2px 0 0 var(--card-suit);
@@ -260,12 +264,12 @@
 
 .card-corner--tl {
   top: calc(var(--card-w) * 0.07);
-  left: calc(var(--card-w) * 0.05);
+  left: calc(var(--card-w) * 0.055);
 }
 
 .card-corner--br {
-  right: calc(var(--card-w) * 0.05);
-  bottom: calc(var(--card-w) * 0.05);
+  right: calc(var(--card-w) * 0.055);
+  bottom: calc(var(--card-w) * 0.07);
   transform: rotate(180deg);
 }
 
@@ -280,12 +284,11 @@
 }
 
 .card-corner .suit-glyph {
-  font-size: calc(var(--card-w) * 0.1);
-  margin-top: calc(var(--card-w) * 0.02);
+  font-size: calc(var(--card-w) * 0.09);
 }
 
 /* Numeric pip field: two stepped columns, lower column inverted like a
-   physical deck. Rows/count come from inline CSS variables. */
+   physical deck. --pip-rows and --pip-size come from Card.tsx. */
 .card-pips {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -300,7 +303,7 @@
 }
 
 .card-pips .suit-glyph {
-  font-size: calc(var(--card-w) * 0.15);
+  font-size: calc(var(--card-w) * var(--pip-size, 0.15));
 }
 
 .card-pips .suit-glyph--flip {
@@ -312,17 +315,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: calc(var(--card-w) * 0.05);
+  gap: calc(var(--card-w) * 0.04);
   color: var(--card-suit);
 }
 
 .card-court .suit-glyph {
-  font-size: calc(var(--card-w) * 0.4);
+  font-size: calc(var(--card-w) * 0.36);
 }
 
 .card-court-letter {
   font-family: var(--font-display);
-  font-size: calc(var(--card-w) * 0.15);
+  font-size: calc(var(--card-w) * 0.13);
   color: var(--ink);
   text-shadow: 2px 2px 0 var(--card-suit);
 }

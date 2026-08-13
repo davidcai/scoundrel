@@ -278,6 +278,7 @@
 
 .hud-value {
   font-size: var(--text-body);
+  white-space: nowrap;
 }
 
 .hud-highlights {
@@ -287,9 +288,14 @@
 
 .hp-row {
   display: flex;
-  gap: 2px;
+  align-items: center;
+  gap: var(--space-2);
   font-size: 16px;
   line-height: 1;
+}
+
+.hp-row .suit-glyph {
+  margin-right: 2px;
 }
 
 .hp-heart--half {
@@ -333,29 +339,33 @@
 .room-row {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-6);
+  gap: 18px;
   justify-content: center;
   padding-block: var(--space-2);
 }
 
 .room-row .card {
-  --card-w: clamp(112px, 30vw, 148px);
+  --card-w: clamp(112px, 30vw, 176px);
 }
 
-/* Short desktop windows (e.g. 1280×800): keep the whole table in view — HUD,
-   room, weapon zone, action row — by trading peak card size and padding,
-   not layout. */
+/* Short desktop windows (e.g. 1280×800): compress chrome (gaps, panel pads,
+   HUD stacking) so 176px cards still leave the full table on one screen. */
 @media (max-height: 860px) and (min-width: 700px) {
   .play-screen {
-    gap: var(--space-3);
+    gap: var(--space-2);
+    padding-block: var(--space-2);
+  }
+
+  .play-screen .screen-header {
+    padding-bottom: var(--space-2);
   }
 
   .room-row .card {
-    --card-w: 118px;
+    --card-w: 176px;
   }
 
   .hud-panel {
-    padding: var(--space-3) var(--space-6);
+    padding: var(--space-2) var(--space-6);
   }
 
   .hud-event {
@@ -363,13 +373,26 @@
     padding-top: var(--space-2);
   }
 
+  .room-panel,
+  .weapon-panel {
+    padding: var(--space-4);
+  }
+
+  .room-panel .panel-title {
+    margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-4)) var(--space-3);
+  }
+
   .confirm-strip {
-    margin-top: var(--space-3);
-    min-height: 64px;
+    margin-top: var(--space-2);
+    min-height: 56px;
   }
 
   .weapon-panel {
-    --wz-card: 78px;
+    --wz-card: 84px;
+  }
+
+  .weapon-header {
+    margin-bottom: var(--space-2);
   }
 }
 
@@ -457,7 +480,7 @@
 }
 
 .weapon-zone {
-  --wz-card: 88px;
+  --wz-card: 96px;
   display: flex;
   align-items: center;
   gap: var(--space-4);
