@@ -150,12 +150,16 @@
 
 /* ---------- Card ----------
    Anatomy: ink frame with chamfered pixel corners, parchment face, a 6px
-   meaning-colored crown strip, corner rank chips, and a pip field.
-   width --card-w; height follows the 5:7 poker ratio. */
+   meaning-colored crown strip, corner rank chips (solid backing, ink rank,
+   darker in-card suit glyph), and a pip field. The face is FLAT parchment —
+   no stripes, no texture — so artwork never gets segmented.
+
+   width --card-w (default 128px); height follows the 5:7 poker ratio.
+   All interior typography scales off --card-w, so cards stay proportioned
+   at any size. */
 .card {
-  --card-w: 96px;
+  --card-w: 128px;
   --card-accent: var(--steel);
-  --card-suit: var(--ink);
 
   position: relative;
   width: var(--card-w);
@@ -179,24 +183,43 @@
   );
 }
 
+/* Card-local suit shades — darker than the scene accents so pips/rank chips
+   hold ≥4.5:1 against the parchment face (the bright scene shades top out
+   around 2.8:1, which was the gold-Diamonds legibility failure). */
 .card--club {
   --card-accent: var(--club);
-  --card-suit: var(--club);
+  --card-suit: #2e5620;
 }
 
 .card--spade {
   --card-accent: var(--spade);
-  --card-suit: var(--spade);
+  --card-suit: #42378f;
 }
 
 .card--diamond {
   --card-accent: var(--diamond);
-  --card-suit: var(--diamond);
+  --card-suit: #7a5514;
 }
 
 .card--heart {
   --card-accent: var(--heart);
-  --card-suit: var(--heart);
+  --card-suit: #a1203a;
+}
+
+.card .suit-glyph--club {
+  color: #2e5620;
+}
+
+.card .suit-glyph--spade {
+  color: #42378f;
+}
+
+.card .suit-glyph--diamond {
+  color: #7a5514;
+}
+
+.card .suit-glyph--heart {
+  color: #a1203a;
 }
 
 /* Meaning crown strip */
@@ -204,49 +227,61 @@
   content: '';
   position: absolute;
   inset: 0 0 auto;
-  height: 6px;
+  height: max(6px, calc(var(--card-w) * 0.06));
   background: var(--card-accent);
-  box-shadow: 0 1px 0 0 var(--parchment-dim);
+  box-shadow: 0 2px 0 0 var(--parchment-dim);
 }
 
 .card-face {
   position: absolute;
-  inset: 8px 6px 6px;
+  /* Deep top/bottom insets: the pip field starts and ends clear of both
+     corner chips, so nothing in the field can be mistaken for a stray pip. */
+  inset: calc(var(--card-w) * 0.3) 6px calc(var(--card-w) * 0.2);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 
+/* Corner chip: solid parchment pad with an ink frame and a hard suit-colored
+   undercut — real separation from the artwork in every suit. */
 .card-corner {
   position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
   line-height: 1;
-  color: var(--card-suit);
+  padding: calc(var(--card-w) * 0.03);
+  background: var(--parchment);
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 0 var(--card-suit);
   z-index: 1;
 }
 
 .card-corner--tl {
-  top: 8px;
-  left: 6px;
+  top: calc(var(--card-w) * 0.07);
+  left: calc(var(--card-w) * 0.05);
 }
 
 .card-corner--br {
-  right: 6px;
-  bottom: 6px;
+  right: calc(var(--card-w) * 0.05);
+  bottom: calc(var(--card-w) * 0.05);
   transform: rotate(180deg);
 }
 
+/* Ink rank, pixel display face, hard suit-colored drop acting as a keyline. */
 .card-rank {
-  font-size: 14px;
+  font-family: var(--font-display);
+  font-size: calc(var(--card-w) * 0.13);
+  line-height: 1;
   letter-spacing: 0;
+  color: var(--ink);
+  text-shadow: 2px 2px 0 var(--card-suit);
 }
 
 .card-corner .suit-glyph {
-  font-size: 11px;
-  margin-top: 2px;
+  font-size: calc(var(--card-w) * 0.1);
+  margin-top: calc(var(--card-w) * 0.02);
 }
 
 /* Numeric pip field: two stepped columns, lower column inverted like a
@@ -259,13 +294,13 @@
   align-items: center;
   justify-items: center;
   gap: 2px 4px;
-  width: 62%;
+  width: 66%;
   height: 100%;
   color: var(--card-suit);
 }
 
 .card-pips .suit-glyph {
-  font-size: 13px;
+  font-size: calc(var(--card-w) * 0.15);
 }
 
 .card-pips .suit-glyph--flip {
@@ -277,17 +312,19 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: calc(var(--card-w) * 0.05);
   color: var(--card-suit);
 }
 
 .card-court .suit-glyph {
-  font-size: 34px;
+  font-size: calc(var(--card-w) * 0.4);
 }
 
 .card-court-letter {
   font-family: var(--font-display);
-  font-size: var(--text-m);
+  font-size: calc(var(--card-w) * 0.15);
+  color: var(--ink);
+  text-shadow: 2px 2px 0 var(--card-suit);
 }
 
 /* Face-down deck back */

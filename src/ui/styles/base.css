@@ -22,23 +22,6 @@ body {
   font-smooth: never;
 }
 
-/* Faint CRT scanline wash over the whole dungeon. Purely cosmetic. */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 3px,
-    rgb(0 0 0 / 8%) 3px,
-    rgb(0 0 0 / 8%) 4px
-  );
-  mix-blend-mode: multiply;
-}
-
 #root {
   min-height: 100dvh;
 }

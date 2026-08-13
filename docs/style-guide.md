@@ -53,18 +53,23 @@ box-shadow:
 ## Card anatomy (`.card`)
 
 ```
- ┌──────────────┐  5:7 ratio, --card-w (96px default)
- │▓▓▓▓ crown ▓▓│  6px suit-meaning strip (club/spade/diamond/heart)
- │ A♠        ♠ │
- │    pips     │  2-stepped columns, lower column rotated 180° (physical-deck flip)
- │    /court   │  J/Q/K/A → big glyph + monogram letter
- │ ♠        ♠A │  corner chips: rank + mini glyph, bottom-right rotated
- └──────────────┘  frame: ink border, chamfered corners, hard cast shadow
+ ╔══════════════╗  5:7 ratio, --card-w (128px default; ALL interior type
+ ║▓▓▓ crown ▓▓▓║  scales off --card-w via calc — cards stay proportioned)
+ ║┌──┐        ┌─┐│  crown: 6px suit strip; corner chips: solid parchment pad,
+ ║│A♠│  pips  └─┘│  ink frame, hard suit-colored undercut
+ ║└──┘ 2-col    ││  pips: 2-stepped columns, lower column rotated 180°
+ ║       /court ││  field insets: 30%/20% of width top/bottom — pip rows BEGIN
+ ║  ┌─┐        ││  and END clear of the corner chips (no stray-pip confusion)
+ ║  └─┘       S│A│  court: big glyph + ink monogram with suit keyline
+ ╚══════════════╝  frame: ink border, chamfered corners, hard cast shadow
 ```
 
-- Parchment face + ink frame, always. Suit color appears in pips, corners, crown.
+- Parchment face + ink frame, always. Face is **flat** — no stripes, no texture (artwork never gets segmented).
+- **In-card suit shades are darker than scene accents** (contrast ≥4.5:1 on parchment): club `#2e5620`, spade `#42378f`, diamond `#7a5514`, heart `#a1203a`. The bright scene shades (`--club` etc.) are for dark-backdrop use only (HUD hearts, inline glyphs, About rules list).
+- Rank chips: ink rank char (13% of card width — ≥15px on room cards) with a 2px suit-colored hard drop keyline; suit glyph below in the dark in-card shade.
+- Play-screen sizes: room `clamp(112px, 30vw, 148px)` (short windows ≤860px tall drop to 118px so the full table fits; weapon/kill scale 88→78px); About legend 96px; weapon zone 88px.
 - Face-down: raised dark hatch + stepped-dagger glyph.
-- Interactive states: hover/focus lifts −6px; `selected` lifts + focus-yellow ring; `disabled` desaturates, no lift. Tap target ≥ 44px is handled by card width ≥ 92px in play contexts.
+- Interactive states: hover/focus lifts −6px; `selected` lifts + focus-yellow ring; `disabled` desaturates, no lift.
 
 ## Motion
 

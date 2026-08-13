@@ -3,6 +3,7 @@
 This file provides instructions and context for AI coding agents working on this project.
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:970c3bf2 -->
+
 ## Beads Issue Tracker
 
 This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
@@ -53,25 +54,33 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 5. **Hand off** - Summarize changes, validation, issue status, and any blocked sync/commit/push step
 
 **Critical rules:**
+
 - Explicit user or orchestrator instructions override this Beads block.
 - Do not commit or push without clear authority from the active profile or the current user request.
 - If a required sync or push is blocked, stop and report the exact command and error.
-<!-- END BEADS INTEGRATION -->
 
+<!-- END BEADS INTEGRATION -->
 
 ## Build & Test
 
-_Add your build and test commands here_
-
 ```bash
-# Example:
-# npm install
-# npm test
+npm install          # install dependencies (CI uses npm ci)
+npm run dev          # Vite dev server
+npm run test         # Vitest unit + integration suites
+npm run lint         # ESLint (typescript-eslint strict)
+npm run typecheck    # tsc -b (app, node tooling, e2e projects)
+npm run e2e          # Playwright e2e (Chromium; boots dev server on :4173)
+npm run build        # tsc + vite build → dist/
 ```
 
 ## Architecture Overview
 
-_Add a brief overview of your project architecture_
+- `src/engine/` — pure TypeScript game logic (deck, mulberry32 PRNG, reducer); zero React/DOM imports, runs in Node for deterministic unit tests.
+- `src/ui/store/` — Zustand store wrapping the reducer: selection slice (kept out of engine state), announcements, persistence side effects, hash-router sync.
+- `src/ui/persistence/` — versioned localStorage shards (`scoundrel:settings|stats|run`) with a migrate chain; terminal run outcomes persist inline so win/lose survives reload, stats write once.
+- `src/ui/screens/` + `src/ui/components/` — presentational React; props-in/callbacks-out, no store imports.
+- `src/ui/router/` — hash router + shareable seeded-run URL codec (`#/play?seed=…&config=…`).
+- `e2e/` — Playwright black-box suite driving seeded, deterministic flows.
 
 ## Conventions & Patterns
 
