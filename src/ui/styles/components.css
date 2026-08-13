@@ -1,0 +1,382 @@
+/* ---------- Shared pixel bevel recipe ----------
+   .bevel-raised: lit top/left, dark bottom/right (panels, buttons at rest)
+   .bevel-sunken: inverted (wells, insets, card stacks)
+   Both rely on hard 3px inner steps — no blur, no soft shadows. */
+.bevel-raised {
+  border: var(--bevel-size) solid var(--line-mid);
+  box-shadow:
+    inset var(--bevel-size) var(--bevel-size) 0 0 var(--bevel-light),
+    inset calc(-1 * var(--bevel-size)) calc(-1 * var(--bevel-size)) 0 0 var(--bevel-dark);
+}
+
+.bevel-sunken {
+  border: var(--bevel-size) solid var(--line);
+  box-shadow:
+    inset var(--bevel-size) var(--bevel-size) 0 0 var(--bevel-dark),
+    inset calc(-1 * var(--bevel-size)) calc(-1 * var(--bevel-size)) 0 0 var(--bevel-light);
+}
+
+/* ---------- Panel (beveled frame) ---------- */
+.panel {
+  background: var(--bg-raised);
+  padding: var(--space-6);
+}
+
+.panel--shadowed {
+  box-shadow:
+    inset var(--bevel-size) var(--bevel-size) 0 0 var(--bevel-light),
+    inset calc(-1 * var(--bevel-size)) calc(-1 * var(--bevel-size)) 0 0 var(--bevel-dark),
+    8px 8px 0 0 var(--shadow);
+}
+
+.panel-title {
+  font-size: var(--text-xs);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--flame);
+  margin: calc(-1 * var(--space-6)) calc(-1 * var(--space-6)) var(--space-4);
+  padding: var(--space-3) var(--space-6);
+  background: var(--bg-inset);
+  border-bottom: var(--bevel-size) solid var(--line-mid);
+  box-shadow: inset 0 calc(-1 * var(--bevel-size)) 0 0 var(--line);
+}
+
+/* ---------- PixelButton ---------- */
+.pixel-button {
+  --btn-bg: #343b53;
+  --btn-light: rgb(255 255 255 / 16%);
+  --btn-dark: rgb(0 0 0 / 40%);
+  --btn-text: var(--text);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-height: 48px; /* tap target >= 44px */
+  padding: var(--space-3) var(--space-6);
+  border: var(--bevel-size) solid var(--line);
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  letter-spacing: 1px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  box-shadow:
+    inset 0 var(--bevel-size) 0 var(--btn-light),
+    inset 0 calc(-1 * var(--bevel-size)) 0 var(--btn-dark),
+    6px 6px 0 0 var(--shadow);
+  transition:
+    transform 80ms steps(2, end),
+    box-shadow 80ms steps(2, end),
+    background-color 120ms steps(3, end);
+}
+
+.pixel-button:hover:not(:disabled) {
+  transform: translate(-1px, -2px);
+  box-shadow:
+    inset 0 var(--bevel-size) 0 var(--btn-light),
+    inset 0 calc(-1 * var(--bevel-size)) 0 var(--btn-dark),
+    7px 8px 0 0 var(--shadow);
+}
+
+.pixel-button:active:not(:disabled) {
+  transform: translate(3px, 4px);
+  box-shadow:
+    inset 0 var(--bevel-size) 0 var(--btn-dark),
+    inset 0 calc(-1 * var(--bevel-size)) 0 var(--btn-light),
+    2px 2px 0 0 var(--shadow);
+}
+
+.pixel-button:disabled {
+  --btn-bg: #28223a;
+  --btn-text: #6f6a83;
+  --btn-light: rgb(255 255 255 / 5%);
+  --btn-dark: rgb(0 0 0 / 25%);
+  cursor: not-allowed;
+  box-shadow:
+    inset 0 var(--bevel-size) 0 var(--btn-light),
+    inset 0 calc(-1 * var(--bevel-size)) 0 var(--btn-dark),
+    none;
+}
+
+.pixel-button--ember {
+  --btn-bg: var(--ember);
+  --btn-text: var(--ember-ink);
+  --btn-light: rgb(255 193 77 / 70%);
+  --btn-dark: var(--ember-deep);
+}
+
+.pixel-button--ghost {
+  --btn-bg: transparent;
+  --btn-text: var(--text-dim);
+  --btn-light: transparent;
+  --btn-dark: transparent;
+  border-color: var(--line-mid);
+  box-shadow: 4px 4px 0 0 var(--shadow);
+}
+
+.pixel-button--ghost:hover:not(:disabled) {
+  --btn-text: var(--text);
+  border-color: var(--line-light);
+}
+
+/* ---------- Suit glyph ---------- */
+.suit-glyph {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.12em;
+  flex: none;
+}
+
+.suit-glyph--club {
+  color: var(--club);
+}
+
+.suit-glyph--spade {
+  color: var(--spade);
+}
+
+.suit-glyph--diamond {
+  color: var(--diamond);
+}
+
+.suit-glyph--heart {
+  color: var(--heart);
+}
+
+/* ---------- Card ----------
+   Anatomy: ink frame with chamfered pixel corners, parchment face, a 6px
+   meaning-colored crown strip, corner rank chips, and a pip field.
+   width --card-w; height follows the 5:7 poker ratio. */
+.card {
+  --card-w: 96px;
+  --card-accent: var(--steel);
+  --card-suit: var(--ink);
+
+  position: relative;
+  width: var(--card-w);
+  aspect-ratio: 5 / 7;
+  padding: 0;
+  flex: none;
+  border: var(--bevel-size) solid var(--ink);
+  background: var(--parchment);
+  color: var(--ink);
+  font-family: var(--font-body);
+  /* Chamfered corners: the pixel-diagonal cut */
+  clip-path: polygon(
+    var(--space-1) 0,
+    calc(100% - var(--space-1)) 0,
+    100% var(--space-1),
+    100% calc(100% - var(--space-1)),
+    calc(100% - var(--space-1)) 100%,
+    var(--space-1) 100%,
+    0 calc(100% - var(--space-1)),
+    0 var(--space-1)
+  );
+}
+
+.card--club {
+  --card-accent: var(--club);
+  --card-suit: var(--club);
+}
+
+.card--spade {
+  --card-accent: var(--spade);
+  --card-suit: var(--spade);
+}
+
+.card--diamond {
+  --card-accent: var(--diamond);
+  --card-suit: var(--diamond);
+}
+
+.card--heart {
+  --card-accent: var(--heart);
+  --card-suit: var(--heart);
+}
+
+/* Meaning crown strip */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 6px;
+  background: var(--card-accent);
+  box-shadow: 0 1px 0 0 var(--parchment-dim);
+}
+
+.card-face {
+  position: absolute;
+  inset: 8px 6px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-corner {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  color: var(--card-suit);
+  z-index: 1;
+}
+
+.card-corner--tl {
+  top: 8px;
+  left: 6px;
+}
+
+.card-corner--br {
+  right: 6px;
+  bottom: 6px;
+  transform: rotate(180deg);
+}
+
+.card-rank {
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+.card-corner .suit-glyph {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+/* Numeric pip field: two stepped columns, lower column inverted like a
+   physical deck. Rows/count come from inline CSS variables. */
+.card-pips {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-flow: column;
+  grid-template-rows: repeat(var(--pip-rows), 1fr);
+  align-items: center;
+  justify-items: center;
+  gap: 2px 4px;
+  width: 62%;
+  height: 100%;
+  color: var(--card-suit);
+}
+
+.card-pips .suit-glyph {
+  font-size: 13px;
+}
+
+.card-pips .suit-glyph--flip {
+  transform: rotate(180deg);
+}
+
+/* Court cards and aces: one bold monogram under a big glyph. */
+.card-court {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--card-suit);
+}
+
+.card-court .suit-glyph {
+  font-size: 34px;
+}
+
+.card-court-letter {
+  font-family: var(--font-display);
+  font-size: var(--text-m);
+}
+
+/* Face-down deck back */
+.card--down {
+  --card-accent: var(--line-mid);
+  background: var(--bg-raised)
+    repeating-linear-gradient(45deg, rgb(255 255 255 / 4%) 0 3px, transparent 3px 6px);
+}
+
+.card--down .card-back-glyph {
+  color: var(--line-light);
+  font-size: 30px;
+}
+
+/* Interactive / selection states */
+button.card {
+  cursor: pointer;
+}
+
+button.card:hover:not(:disabled),
+button.card:focus-visible {
+  transform: translateY(-6px);
+}
+
+.card--selected {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  transform: translateY(-6px);
+}
+
+.card:disabled {
+  filter: grayscale(0.7) brightness(0.72);
+  cursor: not-allowed;
+}
+
+/* ---------- Tooltip ---------- */
+.tooltip-trigger {
+  display: inline-block;
+}
+
+.tooltip-bubble {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  translate: -50% 0;
+  z-index: 30;
+  width: max-content;
+  max-width: 240px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-inset);
+  border: 2px solid var(--line-light);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.25;
+  text-align: center;
+  pointer-events: none;
+  box-shadow: 4px 4px 0 0 var(--shadow);
+}
+
+.tooltip-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  translate: -50% -3px;
+  width: 10px;
+  height: 10px;
+  background: var(--bg-inset);
+  border-right: 2px solid var(--line-light);
+  border-bottom: 2px solid var(--line-light);
+  transform: rotate(45deg);
+}
+
+.tooltip-bubble--below {
+  bottom: auto;
+  top: calc(100% + 12px);
+}
+
+.tooltip-bubble--below::after {
+  top: auto;
+  bottom: 100%;
+  translate: -50% 3px;
+  border: 0;
+  border-left: 2px solid var(--line-light);
+  border-top: 2px solid var(--line-light);
+}
+
+@media (max-width: 480px) {
+  .tooltip-bubble {
+    max-width: 72vw;
+  }
+}

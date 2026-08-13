@@ -1,0 +1,224 @@
+/* ---------- Shared screen scaffolding ---------- */
+.screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-6) var(--space-4);
+  background: radial-gradient(120% 70% at 50% 0%, rgb(87 80 110 / 12%), transparent 60%), var(--bg);
+}
+
+.screen-header {
+  width: 100%;
+  max-width: 880px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+}
+
+.screen-header h1 {
+  font-size: var(--text-m);
+  letter-spacing: 2px;
+  color: var(--text);
+}
+
+/* ---------- Title screen ---------- */
+.title-screen {
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.title-art {
+  position: relative;
+  width: min(560px, 94vw);
+  line-height: 0;
+}
+
+.title-art img {
+  width: 100%;
+  height: auto;
+  /* The doorway melts into the dark below — the walk down starts here. */
+  mask-image: linear-gradient(to bottom, #000 55%, rgb(0 0 0 / 55%) 78%, transparent 97%);
+}
+
+.title-hero {
+  text-align: center;
+  margin-top: calc(-1 * var(--space-16));
+}
+
+.title-logo {
+  font-size: clamp(26px, 6vw, 52px);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: var(--flame);
+  /* Hard 8-bit outlines, no blur */
+  text-shadow:
+    3px 3px 0 var(--ember-deep),
+    -3px 3px 0 var(--ember-deep),
+    3px -3px 0 var(--ember-deep),
+    -3px -3px 0 var(--ember-deep),
+    6px 6px 0 var(--shadow);
+}
+
+.title-tagline {
+  margin-top: var(--space-3);
+  font-size: var(--text-body-lg);
+  color: var(--text-dim);
+}
+
+.title-menu-panel {
+  padding: var(--space-4);
+}
+
+.title-menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: min(360px, 80vw);
+}
+
+.title-menu .tooltip-trigger {
+  display: block;
+  width: 100%;
+}
+
+.title-menu .pixel-button {
+  width: 100%;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+}
+
+.title-menu-label {
+  flex: none;
+  white-space: nowrap;
+}
+
+.title-menu-hint {
+  font-family: var(--font-body);
+  font-size: 17px;
+  letter-spacing: 0;
+  text-align: right;
+  color: var(--text-dim);
+}
+
+.pixel-button:disabled .title-menu-hint {
+  color: #57506e;
+}
+
+.pixel-button--ember .title-menu-hint {
+  color: var(--ember-ink);
+  opacity: 0.75;
+}
+
+.title-footer {
+  font-size: 17px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.title-footer kbd {
+  font-family: var(--font-display);
+  font-size: 10px;
+  color: var(--steel);
+  border: 2px solid var(--line-mid);
+  padding: 2px 5px;
+  margin-inline: 2px;
+}
+
+@media (max-height: 860px) {
+  .title-art {
+    width: min(440px, 92vw);
+  }
+
+  .title-hero {
+    margin-top: calc(-1 * var(--space-12));
+  }
+}
+
+@media (max-width: 480px) {
+  .title-hero {
+    margin-top: calc(-1 * var(--space-10, 40px));
+    margin-top: -36px;
+  }
+
+  .title-menu {
+    width: min(340px, 88vw);
+  }
+}
+
+/* ---------- About screen ---------- */
+.about-screen {
+  justify-content: flex-start;
+  gap: var(--space-3);
+}
+
+.about-scroll {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding-bottom: var(--space-8);
+}
+
+.rules-list {
+  margin: 0;
+  padding-left: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.rules-list li::marker {
+  color: var(--ember);
+  content: '▸ ';
+}
+
+.legend-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  justify-content: center;
+  margin-top: var(--space-6);
+}
+
+.legend-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.legend-item .card {
+  --card-w: 84px;
+}
+
+.legend-caption {
+  font-size: 17px;
+  color: var(--text-dim);
+  text-align: center;
+  max-width: 120px;
+}
+
+.about-links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.about-links a {
+  align-self: flex-start;
+}
+
+.about-hint {
+  font-size: 17px;
+  color: var(--text-dim);
+  text-align: center;
+}

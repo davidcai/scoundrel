@@ -1,0 +1,68 @@
+/* Scoundrel design tokens — the single source of truth for palette, type,
+   spacing, and bevel recipe. Keep values in sync with docs/style-guide.md. */
+:root {
+  color-scheme: dark;
+
+  /* --- Palette: dungeon darks --- */
+  --void: #07060c;
+  --bg: #100d1a;
+  --bg-raised: #1a1626;
+  --bg-inset: #0b0913;
+  --line: #05040a;
+  --line-mid: #332b47;
+  --line-light: #57506e;
+  --shadow: rgb(2 1 6 / 55%);
+
+  /* --- Palette: steel & parchment --- */
+  --steel: #98a0b8; /* icons, strokes, non-text decoration */
+  --parchment: #e7dbc0; /* card faces */
+  --parchment-dim: #cfc2a2;
+  --ink: #221b2a; /* text/pips on parchment */
+
+  /* --- Palette: text (contrast-checked on --bg / --bg-raised) --- */
+  --text: #d7dbea;
+  --text-dim: #b3b9ce;
+
+  /* --- Palette: torch warmth --- */
+  --flame: #ffc14d;
+  --ember: #d7642b;
+  --ember-deep: #8f3a1a;
+  --ember-ink: #1c0f0a; /* text sitting on ember fills */
+
+  /* --- Palette: suit/meaning language (used on parchment or as accents) --- */
+  --club: #4e8a3d; /* monster — vermin green */
+  --spade: #5d4eb4; /* monster — spectral violet */
+  --diamond: #b0812a; /* weapon — forged bronze */
+  --heart: #cd4157; /* potion — blood red */
+
+  /* --- Semantics --- */
+  --danger: #d24557;
+  --success: #6fae5a;
+  --focus: #ffd23e;
+
+  /* --- Typography --- */
+  --font-display: 'Press Start 2P', monospace;
+  --font-body: 'VT323', 'Courier New', monospace;
+
+  --text-xs: 12px; /* display font, small labels/buttons */
+  --text-s: 14px; /* display font, headings */
+  --text-m: 18px; /* display font, section titles */
+  --text-l: 28px; /* display font, screen titles */
+  --text-body: 20px; /* body font, default reading size */
+  --text-body-lg: 24px;
+
+  /* --- Spacing scale (multiples of 4px) --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* --- Bevel recipe --- */
+  --bevel-size: 3px;
+  --bevel-light: rgb(255 255 255 / 14%);
+  --bevel-dark: rgb(0 0 0 / 35%);
+}

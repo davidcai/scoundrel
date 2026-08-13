@@ -1,0 +1,113 @@
+/* Base element styles — dark dungeon mood, pixel typography, visible focus. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: 1.4;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+}
+
+/* Faint CRT scanline wash over the whole dungeon. Purely cosmetic. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 3px,
+    rgb(0 0 0 / 8%) 3px,
+    rgb(0 0 0 / 8%) 4px
+  );
+  mix-blend-mode: multiply;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.5;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+p + p {
+  margin-top: var(--space-3);
+}
+
+a {
+  color: var(--flame);
+  text-decoration: none;
+  border-bottom: 2px solid var(--ember-deep);
+}
+
+a:hover {
+  color: var(--ember);
+  border-bottom-color: var(--ember);
+}
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--ember-deep);
+  color: var(--text);
+}
+
+img.pixelated {
+  image-rendering: pixelated;
+}
+
+/* Utility: visually hidden but reachable by assistive tech. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

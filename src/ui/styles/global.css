@@ -1,12 +1,9 @@
-/* Placeholder — the design lane owns this file and will replace it with the
-   pixel/retro-roguelike style foundation (tokens, pixel font, base elements). */
-:root {
-  color-scheme: dark;
-}
+/* Scoundrel global stylesheet.
+   Bundled pixel fonts (no CDN) + pixel-roguelike foundation. */
 
-body {
-  margin: 0;
-  font-family: monospace;
-  background: #1a1a2e;
-  color: #eee;
-}
+@import '@fontsource/press-start-2p';
+@import '@fontsource/vt323';
+@import './tokens.css';
+@import './base.css';
+@import './components.css';
+@import './screens.css';
