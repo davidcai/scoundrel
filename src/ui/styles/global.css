@@ -1,0 +1,12 @@
+/* Placeholder — the design lane owns this file and will replace it with the
+   pixel/retro-roguelike style foundation (tokens, pixel font, base elements). */
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  font-family: monospace;
+  background: #1a1a2e;
+  color: #eee;
+}
