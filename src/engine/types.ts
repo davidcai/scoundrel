@@ -18,20 +18,7 @@
 export type Suit = 'C' | 'S' | 'D' | 'H'
 
 /** Ranks 2–10, J=11, Q=12, K=13, A=14. */
-export type Rank =
-  | '2'
-  | '3'
-  | '4'
-  | '5'
-  | '6'
-  | '7'
-  | '8'
-  | '9'
-  | '10'
-  | 'J'
-  | 'Q'
-  | 'K'
-  | 'A'
+export type Rank = '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K' | 'A'
 
 /**
  * Card identity string, format `${Rank}${Suit}` — e.g. '8C', '10D', 'QH', 'AS'.
