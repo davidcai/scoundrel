@@ -23,6 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 
+# Test/build artifacts
+coverage
+playwright-report
+test-results
+
 # Beads / Dolt files (added by bd init)
 .dolt/
 *.db
