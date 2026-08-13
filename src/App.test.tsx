@@ -36,17 +36,17 @@ describe('App router switch', () => {
     expect(screen.getByRole('heading', { name: 'About' })).toBeInTheDocument()
   })
 
-  it('renders placeholders for Stats and Settings', () => {
+  it('renders the Stats and Settings screens', () => {
     window.location.hash = '#/stats'
     const { unmount } = render(<App />)
     expect(screen.getByRole('heading', { name: 'Stats' })).toBeInTheDocument()
-    expect(screen.getByText('Coming in the next build.')).toBeInTheDocument()
+    expect(screen.getByText(/No runs on the ledger yet/)).toBeInTheDocument()
     unmount()
 
     window.location.hash = '#/settings'
     render(<App />)
     expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument()
-    expect(screen.getByText('Coming in the next build.')).toBeInTheDocument()
+    expect(screen.getByRole('switch', { name: 'Weapon degradation' })).toBeInTheDocument()
   })
 
   it('boots a seeded replay URL into an active run', () => {
@@ -56,7 +56,7 @@ describe('App router switch', () => {
     if (run === null) throw new Error('expected a booted run')
     expect(run.seed).toBe('aaaaaa')
     expect(run.room).toHaveLength(4)
-    expect(screen.getByRole('heading', { name: 'Play' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Dungeon' })).toBeInTheDocument()
   })
 
   it('starts a run through the Enter Seed dialog (US4)', async () => {

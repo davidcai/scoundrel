@@ -89,7 +89,8 @@
     2px 2px 0 0 var(--shadow);
 }
 
-.pixel-button:disabled {
+.pixel-button:disabled,
+.pixel-button[aria-disabled='true'] {
   --btn-bg: #28223a;
   --btn-text: #6f6a83;
   --btn-light: rgb(255 255 255 / 5%);
@@ -324,6 +325,7 @@ button.card:focus-visible {
 
 /* ---------- Tooltip ---------- */
 .tooltip-trigger {
+  position: relative;
   display: inline-block;
 }
 
@@ -379,4 +381,63 @@ button.card:focus-visible {
   .tooltip-bubble {
     max-width: 72vw;
   }
+}
+
+/* ---------- Dialog (Enter Seed and friends) ---------- */
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(5 4 8 / 75%);
+}
+
+.dialog-form {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 18rem;
+}
+
+.pixel-input {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-inset);
+  color: var(--text);
+  border: var(--bevel-size) solid var(--line);
+  box-shadow:
+    inset var(--bevel-size) var(--bevel-size) 0 0 var(--bevel-dark),
+    inset calc(-1 * var(--bevel-size)) calc(-1 * var(--bevel-size)) 0 0 var(--bevel-light);
+  min-height: 48px;
+  caret-color: var(--flame);
+}
+
+.pixel-input::placeholder {
+  color: var(--steel);
+  opacity: 0.7;
+}
+
+.pixel-input:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.dialog-label {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  letter-spacing: 1px;
+  color: var(--text-dim);
+}
+
+.dialog-error {
+  color: var(--danger);
+  font-size: 18px;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
 }

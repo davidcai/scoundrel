@@ -46,6 +46,14 @@ export function Tooltip({ content, placement = 'top', children }: TooltipProps) 
 
   useEffect(() => hide, [hide])
 
+  const showFromMouse = (): void => {
+    setOpen(true)
+  }
+
+  const hideFromMouse = (): void => {
+    hide()
+  }
+
   const onPointerEnter = (event: PointerEvent<HTMLSpanElement>) => {
     if (event.pointerType === 'mouse') {
       setOpen(true)
@@ -80,6 +88,8 @@ export function Tooltip({ content, placement = 'top', children }: TooltipProps) 
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
       onPointerDown={onPointerDown}
+      onMouseEnter={showFromMouse}
+      onMouseLeave={hideFromMouse}
       onPointerUp={hide}
       onPointerCancel={hide}
       onFocusCapture={() => {

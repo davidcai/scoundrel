@@ -1,19 +1,29 @@
 import { useEffect, useState } from 'react'
-import type { CSSProperties, ReactNode, SyntheticEvent } from 'react'
+import type { ReactNode, SyntheticEvent } from 'react'
 import { LiveAnnouncer } from './ui/announcer/LiveAnnouncer'
 import { Panel, PixelButton } from './ui/components'
-import { normalizeSeed, navigate } from './ui/router/router'
+import { loadStats } from './ui/persistence'
+import type { RunRecord } from './ui/persistence'
+import { buildReplayUrl, navigate, normalizeSeed } from './ui/router/router'
 import { AboutScreen } from './ui/screens/AboutScreen'
+import { PlayScreen } from './ui/screens/PlayScreen'
+import { SettingsScreen } from './ui/screens/SettingsScreen'
+import { StatsScreen } from './ui/screens/StatsScreen'
 import { TitleScreen } from './ui/screens/TitleScreen'
-import { useGameStore } from './ui/store/gameStore'
+import {
+  selectCanEnterNextRoom,
+  selectCanUndo,
+  selectDamagePreview,
+  selectRunAwayDisabledReason,
+  useGameStore,
+} from './ui/store/gameStore'
+import type { GameAction } from './engine/types'
+import type { CardId } from './engine/types'
 
 /**
- * App shell: hash-router switch wiring the store to screens, plus the always-
- * mounted screen-reader live region.
- *
- * Title and About are the designed screens (design lane). Play/Stats/Settings
- * render as placeholders until the screens lane lands — same shell around
- * them, so only the panel contents change.
+ * App shell: hash-router switch wiring the store to the four screens, plus
+ * the always-mounted screen-reader live region. Screens are presentational —
+ * every selector result and callback is computed here and passed in as props.
  */
 export default function App() {
   const route = useGameStore((store) => store.route)
@@ -27,13 +37,13 @@ export default function App() {
   let screen: ReactNode
   switch (route.name) {
     case 'play':
-      screen = <PlayPlaceholder />
+      screen = <PlayRoute />
       break
     case 'stats':
-      screen = <PlaceholderScreen title="Stats" />
+      screen = <StatsRoute />
       break
     case 'settings':
-      screen = <PlaceholderScreen title="Settings" />
+      screen = <SettingsRoute />
       break
     case 'about':
       screen = (
@@ -97,103 +107,86 @@ function TitleRoute({ onEnterSeed }: { onEnterSeed: () => void }) {
   )
 }
 
-/**
- * Play placeholder (screens lane replaces contents). Carries just enough for
- * cross-stack flows already: it shows the active run's seed (US61) and lets a
- * saved run resume if a '#/play' reload landed here without booting a run.
- */
-function PlayPlaceholder() {
+function PlayRoute() {
   const state = useGameStore((store) => store.state)
+  const outcome = useGameStore((store) => store.outcome)
+  const lastResult = useGameStore((store) => store.lastResult)
+  const announcement = useGameStore((store) => store.announcement)
+  const selectedCardId = useGameStore((store) => store.selectedCardId)
   const hasSavedRun = useGameStore((store) => store.hasSavedRun)
+  const dispatchAction = useGameStore((store) => store.dispatch)
+  const selectCard = useGameStore((store) => store.selectCard)
   const continueRun = useGameStore((store) => store.continueRun)
+  const startNewRun = useGameStore((store) => store.startNewRun)
   const exitToTitle = useGameStore((store) => store.exitToTitle)
+
+  // US11: the carried card keeps its badge for the room it arrived in. After
+  // a reload lastResult is null, so the badge simply doesn't render then.
+  const carriedFrom: CardId | null =
+    lastResult?.type === 'RoomDealt' ? (lastResult.carriedFrom ?? null) : null
+
   return (
-    <main className="screen" aria-labelledby="play-heading">
-      <header className="screen-header">
-        <PixelButton variant="ghost" onClick={exitToTitle}>
-          ← Back
-        </PixelButton>
-        <h1 id="play-heading">Play</h1>
-      </header>
-      <Panel shadowed>
-        <p>Coming in the next build.</p>
-        {state !== null ? (
-          <p>
-            Run seeded <b>{state.seed}</b> is in progress.
-          </p>
-        ) : hasSavedRun ? (
-          <p>
-            <PixelButton
-              variant="ember"
-              onClick={() => {
-                continueRun()
-              }}
-            >
-              Continue saved run
-            </PixelButton>
-          </p>
-        ) : null}
-      </Panel>
-    </main>
+    <PlayScreen
+      state={state}
+      hasSavedRun={hasSavedRun}
+      selectedCardId={selectedCardId}
+      carriedFrom={carriedFrom}
+      lastEvent={announcement?.text ?? null}
+      outcome={outcome}
+      replayUrl={
+        outcome !== null && state !== null ? buildReplayUrl(state.seed, state.config) : null
+      }
+      canUndo={selectCanUndo(state)}
+      canEnterNextRoom={selectCanEnterNextRoom(state)}
+      runAwayReason={selectRunAwayDisabledReason(state)}
+      previewFor={(cardId) => selectDamagePreview(state, cardId)}
+      onSelectCard={selectCard}
+      onDispatch={(action: GameAction) => {
+        dispatchAction(action)
+      }}
+      onContinue={() => {
+        continueRun()
+      }}
+      onExitToTitle={exitToTitle}
+      onPlayAgain={() => {
+        startNewRun()
+      }}
+    />
   )
 }
 
-/** Stats/Settings placeholder (screens lane replaces contents). */
-function PlaceholderScreen({ title }: { title: string }) {
-  const headingId = `${title.toLowerCase()}-heading`
+function StatsRoute() {
+  const startRunFromUrl = useGameStore((store) => store.startRunFromUrl)
+  const stats = loadStats()
   return (
-    <main className="screen" aria-labelledby={headingId}>
-      <header className="screen-header">
-        <PixelButton
-          variant="ghost"
-          onClick={() => {
-            navigate('/')
-          }}
-        >
-          ← Back
-        </PixelButton>
-        <h1 id={headingId}>{title}</h1>
-      </header>
-      <Panel shadowed>
-        <p>Coming in the next build.</p>
-      </Panel>
-    </main>
+    <StatsScreen
+      stats={stats}
+      onReplay={(record: RunRecord) => {
+        startRunFromUrl(record.seed, record.config)
+        navigate(buildReplayUrl(record.seed, record.config).slice(1))
+      }}
+      onBack={() => {
+        navigate('/')
+      }}
+    />
   )
 }
 
-// Minimal dialog styling lives inline in the shell until the design lane
-// gives dialogs a proper treatment in the shared styles.
-const backdropStyle: CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  background: 'rgba(0, 0, 0, 0.65)',
-  zIndex: 10,
+function SettingsRoute() {
+  const settings = useGameStore((store) => store.settings)
+  const setSettings = useGameStore((store) => store.setSettings)
+  return (
+    <SettingsScreen
+      settings={settings}
+      onChange={setSettings}
+      onBack={() => {
+        navigate('/')
+      }}
+    />
+  )
 }
 
-const formStyle: CSSProperties = {
-  display: 'grid',
-  gap: '0.75rem',
-  minWidth: '16rem',
-}
-
-const inputStyle: CSSProperties = {
-  font: 'inherit',
-  padding: '0.5rem',
-  background: 'rgba(0, 0, 0, 0.35)',
-  color: 'inherit',
-  border: '2px solid currentColor',
-}
-
-const buttonRowStyle: CSSProperties = {
-  display: 'flex',
-  gap: '0.5rem',
-  justifyContent: 'flex-end',
-}
-
-/** US4: paste a friend's 6-char base36 seed to reproduce their exact dungeon. */
+/** US4: paste a friend's base36 seed to reproduce their exact dungeon. */
 function EnterSeedDialog({ onClose }: { onClose: () => void }) {
   const startNewRun = useGameStore((store) => store.startNewRun)
   const [seed, setSeed] = useState('')
@@ -221,32 +214,38 @@ function EnterSeedDialog({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div style={backdropStyle} role="presentation">
+    <div className="dialog-backdrop" role="presentation">
       <div role="dialog" aria-modal="true" aria-label="Enter seed">
         <Panel title="Enter Seed" shadowed>
-          <form style={formStyle} onSubmit={onSubmit}>
-            <label htmlFor="seed-input">Dungeon seed</label>
+          <form className="dialog-form" onSubmit={onSubmit}>
+            <label className="dialog-label" htmlFor="seed-input">
+              Dungeon seed
+            </label>
             <input
               id="seed-input"
+              className="pixel-input"
               name="seed"
               value={seed}
               onChange={(event) => {
                 setSeed(event.target.value)
                 setError(null)
               }}
-              placeholder="e.g. A1B2C3"
+              placeholder="e.g. a1b2c3"
               autoComplete="off"
               spellCheck={false}
               autoFocus
-              style={inputStyle}
             />
-            {error !== null && <p role="alert">{error}</p>}
-            <div style={buttonRowStyle}>
-              <PixelButton variant="ember" type="submit">
-                Descend
-              </PixelButton>
+            {error !== null && (
+              <p className="dialog-error" role="alert">
+                {error}
+              </p>
+            )}
+            <div className="dialog-actions">
               <PixelButton variant="ghost" onClick={onClose}>
                 Cancel
+              </PixelButton>
+              <PixelButton variant="ember" type="submit">
+                Descend
               </PixelButton>
             </div>
           </form>
