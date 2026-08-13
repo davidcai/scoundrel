@@ -60,7 +60,7 @@ A pixel/retro-roguelike-styled web app (React + Vite + TypeScript) that implemen
 
 ### Win/lose & scoring
 37. As a player who clears every room until the deck is empty, I want to see a Win screen with my final score equal to remaining HP, so that I'm rewarded for survival.
-38. As a player whose HP drops to 0 or below, I want to see a Lose screen with my final negative score (0 minus remaining unplayed monster values), so that the loss is scored per the rules.
+38. As a player whose HP drops to 0 or below, I want to see a Lose screen with my final negative score (0 minus the values of all unplayed monsters left in the dungeon deck — per rules.md L33; the current room's unresolved monsters and the kill stack are excluded), so that the loss is scored per the rules.
 39. As a player on the Win/Lose screen, I want a scorecard showing outcome, final HP, score, seed, toggles used, and run highlights (monsters killed, potions wasted, rooms explored), so that the run feels meaningful.
 40. As a player on the Win/Lose screen, I want a "Copy replay link" button that copies `#/play?seed=...&config=...`, so that I can share my run.
 41. As a player who reloads the page while on the Win/Lose screen, I want the screen to survive reload (terminal outcome persisted inline in the run record), so that a refresh doesn't lose my end state.

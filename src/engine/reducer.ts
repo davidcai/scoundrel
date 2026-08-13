@@ -275,13 +275,17 @@ function equipWeapon(
 function runAway(state: GameState): ReducerResult {
   if (state.phase !== 'playing') return invalid(state, 'not-playing')
   if (state.room.length === 0) return invalid(state, 'no-room')
+  // Running is only legal from an unfaced room — rules.md L21 sends "all 4
+  // cards" back, so a partially resolved room cannot be fled (canonical rule;
+  // also protects the mandatory 4th-card carryover from being dodged).
+  if (state.resolvedCount > 0) return invalid(state, 'room-in-progress')
   if (state.config.runAwayMode === 'once' && state.ranAwayLastRoom) {
     return { state, result: { type: 'RunAwayBlocked', reason: 'twice-in-row' } }
   }
-  // Putting the room back leaves dungeon.length + room.length cards; a fresh
-  // room needs at least 4 available to deal, i.e. the combined count must be
-  // ≥ 8 (also blocks running once the final room is in progress).
-  if (state.dungeon.length + state.room.length < 8) {
+  // With an unfaced (full) room, "can't form a new room after putting the room
+  // back on the bottom" reduces to the spec's gate: dungeon.length < 4. This
+  // also blocks running once a final partial room is in progress (dungeon empty).
+  if (state.dungeon.length < 4) {
     return { state, result: { type: 'RunAwayBlocked', reason: 'no-cards' } }
   }
 
@@ -302,6 +306,9 @@ function runAway(state: GameState): ReducerResult {
 }
 
 function undoToRoomStart(state: GameState): ReducerResult {
+  // Terminal states are sticky — undo is a within-room affordance and must not
+  // resurrect a finished run (spec US 34/41/42).
+  if (state.phase !== 'playing') return invalid(state, 'not-playing')
   const snapshot = state.roomSnapshot
   if (snapshot === null) return invalid(state, 'no-snapshot')
   // Keep the snapshot attached so undo can be retried within the same room.

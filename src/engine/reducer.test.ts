@@ -118,10 +118,17 @@ describe('DealRoom / room flow', () => {
   })
 
   it('locks the 4th card once 3 are resolved (auto-carryover)', () => {
-    const state = makeState({ dungeon, room: ['9S'], resolvedCount: 3, weapon: '3D' })
-    const fight = reducer(state, { type: 'FightMonster', cardId: '9S' })
-    expectResult(fight.result, 'InvalidAction')
-    expect(fight.state).toBe(state)
+    // Card ids chosen to not collide with the crafted dungeon above.
+    const state = makeState({ dungeon, room: ['5C'], resolvedCount: 3, weapon: '9D' })
+    for (const action of [
+      { type: 'FightMonster', cardId: '5C', barehanded: true },
+      { type: 'DrinkPotion', cardId: '5C' },
+      { type: 'EquipWeapon', cardId: '5C' },
+    ] as const) {
+      const { state: next, result } = reducer(state, action)
+      expectResult(result, 'InvalidAction')
+      expect(next).toBe(state)
+    }
   })
 
   it('EnterNextRoom carries the 4th card into a fresh deal', () => {
@@ -382,16 +389,36 @@ describe('DrinkPotion', () => {
   })
 })
 
+describe('weapon swap escape hatch', () => {
+  it('a fresh weapon can fight monsters the old stack would have blocked', () => {
+    // Degradation locks 3D after killing 9C; swapping to 5D resets the
+    // threshold so 10C is legal again (rules.md L27: new weapon starts fresh).
+    const state = makeState({
+      dungeon: ['2C'], // non-empty so the resolution isn't terminal
+      room: ['10C', '5D'],
+      weapon: '3D',
+      killStack: ['9C'],
+    })
+    const blocked = reducer(state, { type: 'FightMonster', cardId: '10C' })
+    expect(expectResult(blocked.result, 'InvalidAction').reason).toBe('weapon-degraded')
+    expect(blocked.state).toBe(state)
+
+    const swapped = reducer(state, { type: 'EquipWeapon', cardId: '5D' })
+    expectResult(swapped.result, 'WeaponEquipped')
+    expect(swapped.state.killStack).toEqual([])
+
+    const fought = reducer(swapped.state, { type: 'FightMonster', cardId: '10C' })
+    const defeated = expectResult(fought.result, 'MonsterDefeated')
+    expect(defeated.damage).toBe(5)
+    expect(defeated.usedWeaponId).toBe('5D')
+  })
+})
+
 describe('RunAway', () => {
   const dungeon = ['8C', '9D', '10H', '6S', '7C', '2H', '3S', '4D', '5H', '6D']
 
   it('sends room cards to the dungeon bottom and deals a fresh room', () => {
-    const state = makeState({
-      dungeon,
-      room: ['2C', '3D', '4H', '5S'],
-      potionsUsedThisRoom: 1,
-      resolvedCount: 1,
-    })
+    const state = makeState({ dungeon, room: ['2C', '3D', '4H', '5S'] })
     const { state: next, result } = reducer(state, { type: 'RunAway' })
     const ranAway = expectResult(result, 'RanAway')
     expect(ranAway.newCards).toEqual(['8C', '9D', '10H', '6S'])
@@ -403,6 +430,22 @@ describe('RunAway', () => {
     expect(next.runHighlights.roomsExplored).toBe(1)
     expect(next.roomSnapshot?.room).toEqual(next.room)
   })
+
+  it.each([1, 3])(
+    'rejects running once the room has been faced (resolvedCount %i)',
+    (resolvedCount) => {
+      // Leaving a touched room must go through undo, not run-away — rules.md
+      // L21 sends "all 4 cards" back, i.e. only an unfaced room can be fled.
+      const state = makeState({
+        dungeon,
+        room: ['2C', '3D', '4H', '5S'].slice(resolvedCount),
+        resolvedCount,
+      })
+      const { state: next, result } = reducer(state, { type: 'RunAway' })
+      expect(expectResult(result, 'InvalidAction').reason).toBe('room-in-progress')
+      expect(next).toBe(state)
+    },
+  )
 
   it('blocks running twice in a row under the canonical rules', () => {
     const state = makeState({ dungeon, room: ['2C', '3D', '4H', '5S'] })
@@ -421,7 +464,8 @@ describe('RunAway', () => {
     expect(second.state.ranAwayLastRoom).toBe(true)
   })
 
-  it('gates on available cards: blocked below 8 combined, allowed at 8', () => {
+  it('gates on dungeon size: blocked below 4, allowed at 4', () => {
+    // Spec Q53a/L177: run is disabled when the draw pile cannot replace the room.
     const blocked = makeState({ dungeon: ['2C', '3C', '4C'], room: ['6C', '7C', '8C', '9C'] })
     const { state: blockedState, result: blockedResult } = reducer(blocked, { type: 'RunAway' })
     expect(expectResult(blockedResult, 'RunAwayBlocked').reason).toBe('no-cards')
@@ -472,6 +516,35 @@ describe('final partial rooms (resolve-all, no carryover)', () => {
     },
   )
 
+  it('treats an exactly-4-remaining deal as a final resolve-all room', () => {
+    // Spec L176 mandates 4/3/2/1 coverage; the 4-case flips the resolve target
+    // from 3 to 4, so the 4th card stays live and no carryover can occur.
+    let state = makeState({ dungeon: ['9C', '5D', '6H', '2C'], room: [], resolvedCount: 0 })
+    state = reducer(state, { type: 'DealRoom' }).state
+    expect(state.room).toEqual(['9C', '5D', '6H', '2C'])
+    expect(state.dungeon).toEqual([])
+
+    // Running is impossible once the final room is in progress.
+    const run = reducer(state, { type: 'RunAway' })
+    expect(expectResult(run.result, 'RunAwayBlocked').reason).toBe('no-cards')
+    expect(run.state).toBe(state)
+
+    // hp 20: 9C barehanded (→11) → equip 5D → drink 6H (→17).
+    state = reducer(state, { type: 'FightMonster', cardId: '9C', barehanded: true }).state
+    state = reducer(state, { type: 'EquipWeapon', cardId: '5D' }).state
+    state = reducer(state, { type: 'DrinkPotion', cardId: '6H' }).state
+
+    // No 3-of-4 shortcut: EnterNextRoom is rejected before all 4 resolve.
+    const early = reducer(state, { type: 'EnterNextRoom' })
+    expect(expectResult(early.result, 'InvalidAction').reason).toBe('room-in-progress')
+    expect(early.state).toBe(state)
+
+    // The 4th card is not locked in the final room.
+    const won = reducer(state, { type: 'FightMonster', cardId: '2C', barehanded: true })
+    expect(expectResult(won.result, 'GameWon').score).toBe(15)
+    expect(won.state.phase).toBe('won')
+  })
+
   it('wins with score = hp when resolving the final card; result carries via', () => {
     // hp 20 → fight 9C barehanded (11) → equip 5D → drink 6H (17).
     const state = makeState({ dungeon: [], room: ['9C', '5D', '6H'], resolvedCount: 0 })
@@ -516,7 +589,7 @@ describe('final partial rooms (resolve-all, no carryover)', () => {
 describe('losing & score math', () => {
   it('score = 0 − values of monsters left in the dungeon deck (only monsters count)', () => {
     const state = makeState({
-      dungeon: ['9C', '5D', 'KH', '2S'], // 9 + 2 = 11 monster value; D/H ignored
+      dungeon: ['9C', '5D', '9H', '2S'], // 9 + 2 = 11 monster value; D/H ignored
       room: ['8C'],
       hp: 3,
     })
@@ -532,6 +605,21 @@ describe('losing & score math', () => {
     expect(lost.config).toEqual(CANONICAL)
     expect(next.phase).toBe('lost')
     expect(next.hp).toBe(-5)
+  })
+
+  it('excludes the current room and kill stack from the losing score', () => {
+    const state = makeState({
+      dungeon: ['2S'],
+      room: ['8C', 'KC'],
+      hp: 3,
+      weapon: '5D',
+      killStack: ['4C'],
+    })
+    const { result } = reducer(state, { type: 'FightMonster', cardId: '8C', barehanded: true })
+    const lost = expectResult(result, 'GameLost')
+    // Only the 2S in the dungeon deck counts; KC (unresolved, left the deck)
+    // and 4C (already played onto the kill stack) are excluded — rules.md L33.
+    expect(lost.score).toBe(-2)
   })
 
   it('a weapon-softened lethal blow still loses', () => {
@@ -605,6 +693,42 @@ describe('per-room undo', () => {
     expect(next).toBe(fresh)
   })
 
+  it('cannot resurrect a lost run', () => {
+    const dealt = reducer(makeState({ dungeon: ['AC', '2C', '3C', '4C'], hp: 5 }), {
+      type: 'DealRoom',
+    }).state
+    const died = reducer(dealt, { type: 'FightMonster', cardId: 'AC', barehanded: true })
+    expectResult(died.result, 'GameLost')
+    const undone = reducer(died.state, { type: 'UndoToRoomStart' })
+    expect(expectResult(undone.result, 'InvalidAction').reason).toBe('not-playing')
+    expect(undone.state).toBe(died.state)
+  })
+
+  it('cannot rewind a won run', () => {
+    const dealt = reducer(makeState({ dungeon: ['2H'] }), { type: 'DealRoom' }).state
+    const won = reducer(dealt, { type: 'DrinkPotion', cardId: '2H' })
+    expectResult(won.result, 'GameWon')
+    const undone = reducer(won.state, { type: 'UndoToRoomStart' })
+    expect(expectResult(undone.result, 'InvalidAction').reason).toBe('not-playing')
+    expect(undone.state).toBe(won.state)
+  })
+
+  it('running away reseams: undo returns to the post-run room, not the fled room', () => {
+    // runAway snapshots the newly dealt room, so the run decision itself is a
+    // commitment (undo is scoped to the CURRENT room only).
+    const dealt = reducer(makeState({ dungeon }), { type: 'DealRoom' }).state
+    expect(dealt.room).toEqual(['8C', '5H', '3D', '9S'])
+    const ran = reducer(dealt, { type: 'RunAway' }).state
+    expect(ran.room).toEqual(['AS', '2D', '4C', '6H'])
+    const fought = reducer(ran, { type: 'FightMonster', cardId: 'AS', barehanded: true }).state
+    expect(fought.hp).toBe(6)
+    const undone = reducer(fought, { type: 'UndoToRoomStart' })
+    expectResult(undone.result, 'UndoDone')
+    expect(undone.state.room).toEqual(['AS', '2D', '4C', '6H'])
+    expect(undone.state.ranAwayLastRoom).toBe(true)
+    expect(undone.state.hp).toBe(20)
+  })
+
   it('EnterNextRoom reseams: undo returns to the new room, never the old one', () => {
     const dealt = dealtState()
     const s1 = reducer(dealt, { type: 'FightMonster', cardId: '8C', barehanded: true }).state
@@ -658,8 +782,21 @@ describe('purity & serializability', () => {
 })
 
 describe('seeded full-run determinism', () => {
+  it('deck order depends only on the seed (config affects rules, not the shuffle)', () => {
+    const togglesOff: GameConfig = {
+      runAwayMode: 'unlimited',
+      potionsPerRoom: 'unlimited',
+      weaponDegradation: false,
+    }
+    const a = createInitialState('cfg-ind', CANONICAL, FIXED_NOW)
+    const b = createInitialState('cfg-ind', togglesOff, FIXED_NOW)
+    expect(a.dungeon).toEqual(b.dungeon)
+    expect(a.config).not.toEqual(b.config)
+  })
+
   /** Simple fixed policy: deal when empty; resolve the first card; enter when complete. */
   function playOut(seed: string): { state: GameState; steps: number } {
+    const fullDeck = new Set(buildDeck())
     let state = createInitialState(seed, CANONICAL, FIXED_NOW)
     let steps = 0
     while (state.phase === 'playing' && steps < 500) {
@@ -683,6 +820,16 @@ describe('seeded full-run determinism', () => {
         }
       }
       expect(step.result.type).not.toBe('InvalidAction')
+      // Conservation invariant: no duplicate live cards, every live card is a
+      // real deck member (discards/potions leave the union by design).
+      const live = [
+        ...step.state.dungeon,
+        ...step.state.room,
+        ...(step.state.weapon === null ? [] : [step.state.weapon]),
+        ...step.state.killStack,
+      ]
+      expect(new Set(live).size).toBe(live.length)
+      for (const id of live) expect(fullDeck.has(id)).toBe(true)
       state = step.state
     }
     return { state, steps }
