@@ -28,3 +28,8 @@ dist-ssr
 *.db
 .beads-credential-key
 .beads/proxieddb/
+
+# Test artifacts (Vitest / Playwright)
+coverage
+test-results
+playwright-report

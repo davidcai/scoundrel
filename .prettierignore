@@ -1,0 +1,18 @@
+dist
+coverage
+node_modules
+test-results
+playwright-report
+package-lock.json
+
+# Repo files that must never be reformatted
+.github
+.beads
+.agents
+.claude
+.codex
+docs
+README.md
+AGENTS.md
+CLAUDE.md
+.gitignore

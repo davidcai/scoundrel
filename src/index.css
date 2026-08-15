@@ -1,0 +1,11 @@
+/* Minimal global styles; the pixel/retro style guide arrives in a later phase. */
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: #12101a;
+  color: #e8e4f0;
+  font-family: system-ui, sans-serif;
+}
