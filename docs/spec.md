@@ -106,7 +106,7 @@ A pixel/retro-roguelike-styled web app (React + Vite + TypeScript) that implemen
 ## Implementation Decisions
 
 ### Architecture & module layout
-- **Engine/UI split**: A pure TypeScript engine module (`src/engine/`) holds all game rules, deck composition, RNG, combat math, weapon degradation, potion cap, run-away restriction, win/lose detection, and scoring. The engine imports zero React/UI code, so it runs in Node without a DOM for fast deterministic unit tests. The UI module (`src/ui/`) contains React components, the Zustand store, persistence adapters, and the router/renderer. Assets (`src/assets/`) hold raster sprites and the pixel font.
+- **Engine/UI split**: A pure TypeScript engine module (`src/engine/`) holds all game rules, deck composition, RNG, combat math, weapon degradation, potion cap, run-away restriction, win/lose detection, and scoring. The engine imports zero React/UI code, so it runs in Node without a DOM for fast deterministic unit tests. The UI module (`src/ui/`) contains React components, the Zustand store, persistence adapters, and the router/renderer. Card artwork is delivered as raster JPEGs in the repo-root `assets/` directory (see the Card artwork section below) and loaded through a single `import.meta.glob` map; `src/assets/` is reserved for generated/CSS assets such as the pixel font.
 - **Reducer + pure functions**: The engine exposes `createInitialState(seed, config)` and a reducer `(state, action) → { state, result }`. The reducer is pure: it returns a new state and a typed result payload; no side effects. This is directly testable and supports per-room undo via snapshot/restore of a plain serializable object.
 - **Selection lives in the store, not engine state**: The transient "currently selected card" highlight belongs in the Zustand store as a UI-only slice and is NOT part of `GameState`. The engine answers "what is the game truth"; the store/UI answers "what is the user hovering." Snapshots therefore exclude selection; undo restores game truth without pulsing ephemeral UI state. This is the canonical engine/UI split.
 
@@ -199,8 +199,12 @@ A `mulberry32` PRNG (~10 lines, no dep) seeded by a `uint32`. The seed is shared
 - Live regions announce combat results, potion quaffs, run-away blocks, and win/lose — driven directly by the Q25b result payloads.
 
 ### Visual & design
-- **Pixel/retro roguelike** aesthetic; **hybrid assets**: CSS + pixel font for cards/HUD/UI; raster sprites only for the title backdrop and key art.
+- **Pixel/retro roguelike** aesthetic; **hybrid assets**: provided raster card faces render the cards, CSS + pixel font render the HUD/UI, and the card back / title backdrop are CSS-generated (no raster art was supplied for those).
 - **Phased designer handoff**: Phase 1 = style guide + play screen + title (highest leverage); Phase 2 = stats, settings, win/lose scorecard. The designer overlaps Phase 2 once the style guide is approved; engineering implements Phase 1 in parallel.
+
+### Card artwork
+
+Every card in the 44-card deck has a matching raster card face in the repo-root `assets/` directory. Filenames follow `assets/<suit>-<value>.jpg`, where `<suit>` is one of `club | diamond | heart | spade` and `<value>` is `2`-`10` or `a | j | q | k` (for example `diamond-10.jpg`, `club-j.jpg`, `spade-a.jpg`, `heart-2.jpg`). The engine `CardId` (`<suit>-<value>`) is exactly the asset basename, so card faces resolve through one `import.meta.glob('../../assets/*.jpg')` map in `src/ui/cardArt.ts` - no per-card import list. All 44 deck cards have art. No card-back, title-backdrop, or key-art raster was supplied, so those are rendered with CSS (pixel pattern + pixel font). Faces are 2:3 portrait (1152x1728) and are drawn with `object-fit: cover` inside a 2:3 container.
 
 ### Toolchain
 - Scaffold via `npm create vite@latest -- --template react-ts`, then strip `App.tsx` boilerplate and add the `engine/`/`ui/`/`store/`/`assets/` layers.

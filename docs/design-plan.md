@@ -52,7 +52,7 @@
 
 ### I. Visual / design
 - **Q8a** — **Pixel/retro roguelike** aesthetic
-- **Q12d** — **Hybrid assets**: CSS + pixel font for cards/UI/HUD; **raster sprites** only for title/backdrop/key art
+- **Q12d** — **Hybrid assets**: provided raster **card faces** render every card (44 files in repo-root `assets/`, named `assets/<suit>-<value>.jpg`, 2:3 portrait); CSS + pixel font for HUD/UI; the **card back** and **title backdrop** (no art supplied) are CSS-generated
 - **Q23c / Q44a / Q49b** — **Phased designer handoff**: Phase 1 = style guide + play screen + title (highest leverage, de-risks hardest screen); Phase 2 = stats, settings, win/lose scorecard. **Designer overlaps Phase 2 once the style guide is approved**; engineering implements Phase 1 in parallel.
 
 ### J. Testing
