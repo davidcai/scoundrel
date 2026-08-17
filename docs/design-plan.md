@@ -1,4 +1,4 @@
-# Scoundrel — Shared Understanding (55 decisions settled)
+# Scoundrel — Shared Understanding (56 decisions settled; Q56+ are post-grilling amendments)
 
 ### A. Platform & stack
 - **Q1a / Q5a** — Web app, **React + Vite + TypeScript**
@@ -51,9 +51,10 @@
 - **Q28b** — **Keyboard-navigable + ARIA labels + SR announcements**; Q25b result payloads map directly onto live-region announcements
 
 ### I. Visual / design
-- **Q8a** — **Pixel/retro roguelike** aesthetic
-- **Q12d** — **Hybrid assets**: CSS + pixel font for cards/UI/HUD; **raster sprites** only for title/backdrop/key art
+- **Q8a (revised)** — **Dark dungeon aesthetic** with clean, sharp, modern RPG/card-game presentation — **explicitly no pixel/retro styling**. The parchment/gravure deck art is presented as artifacts against a deep-charcoal environment, with crisp borders, restrained torchlight-amber and crimson accents, and subtle depth
+- **Q12d (revised)** — **Artwork-driven assets**: all 44 card faces render the provided JPG artwork (bundled under `src/assets/cards/`); UI/HUD chrome is CSS with a modern display-serif + grotesque-sans font pairing (no pixel font); title/backdrop key art composited from the deck art
 - **Q23c / Q44a / Q49b** — **Phased designer handoff**: Phase 1 = style guide + play screen + title (highest leverage, de-risks hardest screen); Phase 2 = stats, settings, win/lose scorecard. **Designer overlaps Phase 2 once the style guide is approved**; engineering implements Phase 1 in parallel.
+- **Q56 (post-grilling)** — **Card artwork & CardId**: the 44 provided JPGs in `assets/` are the canonical deck art, named `<suit>-<value>.jpg` (suit ∈ {club, spade, diamond, heart}, singular lowercase; value ∈ {2–10, a, j, q, k}; clubs/spades carry j/q/k/a, hearts/diamonds are 2–10 only). `CardId` adopts this exact format and doubles as the artwork filename stem (`src/assets/cards/<CardId>.jpg`); the 44-card definition table is derived from the asset set and unit-test-asserted to match it. Cards render art full-bleed with a high-contrast **value badge overlay** for HUD-scale legibility. Artwork files relocate from repo-root `assets/` to `src/assets/cards/` at scaffold.
 
 ### J. Testing
 - **Q15a** — **Vitest** (unit: engine; integration: React Testing Library) + **Playwright** (e2e)
@@ -70,7 +71,6 @@
 - **Q39b** — **README** upgraded with overview, dev/test/deploy commands; `docs/rules.md` stays canonical; no separate architecture docs (contracts live in typed TS)
 
 ### M. Mechanical leftovers (no further input needed — handled by executor, not grill)
-- `CardId` string format and 44-card definition table
 - ESLint rule selection (strict preset)
 - `mulberry32` implementation module
 - Component folder layout under `src/ui/`

@@ -6,12 +6,12 @@ As a player, I want to play Scoundrel — a 1-player roguelike dungeon-crawling 
 
 ## Solution
 
-A pixel/retro-roguelike-styled web app (React + Vite + TypeScript) that implements the full Scoundrel rule set from `docs/rules.md` by default, with optional house-rule toggles, per-room undo, save/resume, seedable & shareable runs, a stats dashboard with run history, and full unit/integration/e2e test coverage. The game logic lives in a pure TS engine (no React imports) wrapped by a thin React + Zustand UI layer, enabling fast deterministic tests and a clean engine/UI separation.
+A dark-dungeon-styled web app with clean, sharp, modern RPG/card-game presentation (React + Vite + TypeScript), its card faces rendered from a provided 44-file artwork set, that implements the full Scoundrel rule set from `docs/rules.md` by default, with optional house-rule toggles, per-room undo, save/resume, seedable & shareable runs, a stats dashboard with run history, and full unit/integration/e2e test coverage. The game logic lives in a pure TS engine (no React imports) wrapped by a thin React + Zustand UI layer, enabling fast deterministic tests and a clean engine/UI separation.
 
 ## User Stories
 
 ### Setup & discovery
-1. As a new visitor, I want to land on a title screen with a pixel-roguelike backdrop, so that I immediately understand the game's mood and can choose an action.
+1. As a new visitor, I want to land on a title screen with a dark-dungeon backdrop composited from the deck artwork, so that I immediately understand the game's mood and can choose an action.
 2. As a returning player with a saved run, I want a prominent "Continue" button on the title screen, so that I can resume my in-progress run in one click.
 3. As a player who wants a fresh game, I want a "New Run" button on the title screen, so that I can start a brand-new randomized dungeon.
 4. As a player who received a seed from a friend, I want an "Enter Seed" option on the title screen, so that I can reproduce their exact dungeon.
@@ -39,74 +39,75 @@ A pixel/retro-roguelike-styled web app (React + Vite + TypeScript) that implemen
 22. As a player using a degraded weapon, I want to only be able to fight monsters weaker than the last monster it killed, so that the degradation rule is enforced.
 23. As a player picking up a new weapon, I want my old weapon and its entire kill stack to be discarded, so that the new weapon starts fresh per the rules.
 24. As a player, I want the weapon-swap discard to be announced visibly, so that I understand the cost of switching weapons mid-run.
+25. As a player, I want every card face rendered with rich artwork from the provided 44-card set, with suit and rank readable at a glance via the corner index and a high-contrast value badge, so that the game looks and feels like a modern dungeon-crawling card game.
 
 ### Items & potions
-25. As a player who finds a Heart, I want to drink it to restore HP equal to its value (capped at 20), so that I can recover health.
-26. As a player in a room with multiple Hearts, I want only the first potion I drink to heal me; extras to be discarded without healing, so that the one-potion-per-room rule is enforced.
-27. As a player who skips a Heart as the carryover card, I want it to carry to the next room and remain a valid drink (potions counter resets per room), so that the carry rule applies uniformly to all card types.
+26. As a player who finds a Heart, I want to drink it to restore HP equal to its value (capped at 20), so that I can recover health.
+27. As a player in a room with multiple Hearts, I want only the first potion I drink to heal me; extras to be discarded without healing, so that the one-potion-per-room rule is enforced.
+28. As a player who skips a Heart as the carryover card, I want it to carry to the next room and remain a valid drink (potions counter resets per room), so that the carry rule applies uniformly to all card types.
 
 ### Running away
-28. As a player facing a bad room, I want to run away once per turn to send all 4 cards to the bottom of the Dungeon and deal a new room, so that I can escape unwinnable situations.
-29. As a player who just ran away, I want to be blocked from running a second consecutive room, so that the "no two runs in a row" rule is enforced.
-30. As a player with fewer than 4 cards remaining in the deck, I want the "Run Away" action to be disabled, so that I can't attempt to draw a room that can't exist.
-31. As a player, I want the disabled Run action to be visibly greyed out with a tooltip explaining why, so that I understand the constraint.
+29. As a player facing a bad room, I want to run away once per turn to send all 4 cards to the bottom of the Dungeon and deal a new room, so that I can escape unwinnable situations.
+30. As a player who just ran away, I want to be blocked from running a second consecutive room, so that the "no two runs in a row" rule is enforced.
+31. As a player with fewer than 4 cards remaining in the deck, I want the "Run Away" action to be disabled, so that I can't attempt to draw a room that can't exist.
+32. As a player, I want the disabled Run action to be visibly greyed out with a tooltip explaining why, so that I understand the constraint.
 
 ### Undo
-32. As a player who made a mistake in the current room, I want an "Undo to Room Start" action that rewinds the current room to its beginning, so that I can retry the room without restarting the whole run.
-33. As a player, I want undo to restore HP, weapon, kill stack, room cards, and potion counter to the room's start state, so that the rewind is faithful.
-34. As a player, I want undo to be available only within the current room (a single current-room snapshot), so that the game stays strategically meaningful and I can't brute-force the whole dungeon.
-35. As a player, I want the current-room snapshot to be cleared once I click "Enter Next Room", so that I can't rewind into a previous room's deal.
-36. As a player, I want "Undo to Room Start" to not undo my transient card-selection highlight (selection is ephemeral UI state), so that engine truth and UI ephemera stay cleanly separated.
+33. As a player who made a mistake in the current room, I want an "Undo to Room Start" action that rewinds the current room to its beginning, so that I can retry the room without restarting the whole run.
+34. As a player, I want undo to restore HP, weapon, kill stack, room cards, and potion counter to the room's start state, so that the rewind is faithful.
+35. As a player, I want undo to be available only within the current room (a single current-room snapshot), so that the game stays strategically meaningful and I can't brute-force the whole dungeon.
+36. As a player, I want the current-room snapshot to be cleared once I click "Enter Next Room", so that I can't rewind into a previous room's deal.
+37. As a player, I want "Undo to Room Start" to not undo my transient card-selection highlight (selection is ephemeral UI state), so that engine truth and UI ephemera stay cleanly separated.
 
 ### Win/lose & scoring
-37. As a player who clears every room until the deck is empty, I want to see a Win screen with my final score equal to remaining HP, so that I'm rewarded for survival.
-38. As a player whose HP drops to 0 or below, I want to see a Lose screen with my final negative score (0 minus remaining unplayed monster values), so that the loss is scored per the rules.
-39. As a player on the Win/Lose screen, I want a scorecard showing outcome, final HP, score, seed, toggles used, and run highlights (monsters killed, potions wasted, rooms explored), so that the run feels meaningful.
-40. As a player on the Win/Lose screen, I want a "Copy replay link" button that copies `#/play?seed=...&config=...`, so that I can share my run.
-41. As a player who reloads the page while on the Win/Lose screen, I want the screen to survive reload (terminal outcome persisted inline in the run record), so that a refresh doesn't lose my end state.
-42. As a player finishing a run, I want the run's stats record to be written to the stats store exactly once (idempotent, guarded by a "stats-written" flag), so that reloads don't double-count my run.
+38. As a player who clears every room until the deck is empty, I want to see a Win screen with my final score equal to remaining HP, so that I'm rewarded for survival.
+39. As a player whose HP drops to 0 or below, I want to see a Lose screen with my final negative score (0 minus remaining unplayed monster values), so that the loss is scored per the rules.
+40. As a player on the Win/Lose screen, I want a scorecard showing outcome, final HP, score, seed, toggles used, and run highlights (monsters killed, potions wasted, rooms explored), so that the run feels meaningful.
+41. As a player on the Win/Lose screen, I want a "Copy replay link" button that copies `#/play?seed=...&config=...`, so that I can share my run.
+42. As a player who reloads the page while on the Win/Lose screen, I want the screen to survive reload (terminal outcome persisted inline in the run record), so that a refresh doesn't lose my end state.
+43. As a player finishing a run, I want the run's stats record to be written to the stats store exactly once (idempotent, guarded by a "stats-written" flag), so that reloads don't double-count my run.
 
 ### Persistence & save/resume
-43. As a player who closes the browser mid-run, I want my run state (including current-room snapshot) saved to localStorage, so that I can resume later.
-44. As a returning player, I want to land on the title screen (not auto-dropped into the run), so that the resume behavior is predictable and never disorienting.
-45. As a player, I want settings, stats, and the active run to live in separate localStorage keys (`scoundrel:settings`, `scoundrel:stats`, `scoundrel:run`), so that changing settings doesn't disturb my active run and clearing my run doesn't wipe my stats.
-46. As a player upgrading to a new schema version, I want my saved data to migrate automatically via versioned wrappers (`{version, data}`), so that schema changes don't corrupt or reset my data.
+44. As a player who closes the browser mid-run, I want my run state (including current-room snapshot) saved to localStorage, so that I can resume later.
+45. As a returning player, I want to land on the title screen (not auto-dropped into the run), so that the resume behavior is predictable and never disorienting.
+46. As a player, I want settings, stats, and the active run to live in separate localStorage keys (`scoundrel:settings`, `scoundrel:stats`, `scoundrel:run`), so that changing settings doesn't disturb my active run and clearing my run doesn't wipe my stats.
+47. As a player upgrading to a new schema version, I want my saved data to migrate automatically via versioned wrappers (`{version, data}`), so that schema changes don't corrupt or reset my data.
 
 ### Stats dashboard
-47. As a player, I want the stats dashboard to show games played, wins, losses, win-rate, best score, current streak, and best streak, so that I can track my performance.
-48. As a player, I want a scrollable run history (newest first, capped at ~50 entries), so that I can review recent runs.
-49. As a player, I want each run history entry to show seed, config (toggles), outcome, score, date, and rooms cleared, so that I have full context.
-50. As a player viewing a run history entry, I want a "Replay" affordance that loads that run's seed + config, so that I can re-experience the exact dungeon.
+48. As a player, I want the stats dashboard to show games played, wins, losses, win-rate, best score, current streak, and best streak, so that I can track my performance.
+49. As a player, I want a scrollable run history (newest first, capped at ~50 entries), so that I can review recent runs.
+50. As a player, I want each run history entry to show seed, config (toggles), outcome, score, date, and rooms cleared, so that I have full context.
+51. As a player viewing a run history entry, I want a "Replay" affordance that loads that run's seed + config, so that I can re-experience the exact dungeon.
 
 ### Settings & rule toggles
-51. As a player, I want a settings screen exposing three rule toggles — run-away restriction (once vs unlimited), potions per room (1 vs unlimited), and weapon degradation (on vs off) — so that I can adjust the ruleset to my taste.
-52. As a player, I want the default settings to enforce the canonical rules from `docs/rules.md`, so that the game is faithful out of the box.
-53. As a player, I want my settings persisted across sessions, so that I don't have to reconfigure every launch.
+52. As a player, I want a settings screen exposing three rule toggles — run-away restriction (once vs unlimited), potions per room (1 vs unlimited), and weapon degradation (on vs off) — so that I can adjust the ruleset to my taste.
+53. As a player, I want the default settings to enforce the canonical rules from `docs/rules.md`, so that the game is faithful out of the box.
+54. As a player, I want my settings persisted across sessions, so that I don't have to reconfigure every launch.
 
 ### Accessibility
-54. As a keyboard-only player, I want all cards and actions reachable via tab + arrow keys, so that I can play without a mouse.
-55. As a screen-reader user, I want ARIA labels on cards ("8 of Clubs, monster, value 8"), so that the game state is legible.
-56. As a screen-reader user, I want live-region announcements on combat results (damage taken, weapon broke), potion quaffs, and win/lose transitions, so that I can follow the game audibly.
-57. As a player with low vision, I want sufficient color contrast and clear focus indicators, so that the pixel aesthetic doesn't compromise legibility.
+55. As a keyboard-only player, I want all cards and actions reachable via tab + arrow keys, so that I can play without a mouse.
+56. As a screen-reader user, I want ARIA labels on cards ("8 of Clubs, monster, value 8"), so that the game state is legible.
+57. As a screen-reader user, I want live-region announcements on combat results (damage taken, weapon broke), potion quaffs, and win/lose transitions, so that I can follow the game audibly.
+58. As a player with low vision, I want sufficient color contrast and clear focus indicators, so that the dark aesthetic doesn't compromise legibility.
 
 ### Onboarding & tooltips
-58. As a new player, I want hover/tap-and-hold tooltips on card types, the weapon/degradation mechanic, and the run-away restriction, so that I can learn the rules without a linear tutorial.
-59. As a player inspecting the weapon stack, I want a tooltip explaining the degradation chain ("can only fight monsters weaker than the last kill"), so that the most-confusing mechanic is discoverable.
-60. As a player, I want the damage-preview tooltip and contextual tooltips to share infrastructure, so that the experience is consistent.
+59. As a new player, I want hover/tap-and-hold tooltips on card types, the weapon/degradation mechanic, and the run-away restriction, so that I can learn the rules without a linear tutorial.
+60. As a player inspecting the weapon stack, I want a tooltip explaining the degradation chain ("can only fight monsters weaker than the last kill"), so that the most-confusing mechanic is discoverable.
+61. As a player, I want the damage-preview tooltip and contextual tooltips to share infrastructure, so that the experience is consistent.
 
 ### Sharing & reproducibility
-61. As a player, I want the current run's seed displayed somewhere on the play screen, so that I can note it or share it mid-run.
-62. As a player, I want a shareable URL (`#/play?seed=...&config=...`) that reproduces the exact run, so that I can challenge friends with the same dungeon.
-63. As a tester or bug-reporter, I want to share a seed + config that reproduces a bug deterministically, so that maintainers can replay the exact failing run.
+62. As a player, I want the current run's seed displayed somewhere on the play screen, so that I can note it or share it mid-run.
+63. As a player, I want a shareable URL (`#/play?seed=...&config=...`) that reproduces the exact run, so that I can challenge friends with the same dungeon.
+64. As a tester or bug-reporter, I want to share a seed + config that reproduces a bug deterministically, so that maintainers can replay the exact failing run.
 
 ### Mobile & responsive
-64. As a mobile player, I want the layout to adapt to small screens with tap-friendly card targets, so that the game is playable on a phone.
-65. As a player on any device, I want the HUD (HP, deck count, weapon stack, run-away indicator) to remain legible, so that critical info is always visible.
+65. As a mobile player, I want the layout to adapt to small screens with tap-friendly card targets, so that the game is playable on a phone.
+66. As a player on any device, I want the HUD (HP, deck count, weapon stack, run-away indicator) to remain legible, so that critical info is always visible.
 
 ## Implementation Decisions
 
 ### Architecture & module layout
-- **Engine/UI split**: A pure TypeScript engine module (`src/engine/`) holds all game rules, deck composition, RNG, combat math, weapon degradation, potion cap, run-away restriction, win/lose detection, and scoring. The engine imports zero React/UI code, so it runs in Node without a DOM for fast deterministic unit tests. The UI module (`src/ui/`) contains React components, the Zustand store, persistence adapters, and the router/renderer. Assets (`src/assets/`) hold raster sprites and the pixel font.
+- **Engine/UI split**: A pure TypeScript engine module (`src/engine/`) holds all game rules, deck composition, RNG, combat math, weapon degradation, potion cap, run-away restriction, win/lose detection, and scoring. The engine imports zero React/UI code, so it runs in Node without a DOM for fast deterministic unit tests. The UI module (`src/ui/`) contains React components, the Zustand store, persistence adapters, and the router/renderer. Assets (`src/assets/`) hold the 44 card-face JPGs under `src/assets/cards/` (relocated from repo-root `assets/` at scaffold time) plus any composited key art; there is no pixel font — typography is a modern web-font pairing.
 - **Reducer + pure functions**: The engine exposes `createInitialState(seed, config)` and a reducer `(state, action) → { state, result }`. The reducer is pure: it returns a new state and a typed result payload; no side effects. This is directly testable and supports per-room undo via snapshot/restore of a plain serializable object.
 - **Selection lives in the store, not engine state**: The transient "currently selected card" highlight belongs in the Zustand store as a UI-only slice and is NOT part of `GameState`. The engine answers "what is the game truth"; the store/UI answers "what is the user hovering." Snapshots therefore exclude selection; undo restores game truth without pulsing ephemeral UI state. This is the canonical engine/UI split.
 
@@ -144,6 +145,11 @@ interface GameConfig {
 }
 ```
 Default config enforces `docs/rules.md` exactly. Presets, if ever desired, are factory functions returning a `GameConfig` — additive, not architectural.
+
+### Card identity & artwork
+- `CardId` format is settled by the artwork naming convention: `<suit>-<value>`, suit ∈ {club, spade, diamond, heart} (singular, lowercase) and value ∈ {2–10, a, j, q, k}. Exactly 44 ids exist: clubs and spades span 2–10 + j/q/k/a; hearts and diamonds span 2–10.
+- A `CardId` doubles as the artwork filename stem: the card face renders `src/assets/cards/<CardId>.jpg`. The engine's 44-card definition table enumerates these ids; a unit test asserts the engine table and the bundled asset manifest contain exactly the same set.
+- The 44 JPGs relocate from repo-root `assets/` to `src/assets/cards/` at scaffold time — a single canonical copy inside the Vite tree, no duplication.
 
 ### Action union (card-targeted)
 Explicit card-targeted actions, one per card type:
@@ -199,8 +205,11 @@ A `mulberry32` PRNG (~10 lines, no dep) seeded by a `uint32`. The seed is shared
 - Live regions announce combat results, potion quaffs, run-away blocks, and win/lose — driven directly by the Q25b result payloads.
 
 ### Visual & design
-- **Pixel/retro roguelike** aesthetic; **hybrid assets**: CSS + pixel font for cards/HUD/UI; raster sprites only for the title backdrop and key art.
-- **Phased designer handoff**: Phase 1 = style guide + play screen + title (highest leverage); Phase 2 = stats, settings, win/lose scorecard. The designer overlaps Phase 2 once the style guide is approved; engineering implements Phase 1 in parallel.
+- **Dark dungeon aesthetic**: deep charcoal/near-black environment with muted stone texture; the cards are rich parchment-and-gravure artifacts rendered from the provided artwork. **Clean, sharp, modern RPG/card-game presentation** — crisp borders, a restrained accent palette (torchlight amber for emphasis, crimson for damage and danger), subtle depth and glow. Explicitly **no pixel/retro** styling: no pixel fonts, no dithering, no CRT or scanline effects.
+- **Card rendering**: every card face renders `src/assets/cards/<CardId>.jpg` full-bleed. The artwork itself carries only a top-left serif corner index, so a high-contrast **value badge overlay** (dark chip with a light rank and suit glyph) keeps rank and suit legible on small screens, on busy monster art, and in HUD-size views of the weapon and kill stack.
+- **Card artwork loading**: card art is resolved at build time via Vite `import.meta.glob` over `src/assets/cards/*.jpg`, keyed by filename stem into a `CardId → URL` map.
+- **Typography**: a modern pairing — fantasy-flavored display serif for titles and hero text, clean grotesque sans for HUD, numbers, and body copy. Exact families are chosen in the Phase 1 style guide. No pixel font.
+- **Phased designer handoff**: Phase 1 = style guide + play screen + title (highest leverage); Phase 2 = stats, settings, win/lose scorecard. The designer overlaps Phase 2 once the dark-dungeon style guide is approved; engineering implements Phase 1 in parallel.
 
 ### Toolchain
 - Scaffold via `npm create vite@latest -- --template react-ts`, then strip `App.tsx` boilerplate and add the `engine/`/`ui/`/`store/`/`assets/` layers.
@@ -231,11 +240,11 @@ We prefer the **fewest seams possible** — ideally one. This spec uses **three 
 A single seam (e2e only) would force every rule edge case through a full browser run — too slow and too brittle for the rule-coverage the engine needs. A single seam (engine only) would miss React store/UI wiring (selection-in-store, persistence reload-safety, SR announcements). The three-seam split puts each concern at its highest feasible point: pure rules at the reducer, React wiring at RTL, cross-stack behavior at Playwright.
 
 ### Modules under test
-- **Engine**: deck builder, mulberry32 PRNG, reducer, action handlers, result constructors, win/lose detection, scoring. (Seam 1.)
+- **Engine**: deck builder, mulberry32 PRNG, reducer, action handlers, result constructors, win/lose detection, scoring. (Seam 1.) Plus the asset-inventory assertion that every `CardId` in the 44-card definition table resolves to an entry in the bundled artwork manifest (`import.meta.glob` keys), catching naming drift between engine and assets.
 - **Persistence adapters**: localStorage wrappers, migrator, schema versioning. (Seam 2, via RTL — render the app, reload the JS context, assert state restored.)
 - **UI components**: title, play, stats, settings, about screens; card components; HUD; weapon stack; damage preview; tooltips; win/lose scorecard. (Seam 2.)
 - **Store**: Zustand store wiring actions to the reducer, selection state, undo snapshot management. (Seam 2, via the rendered UI.)
-- **Cross-stack flows**: full run lifecycle, persistence reload, shareable URL, a11y. (Seam 3.)
+- **Cross-stack flows**: full run lifecycle, persistence reload, shareable URL, a11y, and card-artwork loading (no broken images in a seeded run). (Seam 3.)
 
 ### Prior art
 No prior art in this greenfield repo. The codebase conventions do not yet exist; this spec establishes them. The React Testing Library "test behavior, not implementation" approach is the prior art we adopt. Playwright's seeded-URL pattern (deterministic e2e via app-controlled RNG) is the prior art we adopt for exact-outcome e2e.
@@ -252,7 +261,7 @@ No prior art in this greenfield repo. The codebase conventions do not yet exist;
 - **Additional e2e browsers in CI**. Chromium only for now (Q48a); WebKit/Firefox added later only if specific bugs justify them.
 - **Architecture docs parallel to the code**. Contracts live in typed TS, not separate markdown (Q39b). Only `README.md` (overview + commands) and `docs/rules.md` (canonical rules) are maintained as prose.
 - **Vercel/Netlify/custom-domain deploy**. GitHub Pages only (Q20a).
-- **Audio**. Not in scope; the pixel aesthetic is visual.
+- **Audio**. Not in scope; presentation is visual-only.
 - **Internationalization**. English-only for now.
 - **Server-side state or accounts**. All-local; no backend.
 
@@ -260,7 +269,7 @@ No prior art in this greenfield repo. The codebase conventions do not yet exist;
 
 ### Source of truth
 - `docs/rules.md` is the canonical rule set. The engine implements it exactly under the default `GameConfig`. Any divergence between this spec and `docs/rules.md` is a spec bug.
-- `docs/design-plan.md` records the 55 grilling-settled decisions that produced this spec; it is the source of truth for *why* each decision was made. This spec is the source of truth for *what* gets built.
+- `docs/design-plan.md` records the settled decisions (55 grilled, plus post-grilling artwork amendments) that produced this spec; it is the source of truth for *why* each decision was made. This spec is the source of truth for *what* gets built.
 
 ### Reused prototypes / decision snippets
 - The `GameState` and `GameConfig` interfaces in Implementation Decisions are derived from the grilling prototype sketches in `design-plan.md` (Q45b, Q19a). They encode decisions more precisely than prose; they are NOT a working implementation and will trim further during build (e.g. `runHighlights` field types).
@@ -273,7 +282,7 @@ No prior art in this greenfield repo. The codebase conventions do not yet exist;
 - **Engine/UI split (Q14a) + selection-in-store (Q45b)** = engine unit tests run in Node with zero React; the snapshot excludes ephemeral UI state, keeping undo and persistence honest.
 
 ### Mechanical leftovers (no spec decision needed; handled by the builder)
-- `CardId` string format and the 44-card definition table.
 - ESLint rule selection within the strict preset.
+- JPG payload audit after scaffold (optimize the 44 artwork files only if they materially inflate the bundle).
 - Exact `mulberry32` implementation module.
 - Component folder layout under `src/ui/`.
