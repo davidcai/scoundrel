@@ -1,17 +1,4 @@
-/* Placeholder shell styles. Design tokens + base styles land in
-   src/ui/styles/tokens.css and base.css from the design lane. */
-:root {
-  color-scheme: dark;
-}
-
-html,
-body {
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  background: #10131a;
-  color: #e8e4da;
-  font-family: system-ui, sans-serif;
-}
+/* Style layer — load order matters: tokens define vars, base applies them.
+   Components must consume design tokens only (see docs/style-guide.md). */
+@import './ui/styles/tokens.css';
+@import './ui/styles/base.css';

@@ -1,0 +1,208 @@
+/* ============================================================================
+   Scoundrel — base layer
+   Reset-ish foundation for the dark-dungeon shell. Consumes tokens.css only;
+   declares nothing reusable for components beyond elements and .theme-scoundrel.
+   Load order: tokens.css THEN base.css, before any component CSS.
+   ========================================================================= */
+
+/* ------------------------------------------------------------------- reset */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  /* Respect user font-size settings; our rem scale rides on it. */
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+  scrollbar-color: var(--color-surface-4) var(--color-abyss); /* Firefox */
+}
+
+body {
+  min-height: 100dvh;
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-body);
+  color: var(--color-text);
+  background-color: var(--color-abyss);
+  /* Subtle stone depth, CSS-only: thin staggered slab rows (ashlar offsets,
+     thin hairline mortar, no checkerboard alternation) sinking into abyss
+     via a short vertical gradient. Barely-there texture, not wallpaper:
+     layered tints sit at low alpha over --color-abyss above. */
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(13, 15, 19, 0) 0%,
+      rgba(13, 15, 19, 0.55) 55%,
+      rgba(13, 15, 19, 0.92) 100%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(70, 45, 38, 0.05) 0 60px,
+      rgba(63, 71, 49, 0.05) 60px 180px,
+      rgba(35, 40, 48, 0.06) 180px 220px,
+      transparent 220px 360px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(63, 71, 49, 0.05) 0 100px,
+      rgba(70, 45, 38, 0.05) 100px 140px,
+      rgba(35, 40, 48, 0.06) 140px 300px,
+      transparent 300px 420px
+    ),
+    repeating-linear-gradient(
+      180deg,
+      rgba(35, 40, 48, 0.09) 0 calc(120px - 2px),
+      rgba(46, 53, 66, 0.12) calc(120px - 2px) 120px
+    );
+  background-size:
+    auto,
+    360px 120px,
+    420px 120px,
+    auto 240px;
+  background-position:
+    0 0,
+    0 0,
+    180px 120px,
+    0 0;
+  background-attachment: fixed;
+  font-optical-sizing: auto;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-wrap: break-word;
+}
+
+img,
+picture,
+svg,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+a {
+  color: var(--color-ember-bright);
+  text-decoration-color: var(--color-ember-deep);
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  text-decoration-color: currentColor;
+}
+
+strong {
+  font-weight: var(--weight-semibold);
+}
+
+/* Headings default to the display face; components may override. */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+
+p,
+li {
+  text-wrap: pretty;
+}
+
+/* ------------------------------------------------------- theme root class
+   Screens hang off .theme-scoundrel so the shell can be scoped (and a future
+   light/print theme can swap tokens without touching base). Apply once, on a
+   wrapper around the app root. */
+.theme-scoundrel {
+  background: transparent; /* body carries the dungeon shell */
+  color: var(--color-text);
+}
+
+.theme-scoundrel ::selection {
+  background: var(--color-selection-bg);
+  color: var(--color-selection-text);
+}
+
+/* -------------------------------------------------------- focus visibility
+   One ring system: 2px ember outline + 2px offset, readable on dark surfaces
+   AND on parchment card art. Interactive elements get it by default;
+   suppression must be re-scoped with an equivalent, never deleted. */
+:focus {
+  outline: none; /* replaced below — do not leave elements bare */
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Cards (round, art-bleed) override with the inset ring recipe from the
+   style guide — see §5. Chrome elements keep the outline ring above. */
+
+/* --------------------------------------------------------------- scrollbar
+   Subtle dark chromium scrollbars to match the Firefox hint on <html>. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-abyss);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-4);
+  border: 2px solid var(--color-abyss);
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-hairline-strong);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ------------------------------------------------------------ motion guard
+   Hard kill-switch beyond the token zeroing: animation AND transition. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

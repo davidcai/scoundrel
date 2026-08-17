@@ -1,0 +1,206 @@
+/* ============================================================================
+   Scoundrel — design tokens
+   Dark-dungeon environment shell + parchment artifact cards.
+   Every consumer reads from :root variables declared here. Raw hex values in
+   components are a defect. Load order: tokens.css BEFORE base.css.
+   ========================================================================= */
+
+:root {
+  /* ---------------------------------------------------------------- colors */
+
+  /* Environment — layered dungeon shell, darkest to nearest the player */
+  --color-abyss: #0d0f13;        /* deepest background; stagger-gradient ends here */
+  --color-stone-deep: #232830;   /* stagger-gradient stone slabs */
+  --color-stone: #3f4731;        /* muted stone-green slabs */
+  --color-stone-warm: #462d26;   /* RG-mixed warm sienna slabs */
+  --color-surface-1: #161a20;    /* lowest UI plane: zones and wells */
+  --color-surface-2: #1c2129;    /* panels, zone bases */
+  --color-surface-3: #232933;    /* raised chrome: actions bar, badges */
+  --color-surface-4: #2c333f;    /* hover fills, pressed chips */
+
+  /* Hairlines — NEVER pure black */
+  --color-hairline: #2e3542;         /* borders on dark surfaces */
+  --color-hairline-strong: #454e5e;  /* emphasized dividers, hud top rule */
+
+  /* Text */
+  --color-text: #e9e4d8;          /* primary, warm parchment-white */
+  --color-text-muted: #a9a294;    /* labels, secondary copy */
+  --color-text-faint: #6f6a5f;    /* seed strings, empty-slot hints */
+  --color-text-inverse: #17130e;  /* text/icons on bright accent fills */
+  --color-text-on-parchment: #241d14; /* card faces, parchment sheets */
+
+  /* Parchment — card frames, scorecard sheets, art scrims */
+  --color-parchment: #cfc2a4;      /* base sheet */
+  --color-parchment-deep: #ab9873; /* shading, footer strip */
+  --color-parchment-edge: #241d15; /* thin burned outline on card frames */
+  --color-parchment-ink: #2a2118;  /* engraved graphite-ink tone */
+
+  /* Torchlight amber — THE warm accent: interaction, selection, glow */
+  --color-ember: #e2a04c;              /* primary accent */
+  --color-ember-bright: #f6be67;       /* hover, focus ring core */
+  --color-ember-deep: #9c6524;         /* ember borders on dark fills */
+  --color-ember-glow: rgba(226, 160, 76, 0.34);  /* torch / selection halo */
+  --color-ember-glow-soft: rgba(226, 160, 76, 0.16); /* dim pools */
+
+  /* Crimson — damage, danger, destructive, hearts/potion suit */
+  --color-crimson: #c93b3b;               /* danger base, hp text on abyss */
+  --color-crimson-bright: #e0584f;        /* hover / fill base */
+  --color-crimson-deep: #7e2222;          /* crimson borders, pressed */
+  --color-crimson-on-abyss: #e86a5f;      /* hp, damage numbers on dark */
+  --color-crimson-glow: rgba(201, 59, 59, 0.35);
+
+  /* Secondary accents — restrained */
+  --color-verdigris: #6fa08e;   /* deck-count pip: duration of the run, cold vs ember */
+  --color-verdigris-dim: #40604f;
+
+  /* Suit tints — HUD chips, kill-stack tags, badges. Cards stay untinted. */
+  --color-suit-monster: #c2c9d4;    /* clubs & spades: steel-silver */
+  --color-suit-weapon: #d8974b;     /* diamonds: ember-bronze */
+  --color-suit-potion: #d9534f;     /* hearts: potion crimson */
+
+  /* Fixed chip-on-art pairs (badge + vignette live on light parchment art) */
+  --color-badge-bg: rgba(24, 20, 15, 0.88);      /* near-black warm, translucent */
+  --color-badge-text: #f2ead9;                   /* rank + glyph ink */
+  --color-badge-border: rgba(242, 234, 217, 0.28);
+  --color-vignette: rgba(16, 13, 10, 0.45);      /* top-left art scrim under badge */
+
+  /* States */
+  --color-focus-ring: var(--color-ember-bright);
+  --color-disabled-text: #5c574e;
+  --color-selection-bg: rgba(226, 160, 76, 0.3); /* ::selection wash */
+  --color-selection-text: #17130e;
+  --color-success: #8aa86a; /* win accents only; never an action color */
+
+  /* Overlays and scrims */
+  --color-scrim: rgba(8, 9, 12, 0.72);         /* modal backdrop */
+  --color-preview-bg: rgba(10, 11, 15, 0.55);  /* confirm-preview veil over board */
+
+  /* ------------------------------------------------------------ typography */
+
+  --font-display: "Cinzel Variable", "Cinzel", Georgia, "Times New Roman", serif;
+  --font-ui: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Numbers everywhere (HP, deck, damage, badge rank): no Cinzel at HUD scale */
+  --font-number: var(--font-ui);
+
+  /* Modular scale ≈ 1.25 */
+  --text-xs: 0.6875rem;  /* 11px — badge rank (60px thumbs), captions */
+  --text-sm: 0.75rem;    /* 12px — hud labels, badge rank (80px thumbs) */
+  --text-md: 0.875rem;   /* 14px — badge rank (100px), body small */
+  --text-body: 1rem;     /* 16px — default UI copy */
+  --text-lg: 1.25rem;    /* 20px — section headings, hp digits */
+  --text-xl: 1.5rem;     /* 24px — zone headings */
+  --text-display: 2.25rem;   /* 36px — scorecard calls */
+  --text-hero: clamp(2.75rem, 6vw + 1rem, 5.5rem); /* title wordmark only */
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-display: 700; /* Cinzel at 700 for headings, 800 for the wordmark */
+
+  --leading-tight: 1.15; /* display, headings */
+  --leading-body: 1.5;   /* UI copy */
+  --leading-caption: 1.35;
+
+  --tracking-display: 0.04em;  /* Cinzel breathes */
+  --tracking-hero: 0.14em;     /* wordmark */
+  --tracking-label: 0.09em;    /* uppercase micro-labels (HP, DECK, SEED) */
+
+  /* ---------------------------------------------------------------- spacing
+     4px base grid. Card-adjacent interiors use card-inset, not raw steps. */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  /* Card geometry — named per the kept-corner contract */
+  --card-ratio: 5 / 7;           /* poker-tall; use with aspect-ratio */
+  --card-radius: 5.5%;           /* % of card WIDTH; apply to frame and art */
+  --card-inset: 4%;              /* % of card width: badge + vignette offsets */
+  --card-width-room: clamp(6.5rem, 17vw, 11rem);  /* room-row card size */
+  --card-width-hand: clamp(4rem, 10vw, 6rem);     /* kill-stack / compact */
+  --card-width-thumb: 3.75rem;   /* 60px floor — never render art smaller */
+
+  /* ------------------------------------------------------------------ radii */
+  --radius-sm: 3px;   /* chips, tags */
+  --radius-md: 6px;   /* buttons, inputs, badges */
+  --radius-lg: 10px;  /* panels, sheets */
+  --radius-pill: 999px;
+  /* Cards never use these — always var(--card-radius). */
+
+  /* ------------------------------------------------- shadows and elevation
+     Diffused, low-spread, warm-leaning. Glows carry state. */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);                          /* resting chrome */
+  --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.45);                        /* raised panels */
+  --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.5);                       /* card at rest */
+  --shadow-card-hover: 0 6px 18px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(226, 160, 76, 0.25);                              /* card hovered */
+  --shadow-card-selected: 0 4px 14px rgba(0, 0, 0, 0.55),
+    0 0 20px var(--color-ember-glow),
+    0 0 0 2px var(--color-ember);                                    /* card selected */
+  --glow-ember: 0 0 16px var(--color-ember-glow);                    /* interactive chrome hover */
+  --glow-torch: radial-gradient(closest-side, var(--color-ember-glow-soft), transparent); /* hover halos */
+  --glow-crimson: 0 0 14px var(--color-crimson-glow);                /* danger / lethal preview */
+
+  /* Ring tokens — 100%-spread box-shadow rings (NOT outline) on round cards.
+     Card corners live in the border-box; outlines square them off. */
+  --ring-hover: 0 0 0 1px var(--color-ember);
+  --ring-selected: 0 0 0 2px var(--color-ember),
+    0 0 22px 3px var(--color-ember-glow);
+  --ring-confirm: 0 0 0 2px var(--color-crimson-bright),
+    0 0 22px 3px var(--color-crimson-glow);
+  --ring-focus-card: 0 0 0 2px var(--color-abyss),
+    0 0 0 4px var(--color-focus-ring);
+
+  /* ---------------------------------------------------------------- z-index
+     Whole layers only. Compose locally inside them. */
+  --z-base: 0;        /* screens */
+  --z-room: 10;       /* card rows, stacks */
+  --z-overlay: 20;    /* damage-preview veil */
+  --z-actions: 30;    /* actions bar, persistent chrome */
+  --z-tooltip: 40;
+  --z-modal: 50;
+  --z-toast: 60;
+
+  /* ------------------------------------------------------------------ motion */
+  --duration-instant: 90ms;   /* micro state flips */
+  --duration-fast: 140ms;     /* hover lifts */
+  --duration-med: 220ms;      /* selection, reveals */
+  --duration-slow: 380ms;     /* deal-in, screen transitions */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);      /* standard settle */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* card select pop */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);      /* screens */
+
+  /* ------------------------------------------------------------------- badge
+     The value chip that carries rank legibility over busy engraved art. */
+  --badge-bg: var(--color-badge-bg);
+  --badge-text: var(--color-badge-text);
+  --badge-border: 1px solid var(--color-badge-border);
+  --badge-radius: var(--radius-md);
+  /* Position: top-left, hugging the art's corner index (see style guide §5) */
+  --badge-offset-x: var(--card-inset);
+  --badge-offset-y: var(--card-inset);
+  --badge-min-width: 1.375em;  /* one-rank-character floor; grows for "10" */
+  --badge-pad-block: 0.18em;   /* vertical padding; glyph+rank stack inside */
+  --badge-blur: 6px;           /* backdrop-filter — degrade gracefully, see §5 */
+  /* The art's own engraved corner index stays visible above the chip. */
+}
+
+/* Reduced motion — no transitions, no animation; state changes snap. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-instant: 0ms;
+    --duration-fast: 0ms;
+    --duration-med: 0ms;
+    --duration-slow: 0ms;
+  }
+}
+
+/* Color scheme hints for native widgets (scrollbars, form controls). */
+:root {
+  color-scheme: dark;
+}
