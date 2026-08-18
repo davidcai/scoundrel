@@ -182,15 +182,9 @@ export function createGameStore(deps: GameDeps = {}): StoreApi<GameStoreState> {
           statsWritten: false,
         });
         const initial = engine.createInitialState(seed, config);
-        if (initial.room.length > 0) {
-          // Engine dealt the first room inside createInitialState.
-          const slots = slotsFromCards(initial.room);
-          set({ game: initial, slots, slotsSnapshot: slots });
-          persist();
-          return;
-        }
         set({ game: initial });
-        // Contract: StartNewRun deals the first room and returns RoomDealt.
+        // Contract: StartNewRun deals the first room and returns RoomDealt;
+        // createInitialState is shuffle-only (room always starts empty).
         dispatch({ type: 'StartNewRun', seed, config });
       },
 

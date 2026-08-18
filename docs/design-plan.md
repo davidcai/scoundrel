@@ -1,4 +1,4 @@
-# Scoundrel — Shared Understanding (56 decisions settled; Q56+ are post-grilling amendments)
+# Scoundrel — Shared Understanding (57 decisions settled; Q56+ are post-grilling amendments)
 
 ### A. Platform & stack
 - **Q1a / Q5a** — Web app, **React + Vite + TypeScript**
@@ -55,6 +55,7 @@
 - **Q12d (revised)** — **Artwork-driven assets**: all 44 card faces render the provided JPG artwork (bundled under `src/assets/cards/`); UI/HUD chrome is CSS with a modern display-serif + grotesque-sans font pairing (no pixel font); title/backdrop key art composited from the deck art
 - **Q23c / Q44a / Q49b** — **Phased designer handoff**: Phase 1 = style guide + play screen + title (highest leverage, de-risks hardest screen); Phase 2 = stats, settings, win/lose scorecard. **Designer overlaps Phase 2 once the style guide is approved**; engineering implements Phase 1 in parallel.
 - **Q56 (post-grilling)** — **Card artwork & CardId**: the 44 provided JPGs in `assets/` are the canonical deck art, named `<suit>-<value>.jpg` (suit ∈ {club, spade, diamond, heart}, singular lowercase; value ∈ {2–10, a, j, q, k}; clubs/spades carry j/q/k/a, hearts/diamonds are 2–10 only). `CardId` adopts this exact format and doubles as the artwork filename stem (`src/assets/cards/<CardId>.jpg`); the 44-card definition table is derived from the asset set and unit-test-asserted to match it. Cards render art full-bleed with a high-contrast **value badge overlay** for HUD-scale legibility. Artwork files relocate from repo-root `assets/` to `src/assets/cards/` at scaffold.
+- **Q57 (post-grilling)** — **Lose score counts the draw pile only**: rules.md line 33 reads "all remaining unplayed monsters left in the dungeon deck". Settled interpretation: only monsters still in the dungeon draw pile are summed; unresolved monsters in the current room were already dealt (played) and are excluded. Pinned by the seeded loss e2e (seed `1` → score −178).
 
 ### J. Testing
 - **Q15a** — **Vitest** (unit: engine; integration: React Testing Library) + **Playwright** (e2e)

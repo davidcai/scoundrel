@@ -62,13 +62,33 @@ export function recordRun(stats: StatsData, record: RunRecord): StatsData {
   };
 }
 
-/** Validates/normalizes the runs list read back from storage. */
+/** Validates/normalizes the stats read back from storage. */
 function normalizeStats(raw: StatsData): StatsData {
+  // Partial corruption hardening: tolerate fields of the wrong type instead
+  // of letting them flow through to the stats dashboard (review LOW #2).
+  const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0)
+  const base = emptyStats()
+  const isRunRecord = (v: unknown): v is RunRecord => {
+    if (typeof v !== 'object' || v === null) return false
+    const r = v as Partial<RunRecord>
+    return (
+      typeof r.seed === 'string' &&
+      (r.outcome === 'won' || r.outcome === 'lost') &&
+      typeof r.score === 'number'
+    )
+  }
   return {
-    ...emptyStats(),
+    ...base,
     ...raw,
+    gamesPlayed: num(raw.gamesPlayed),
+    wins: num(raw.wins),
+    losses: num(raw.losses),
+    bestScore: typeof raw.bestScore === 'number' ? raw.bestScore : null,
+    currentStreak: num(raw.currentStreak),
+    bestStreak: num(raw.bestStreak),
     runs: Array.isArray(raw.runs)
       ? raw.runs
+          .filter(isRunRecord)
           .slice(0, RUN_HISTORY_CAP)
           // Restore Infinity, which cannot JSON-round-trip inside configs.
           .map((run) => ({ ...run, config: normalizeConfig(run.config) }))
