@@ -41,7 +41,13 @@ export function PlayScreen({ route }: PlayScreenProps) {
   useEffect(() => {
     if (route.seed !== null) {
       const config = route.config ?? loadSettings();
-      const cur = store.getState().game;
+      let cur = store.getState().game;
+      if (cur === null) {
+        // Fresh page load of a seeded URL: resume the persisted run when it
+        // matches instead of silently restarting it (US 42/44, Q42/Q44).
+        store.getState().loadSavedRun();
+        cur = store.getState().game;
+      }
       const sameRun = cur !== null && cur.seed === route.seed;
       const sameConfig = cur !== null && encodeConfig(cur.config) === encodeConfig(config);
       if (!sameRun || !sameConfig) {
