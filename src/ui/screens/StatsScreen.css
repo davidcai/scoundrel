@@ -1,0 +1,133 @@
+/* Stats dashboard (Phase 2 direction): aggregates grid + scrollable history. */
+
+.stats-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: min(52rem, 100%);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}
+
+.stats-title,
+.stats-history-title {
+  font-size: var(--text-display);
+}
+
+.stats-history-title {
+  font-size: var(--text-xl);
+  margin-top: var(--space-4);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-3);
+}
+
+.stats-cell {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.stats-cell dt {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.stats-cell dd {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-empty {
+  color: var(--color-text-muted);
+}
+
+.stats-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 50dvh;
+  overflow-y: auto;
+}
+
+.stats-run {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+}
+
+.stats-run-main {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.stats-run-outcome {
+  font-weight: var(--weight-semibold);
+}
+
+.stats-run-outcome--won {
+  color: var(--color-success);
+}
+
+.stats-run-outcome--lost {
+  color: var(--color-crimson-on-abyss);
+}
+
+.stats-run-score {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-semibold);
+}
+
+.stats-run-seed {
+  color: var(--color-text-faint);
+  letter-spacing: 0.06em;
+}
+
+.stats-run-config {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.stats-run-meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.stats-run-replay {
+  color: var(--color-ember-bright);
+  text-decoration: underline;
+  text-decoration-color: var(--color-ember-deep);
+  text-underline-offset: 0.15em;
+  min-height: calc(var(--space-4) * 2.5);
+}
+
+.stats-run-replay:hover {
+  text-decoration-color: currentColor;
+}

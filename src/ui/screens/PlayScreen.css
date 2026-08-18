@@ -1,0 +1,315 @@
+/* Play screen (style guide §6.2): HUD band, the table, actions bar.
+   Tokens only. */
+
+.play-screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* ---------------------------------------------------------------- HUD band */
+
+.hud {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-actions);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-5);
+  background: color-mix(in srgb, var(--color-abyss) 92%, transparent);
+  border-bottom: 1px solid var(--color-hairline-strong);
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: -200%;
+  background: var(--color-surface-3);
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  z-index: var(--z-toast);
+}
+
+.skip-link:focus-visible {
+  top: var(--space-2);
+}
+
+.hud-cluster {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.hud-hp {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.hud-hp-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.hud-hp-digits {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--color-crimson-on-abyss);
+}
+
+.hp-meter {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.hp-seg {
+  width: var(--space-2);
+  height: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-3);
+}
+
+.hp-seg--filled {
+  background: linear-gradient(180deg, var(--color-crimson-on-abyss), var(--color-crimson-deep));
+}
+
+.hud-room {
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+  max-width: 30ch;
+}
+
+.hud-room-title {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-display);
+  letter-spacing: var(--tracking-display);
+}
+
+.hud-room-track {
+  width: 100%;
+  height: var(--space-1);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-3);
+  overflow: hidden;
+}
+
+.hud-room-fill {
+  display: block;
+  height: 100%;
+  background: var(--color-ember);
+  transition: width var(--duration-med) var(--ease-out);
+}
+
+.hud-seed {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  color: var(--color-text-faint);
+  font-size: var(--text-sm);
+  letter-spacing: 0.06em;
+  border-radius: var(--radius-md);
+  padding: var(--space-1) var(--space-2);
+}
+
+.hud-seed:hover {
+  color: var(--color-ember-bright);
+}
+
+.hud-seed-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-seed-tick {
+  color: var(--color-ember-bright);
+  font-size: var(--text-xs);
+}
+
+.chip--run {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.chip--run-spent {
+  color: var(--color-disabled-text);
+}
+
+/* -------------------------------------------------------------- table band */
+
+.play-table {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-5);
+}
+
+.preview-line {
+  min-height: calc(var(--text-body) * var(--leading-body));
+  text-align: center;
+  font-size: var(--text-body);
+  color: var(--color-text);
+}
+
+.preview-line-headline {
+  font-variant-numeric: tabular-nums;
+}
+
+.preview-line--empty .preview-line-hint {
+  color: var(--color-text-faint);
+  font-size: var(--text-md);
+}
+
+.preview-line-reason {
+  color: var(--color-text-muted);
+}
+
+.room-row {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--space-4);
+  z-index: var(--z-room);
+}
+
+.room-row .tooltip-host {
+  display: inline-flex;
+}
+
+/* ------------------------------------------------------------ weapon zone */
+
+.weapon-zone {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-self: flex-end;
+  min-width: 0;
+  padding: var(--space-4);
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-lg);
+}
+
+.weapon-zone-body {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-4);
+  border-radius: var(--radius-md);
+}
+
+.kill-stack {
+  display: flex;
+  align-items: flex-end;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.kill-stack-item {
+  position: relative; /* DOM order stacks: last killed paints on top */
+  margin-left: calc(var(--card-width-hand) * -0.65);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.kill-stack-item:first-child {
+  margin-left: 0;
+}
+
+.kill-stack:hover .kill-stack-item,
+.weapon-zone-body:focus-visible .kill-stack-item {
+  margin-left: calc(var(--card-width-hand) * -0.35);
+}
+
+/* ------------------------------------------------------------ actions bar */
+
+.actions-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: var(--z-actions);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface-1);
+  border-top: 1px solid var(--color-hairline-strong);
+}
+
+.actions-context {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  min-width: 0;
+}
+
+.actions-buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.actions-barehanded {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: calc(var(--space-4) * 2.5);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.actions-barehanded input {
+  accent-color: var(--color-ember);
+}
+
+/* ---------------------------------------------------------------- phone */
+
+@media (max-width: 40rem) {
+  .hud {
+    flex-wrap: wrap;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .hud-room {
+    order: 3;
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .play-table {
+    padding: var(--space-3);
+    gap: var(--space-5);
+  }
+
+  .room-row {
+    gap: var(--space-2);
+  }
+
+  .weapon-zone {
+    align-self: stretch;
+  }
+
+  .kill-stack {
+    overflow-x: auto;
+    padding-bottom: var(--space-2);
+  }
+
+  .actions-bar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--space-3);
+  }
+
+  .actions-buttons {
+    justify-content: flex-end;
+  }
+}

@@ -1,0 +1,264 @@
+/* ========================================================================
+   Card presentation (style guide §5). Tokens only.
+   Frame + art share --card-radius and overflow hidden; state is expressed
+   with box-shadow rings and lift, never border/outline/art filters.
+   ===================================================================== */
+
+.card-frame {
+  aspect-ratio: var(--card-ratio);
+  width: var(--card-width-room);
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  background: var(--color-parchment);
+  outline: 1px solid var(--color-parchment-edge);
+  box-shadow: var(--shadow-card);
+  position: relative;
+  display: inline-block;
+  flex: none;
+  padding: 0;
+}
+
+button.card-frame {
+  appearance: none;
+  border: none;
+}
+
+.card--room {
+  width: var(--card-width-room);
+}
+
+.card--hand {
+  width: var(--card-width-hand);
+}
+
+.card--thumb {
+  width: var(--card-width-thumb);
+}
+
+.card-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Missing-art fallback: suit-tinted chip tile (§5.4 floor behavior). */
+.card-art--missing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface-3);
+  font-size: var(--text-xl);
+}
+
+.card-art--missing[data-suit='club'],
+.card-art--missing[data-suit='spade'] {
+  color: var(--color-suit-monster);
+}
+
+.card-art--missing[data-suit='diamond'] {
+  color: var(--color-suit-weapon);
+}
+
+.card-art--missing[data-suit='heart'] {
+  color: var(--color-suit-potion);
+}
+
+/* --- badge layers (§5.2): vignette scrim under a fixed-pair chip -------- */
+
+.card-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at calc(var(--card-inset) + 8%) calc(var(--card-inset) + 8%),
+    var(--color-vignette) 0%,
+    transparent 55%
+  );
+  pointer-events: none;
+}
+
+.card-badge {
+  position: absolute;
+  left: var(--badge-offset-x);
+  top: var(--badge-offset-y);
+  min-width: var(--badge-min-width);
+  padding: var(--badge-pad-block) 0.28em;
+  background: var(--badge-bg);
+  color: var(--badge-text);
+  border: var(--badge-border);
+  border-radius: var(--badge-radius);
+  backdrop-filter: blur(var(--badge-blur));
+  font-family: var(--font-number);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.08em;
+  z-index: 2;
+}
+
+.card-badge[data-size='room'] {
+  font-size: var(--text-md);
+}
+
+.card-badge[data-size='hand'] {
+  font-size: var(--text-sm);
+}
+
+.card-badge[data-size='thumb'] {
+  font-size: var(--text-xs);
+}
+
+.card-badge-glyph {
+  font-size: 0.78em;
+  line-height: 1;
+}
+
+/* Suit tint on the glyph at room size only; monochrome at hand/thumb. */
+.card-badge[data-size='room'] .card-badge-glyph[data-suit-club],
+.card-badge[data-size='room'][data-suit='club'] .card-badge-glyph,
+.card-badge[data-size='room'][data-suit='spade'] .card-badge-glyph {
+  color: var(--color-suit-monster);
+}
+
+.card-badge[data-size='room'][data-suit='diamond'] .card-badge-glyph {
+  color: var(--color-suit-weapon);
+}
+
+.card-badge[data-size='room'][data-suit='heart'] .card-badge-glyph {
+  color: var(--color-suit-potion);
+}
+
+/* --- carried-card marker (§5.3): bottom ribbon + ember dot --------------- */
+
+.card-carried {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--space-2) + var(--space-3));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  background: var(--color-surface-3);
+  border-top: 2px solid var(--color-ember-deep);
+  color: var(--color-ember);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+.card-carried-dot {
+  width: var(--space-1);
+  height: var(--space-1);
+  border-radius: var(--radius-pill);
+  background: var(--color-ember);
+  box-shadow: var(--glow-ember);
+}
+
+/* --- interaction states (§5.3) -------------------------------------------- */
+
+.card--interactive {
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card--interactive:hover {
+    transform: translateY(calc(var(--space-2) * -1));
+    z-index: 3;
+  }
+}
+
+.card--interactive:hover {
+  outline: 1px solid var(--color-parchment-edge);
+  box-shadow: var(--ring-hover), var(--shadow-card-hover);
+}
+
+.card--selected {
+  box-shadow: var(--ring-selected), var(--shadow-card-selected);
+  transform: translateY(calc(var(--space-2) * -1));
+  transition: transform var(--duration-med) var(--ease-spring);
+  z-index: 3;
+}
+
+.card--confirm {
+  box-shadow: var(--ring-confirm), var(--shadow-card-selected);
+}
+
+/* Keyboard focus: inset ring reads over parchment without squaring corners. */
+.card-frame:focus-visible {
+  outline: none;
+}
+
+.card-frame:focus-visible::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 2px var(--color-abyss),
+    inset 0 0 0 4px var(--color-focus-ring);
+  z-index: 3;
+}
+
+/* --- resolved/spent dimming (§5.3) — overlay dims art; chip dims by opacity */
+
+.card--dimmed {
+  cursor: default;
+}
+
+.card--dimmed .card-badge {
+  opacity: 0.6;
+}
+
+.card-dim {
+  position: absolute;
+  inset: 0;
+  background: var(--color-scrim);
+  opacity: 0.55;
+  z-index: 1;
+}
+
+/* --- ghost slot (§6.2) ------------------------------------------------------ */
+
+.card-ghost {
+  background: var(--color-surface-1);
+  outline: 1px dashed var(--color-hairline);
+  box-shadow: none;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
+.card-ghost-glyph {
+  font-size: var(--text-xl);
+  opacity: 0.3;
+}
+
+.card-ghost-glyph[data-suit='club'],
+.card-ghost-glyph[data-suit='spade'] {
+  color: var(--color-suit-monster);
+}
+
+.card-ghost-glyph[data-suit='diamond'] {
+  color: var(--color-suit-weapon);
+}
+
+.card-ghost-glyph[data-suit='heart'] {
+  color: var(--color-suit-potion);
+}
+
+.card-ghost-hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}

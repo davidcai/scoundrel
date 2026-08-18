@@ -1,0 +1,104 @@
+/* Shared chrome: buttons, chips, micro-labels. Consumes tokens only. */
+
+.btn {
+  min-height: calc(var(--space-4) * 2.5);
+  padding: 0 var(--space-4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.btn--ember {
+  background: linear-gradient(180deg, var(--color-ember), var(--color-ember-deep));
+  color: var(--color-text-inverse);
+}
+
+.btn--ember:hover {
+  box-shadow: var(--glow-ember);
+}
+
+.btn--ghost {
+  border-color: var(--color-hairline-strong);
+  color: var(--color-text-muted);
+  background: transparent;
+}
+
+.btn--ghost:hover {
+  background: var(--color-surface-4);
+  color: var(--color-text);
+}
+
+.btn--danger-ghost {
+  border-color: var(--color-crimson-deep);
+  color: var(--color-crimson-on-abyss);
+  background: transparent;
+}
+
+.btn--danger-ghost:hover {
+  border-color: var(--color-crimson-bright);
+  box-shadow: var(--glow-crimson);
+}
+
+/* Disabled chrome stays visible and focusable (§5.3): greyed, not gone. */
+.btn[aria-disabled='true'],
+.btn:disabled {
+  background: var(--color-surface-2);
+  border-color: var(--color-hairline);
+  color: var(--color-disabled-text);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* E.g. the deck-count verdigris chip. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: calc(var(--space-4) * 2.5);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-hairline);
+  font-size: var(--text-md);
+}
+
+.chip--deck {
+  border-color: var(--color-verdigris-dim);
+  color: var(--color-verdigris);
+  font-variant-numeric: tabular-nums;
+}
+
+.micro-label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -1,0 +1,132 @@
+/* Win/lose scorecard — parchment sheet over the abyss (Phase 2 direction). */
+
+.end-screen {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+}
+
+.scorecard {
+  width: min(44rem, 100%);
+  background: var(--color-parchment);
+  color: var(--color-text-on-parchment);
+  border: 1px solid var(--color-parchment-edge);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.scorecard-outcome {
+  font-size: var(--text-display);
+  color: var(--color-parchment-ink);
+}
+
+.scorecard-outcome:focus {
+  outline: none;
+}
+
+.scorecard-outcome:focus-visible {
+  outline: 2px solid var(--color-crimson-deep);
+  outline-offset: 2px;
+}
+
+.scorecard-score {
+  font-size: var(--text-display);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+.end-screen--won .scorecard-score {
+  color: var(--color-success);
+}
+
+.end-screen--lost .scorecard-score {
+  color: var(--color-crimson-deep);
+}
+
+.scorecard-sub {
+  margin-top: calc(var(--space-3) * -1);
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-parchment-ink);
+}
+
+.scorecard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--color-parchment-deep);
+  border-bottom: 1px solid var(--color-parchment-deep);
+}
+
+.scorecard-grid dt {
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-parchment-ink);
+}
+
+.scorecard-grid dd {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.scorecard-config {
+  font-size: var(--text-sm);
+  color: var(--color-parchment-ink);
+}
+
+.scorecard-seed {
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.06em;
+}
+
+.scorecard-replay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.scorecard-url {
+  font-size: var(--text-sm);
+  background: var(--color-parchment-deep);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+.scorecard-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.scorecard .btn--ghost {
+  border-color: var(--color-parchment-ink);
+  color: var(--color-parchment-ink);
+}
+
+.scorecard .btn--ghost:hover {
+  background: var(--color-parchment-deep);
+}
+
+@media (max-width: 40rem) {
+  .scorecard {
+    padding: var(--space-4);
+  }
+
+  .scorecard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
