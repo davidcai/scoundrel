@@ -8,12 +8,28 @@ See `README.md` for the project description. The full rule set lives in `docs/ru
 
 ## Commands
 
-No package.json exists yet; a toolchain has not been set up. There are no runnable scripts at this time.
+The toolchain is pnpm-based (Node 22). See README.md for details.
+
+```bash
+pnpm install       # install dependencies
+pnpm run dev       # dev server → http://localhost:5173
+pnpm run test      # unit + integration tests (Vitest)
+pnpm run e2e       # end-to-end tests (Playwright, Chromium)
+pnpm run lint      # eslint (typescript-eslint strict)
+pnpm run typecheck # tsc project references
+pnpm run build     # production build
+```
 
 ## Project structure
 
 - `docs/rules.md` — the official rule set (source of truth for gameplay)
-- `README.md` — project description
+- `docs/spec.md` + `docs/design-plan.md` + `docs/style-guide.md` — implementation spec, settled decisions, design contract
+- `README.md` — project description + dev commands
+- `src/engine/` — pure TS rules engine (zero React; contract in `src/engine/types.ts`)
+- `src/store/` + `src/persistence/` — Zustand store, versioned localStorage shards
+- `src/ui/` — React screens/components; consumes design tokens from `src/ui/styles/`
+- `src/assets/cards/` — 44 card-face JPGs (`<suit>-<value>.jpg`; CardId == filename stem)
+- `e2e/` — Playwright seam-3 suite (seeded exact-outcome runs)
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:full hash:19cc25d9 -->
 ## Issue Tracking with bd (beads)

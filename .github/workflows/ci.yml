@@ -21,19 +21,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm run test
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint
+      - run: pnpm run typecheck
+      - run: pnpm run test
 
       # Q48a: Chromium only.
-      - run: npx playwright install --with-deps chromium
-      - run: npm run e2e
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm run e2e
         # Q51c: CI builds against the Pages base path.
         env:
           BASE_URL: /scoundrel/
@@ -45,7 +46,7 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
-      - run: npm run build
+      - run: pnpm run build
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           BASE_URL: /scoundrel/

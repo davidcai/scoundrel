@@ -213,7 +213,7 @@ A `mulberry32` PRNG (~10 lines, no dep) seeded by a `uint32`. The seed is shared
 
 ### Toolchain
 - Scaffold via `npm create vite@latest -- --template react-ts`, then strip `App.tsx` boilerplate and add the `engine/`/`ui/`/`store/`/`assets/` layers.
-- **npm** (not pnpm/yarn/bun); CI uses `npm ci`.
+- **pnpm** (not npm/yarn/bun); lockfile is `pnpm-lock.yaml`, CI installs with `pnpm install --frozen-lockfile`.
 - **Strict TS + typescript-eslint (strict) + Prettier**.
 - **GitHub Pages** deploy with **env-driven base path**: `base: process.env.BASE_URL ?? '/'`; CI sets `BASE_URL=/scoundrel/`. Hash router tolerates any base.
 

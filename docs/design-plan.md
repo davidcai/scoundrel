@@ -64,7 +64,7 @@
 
 ### K. Toolchain & deploy
 - **Q27a** — **Strict TS + typescript-eslint (strict) + Prettier**
-- **Q46a** — **npm** (`npm ci` in CI)
+- **Q46a (revised)** — **pnpm** (replaces the originally-grilled npm; `pnpm install --frozen-lockfile` in CI)
 - **Q47a** — Scaffold via **`npm create vite@latest -- --template react-ts`**, then strip `App.tsx` boilerplate and add `engine/`/`ui/`/`store/`/`assets/`
 - **Q20a / Q51c** — **GitHub Pages** deploy with **env-driven `base` path**: `process.env.BASE_URL ?? '/'`; CI sets `BASE_URL=/scoundrel/`. Hash router tolerates any base.
 
