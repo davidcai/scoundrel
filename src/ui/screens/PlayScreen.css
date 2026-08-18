@@ -18,8 +18,11 @@
   justify-content: space-between;
   gap: var(--space-4);
   padding: var(--space-3) var(--space-5);
-  background: color-mix(in srgb, var(--color-abyss) 92%, transparent);
+  background: color-mix(in srgb, var(--color-abyss) 88%, transparent);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--color-hairline-strong);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--color-ember) 12%, transparent),
+    var(--shadow-1);
 }
 
 .skip-link {
@@ -56,10 +59,35 @@
   gap: var(--space-2);
 }
 
+/* HP is the HUD's primary read: biggest digits on the band, always crimson. */
 .hud-hp-digits {
-  font-size: var(--text-lg);
-  font-weight: var(--weight-semibold);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
   color: var(--color-crimson-on-abyss);
+  text-shadow: 0 0 14px var(--color-crimson-glow);
+}
+
+/* Critical HP (≤ 25%): brighter digits + a slow ember-red pulse. */
+.hud-hp--critical .hud-hp-digits {
+  color: var(--color-crimson-bright);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hud-hp--critical .hud-hp-digits {
+    animation: hp-pulse 1.6s var(--ease-in-out) infinite;
+  }
+
+  @keyframes hp-pulse {
+    0%,
+    100% {
+      text-shadow: 0 0 8px var(--color-crimson-glow);
+    }
+    50% {
+      text-shadow:
+        0 0 20px var(--color-crimson-glow),
+        0 0 40px var(--color-crimson-glow-soft);
+    }
+  }
 }
 
 .hp-meter {
@@ -72,6 +100,7 @@
   height: var(--space-3);
   border-radius: var(--radius-sm);
   background: var(--color-surface-3);
+  transition: background-color var(--duration-med) var(--ease-out);
 }
 
 .hp-seg--filled {
@@ -155,10 +184,12 @@
 }
 
 .preview-line {
-  min-height: calc(var(--text-body) * var(--leading-body));
+  min-height: calc(var(--text-lg) * var(--leading-body));
   text-align: center;
-  font-size: var(--text-body);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
   color: var(--color-text);
+  text-wrap: balance;
 }
 
 .preview-line-headline {
@@ -167,7 +198,8 @@
 
 .preview-line--empty .preview-line-hint {
   color: var(--color-text-faint);
-  font-size: var(--text-md);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
 }
 
 .preview-line-reason {
@@ -188,16 +220,23 @@
 
 /* ------------------------------------------------------------ weapon zone */
 
+/* The zone anchors to the room row: right edges align, so it reads as the
+   table's lower-right corner instead of floating free. */
 .weapon-zone {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   align-self: flex-end;
+  margin-right: max(
+    0px,
+    calc((100% - (4 * var(--card-width-room) + 3 * var(--space-4))) / 2)
+  );
   min-width: 0;
   padding: var(--space-4);
   background: var(--color-surface-1);
   border: 1px solid var(--color-hairline);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
 }
 
 .weapon-zone-body {
@@ -218,7 +257,12 @@
 .kill-stack-item {
   position: relative; /* DOM order stacks: last killed paints on top */
   margin-left: calc(var(--card-width-hand) * -0.65);
-  transition: transform var(--duration-fast) var(--ease-out);
+  transition: margin-left var(--duration-fast) var(--ease-out);
+}
+
+/* Overlapped cards need an edge shadow or the fan smears into one card. */
+.kill-stack-item + .kill-stack-item .card-frame {
+  box-shadow: var(--shadow-card), var(--shadow-stack-overlap);
 }
 
 .kill-stack-item:first-child {
@@ -240,9 +284,11 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: var(--space-4) var(--space-5);
-  background: var(--color-surface-1);
+  padding: var(--space-3) var(--space-5);
+  background: color-mix(in srgb, var(--color-surface-1) 92%, transparent);
+  backdrop-filter: blur(10px);
   border-top: 1px solid var(--color-hairline-strong);
+  box-shadow: var(--shadow-dock-up);
 }
 
 .actions-context {

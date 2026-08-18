@@ -48,6 +48,7 @@
   --color-crimson-deep: #7e2222;          /* crimson borders, pressed */
   --color-crimson-on-abyss: #e86a5f;      /* hp, damage numbers on dark */
   --color-crimson-glow: rgba(201, 59, 59, 0.35);
+  --color-crimson-glow-soft: rgba(201, 59, 59, 0.16); /* wide confirm halo */
 
   /* Secondary accents — restrained */
   --color-verdigris: #6fa08e;   /* deck-count pip: duration of the run, cold vs ember */
@@ -59,10 +60,10 @@
   --color-suit-potion: #d9534f;     /* hearts: potion crimson */
 
   /* Fixed chip-on-art pairs (badge + vignette live on light parchment art) */
-  --color-badge-bg: rgba(24, 20, 15, 0.88);      /* near-black warm, translucent */
+  --color-badge-bg: rgba(24, 20, 15, 0.92);      /* near-black warm, near-solid */
   --color-badge-text: #f2ead9;                   /* rank + glyph ink */
-  --color-badge-border: rgba(242, 234, 217, 0.28);
-  --color-vignette: rgba(16, 13, 10, 0.45);      /* top-left art scrim under badge */
+  --color-badge-border: rgba(242, 234, 217, 0.3);
+  --color-vignette: rgba(16, 13, 10, 0.55);      /* top-left art scrim under badge */
 
   /* States */
   --color-focus-ring: var(--color-ember-bright);
@@ -139,20 +140,25 @@
   --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.5);                       /* card at rest */
   --shadow-card-hover: 0 6px 18px rgba(0, 0, 0, 0.55),
     0 0 0 1px rgba(226, 160, 76, 0.25);                              /* card hovered */
-  --shadow-card-selected: 0 4px 14px rgba(0, 0, 0, 0.55),
-    0 0 20px var(--color-ember-glow),
-    0 0 0 2px var(--color-ember);                                    /* card selected */
+  --shadow-card-selected: 0 10px 24px rgba(0, 0, 0, 0.6);            /* lifted card drop (depth only — rings carry color) */
+  --shadow-stack-overlap: calc(var(--space-1) * -1) 0 8px rgba(0, 0, 0, 0.45); /* kill-stack fan: separates each overlapped card */
+  --shadow-ribbon: 0 -2px 6px rgba(0, 0, 0, 0.35);                   /* lifts the carried ribbon off the art */
+  --shadow-dock-up: 0 -8px 24px rgba(8, 9, 12, 0.5);                 /* upward cast: docked actions bar */
+  --edge-light: inset 0 1px 0 rgba(255, 241, 220, 0.16);             /* top-edge light catch on filled buttons */
   --glow-ember: 0 0 16px var(--color-ember-glow);                    /* interactive chrome hover */
   --glow-torch: radial-gradient(closest-side, var(--color-ember-glow-soft), transparent); /* hover halos */
   --glow-crimson: 0 0 14px var(--color-crimson-glow);                /* danger / lethal preview */
 
   /* Ring tokens — 100%-spread box-shadow rings (NOT outline) on round cards.
      Card corners live in the border-box; outlines square them off. */
-  --ring-hover: 0 0 0 1px var(--color-ember);
-  --ring-selected: 0 0 0 2px var(--color-ember),
-    0 0 22px 3px var(--color-ember-glow);
+  --ring-hover: 0 0 0 1px var(--color-ember),
+    0 0 16px 1px var(--color-ember-glow-soft);
+  --ring-selected: 0 0 0 2px var(--color-ember-bright),
+    0 0 18px 2px var(--color-ember-glow),
+    0 0 44px 8px var(--color-ember-glow-soft);
   --ring-confirm: 0 0 0 2px var(--color-crimson-bright),
-    0 0 22px 3px var(--color-crimson-glow);
+    0 0 18px 2px var(--color-crimson-glow),
+    0 0 40px 8px var(--color-crimson-glow-soft);
   --ring-focus-card: 0 0 0 2px var(--color-abyss),
     0 0 0 4px var(--color-focus-ring);
 
@@ -188,6 +194,15 @@
   --badge-pad-block: 0.18em;   /* vertical padding; glyph+rank stack inside */
   --badge-blur: 6px;           /* backdrop-filter — degrade gracefully, see §5 */
   /* The art's own engraved corner index stays visible above the chip. */
+}
+
+/* Narrow screens: shrink card tiers so the 4-up room row always fits with
+   its gaps (~360px floor). The 60px art floor still holds. */
+@media (max-width: 40rem) {
+  :root {
+    --card-width-room: clamp(4.5rem, 21.5vw, 6.5rem);
+    --card-width-hand: clamp(3.25rem, 15vw, 4.5rem);
+  }
 }
 
 /* Reduced motion — no transitions, no animation; state changes snap. */

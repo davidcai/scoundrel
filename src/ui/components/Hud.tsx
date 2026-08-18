@@ -27,6 +27,8 @@ export function Hud() {
   if (game === null) return null;
   const roomNumber = game.runHighlights.roomsExplored + 1;
   const progress = Math.min(1, (44 - game.dungeon.length - game.room.length) / 44);
+  // Presentation-only hook: at ≤25% HP the cluster gets the critical pulse.
+  const hpCritical = game.hp <= game.maxHp / 4;
 
   const copySeed = () => {
     try {
@@ -43,7 +45,7 @@ export function Hud() {
       <a className="skip-link" href="#room-row">
         Skip to room
       </a>
-      <div className="hud-cluster hud-hp">
+      <div className={hpCritical ? 'hud-cluster hud-hp hud-hp--critical' : 'hud-cluster hud-hp'}>
         <span className="micro-label">HP</span>
         <span className="hud-hp-row">
           <span className="hud-hp-digits tabular" aria-label={`HP ${game.hp} of ${game.maxHp}`}>

@@ -16,16 +16,22 @@
   transition:
     background-color var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out);
 }
 
+/* Confirm = the one lit element in the actions bar: torchlit fill, resting
+   shadow, glow + micro-lift on hover. */
 .btn--ember {
-  background: linear-gradient(180deg, var(--color-ember), var(--color-ember-deep));
+  background: linear-gradient(180deg, var(--color-ember-bright), var(--color-ember));
   color: var(--color-text-inverse);
+  font-weight: var(--weight-semibold);
+  box-shadow: var(--shadow-1), var(--edge-light);
 }
 
 .btn--ember:hover {
-  box-shadow: var(--glow-ember);
+  box-shadow: var(--shadow-1), var(--edge-light), var(--glow-ember);
+  transform: translateY(-1px);
 }
 
 .btn--ghost {
@@ -47,10 +53,17 @@
 
 .btn--danger-ghost:hover {
   border-color: var(--color-crimson-bright);
+  background: color-mix(in srgb, var(--color-crimson-deep) 22%, transparent);
   box-shadow: var(--glow-crimson);
 }
 
-/* Disabled chrome stays visible and focusable (§5.3): greyed, not gone. */
+/* Disabled chrome stays visible and focusable (§5.3): greyed, not gone —
+   and the ember hover glow never leaks onto a disabled Confirm. */
+.btn--ember:disabled:hover,
+.btn--ember[aria-disabled='true']:hover {
+  box-shadow: none;
+  transform: none;
+}
 .btn[aria-disabled='true'],
 .btn:disabled {
   background: var(--color-surface-2);
@@ -77,6 +90,10 @@
   border-color: var(--color-verdigris-dim);
   color: var(--color-verdigris);
   font-variant-numeric: tabular-nums;
+}
+
+.chip--deck span[aria-hidden] {
+  opacity: 0.85;
 }
 
 .micro-label {
