@@ -398,5 +398,9 @@ export const reduce: (
       return undoToRoomStart(state)
     case 'EnterNextRoom':
       return enterNextRoom(state)
+    default:
+      // Action.type is exhaustively handled above; keep a defensive default so
+      // the reducer can never fall off the end (double-project typecheck).
+      return invalid(state, 'unknown-action')
   }
 }

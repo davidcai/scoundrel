@@ -36,6 +36,9 @@ test(
       'section[aria-label="Weapon and defeated monsters"] [data-card-id]',
     )
     const weaponId = await weapon.first().getAttribute('data-card-id')
+    if (weaponId === null) {
+      throw new Error('expected an equipped weapon in mid-run state')
+    }
 
     await page.reload()
 

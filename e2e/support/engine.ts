@@ -4,8 +4,8 @@
  * embedded scripts still land exactly where the specs claim they do. Nothing
  * here launches a browser.
  */
-import { DEFAULT_CONFIG, createInitialState, reduce } from '../../src/engine'
-import type { Action, CardId, GameConfig, GameState, Result } from '../../src/engine'
+import { DEFAULT_CONFIG, createInitialState, reduce } from '../../src/engine/index.ts'
+import type { Action, CardId, GameConfig, GameState, Result } from '../../src/engine/index.ts'
 
 export interface ScriptStep {
   action: Action

@@ -6,7 +6,7 @@
  * verbatim. Specs replay these through live engine re-simulation *and* the
  * real UI; any engine behavior change breaks the validation loudly.
  */
-import type { Action, CardId } from '../../src/engine'
+import type { Action, CardId } from '../../src/engine/index.ts'
 
 /** Seeded URL everywhere in the suite uses the canonical config encoding. */
 export const CANON_CODE = 'o1d'
