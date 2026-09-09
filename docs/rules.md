@@ -25,7 +25,7 @@ Scoundrel is a popular 1-player roguelike dungeon-crawling card game. Played wi
 - Fighting Barehanded: Take damage equal to the full value of the monster.
 - Fighting with a Weapon: Equip a Diamond card. Subtract the weapon's value from the monster's value; you take the remaining difference as damage. The monster card is placed on top of your weapon.
 - Weapon Degradation: After a weapon defeats a monster, it can only fight subsequent monsters that have a lower value than the last monster it killed. If a stronger monster appears, you must either find a new weapon, switch weapons (picking up a new Diamond automatically discards your old weapon), or fight barehanded.
-- Health Potions: You may only use one health potion per room. If a room contains multiple hearts, any extra potions are discarded without healing you.
+- Health Potions: You may only drink one health potion per room. A second potion you drink in the same room is discarded and restores nothing. A Heart you leave un-resolved (such as the carried 4th card) is not discarded — it carries into the next room, and the one-potion limit resets each room.
 
 ## Winning and Losing
 

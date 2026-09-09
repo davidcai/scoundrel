@@ -48,7 +48,7 @@ A modern-RPG-styled web app (React + Vite + TypeScript) with a dark dungeon-craw
 ### Running away
 28. As a player facing a bad room, I want to run away once per turn to send all 4 cards to the bottom of the Dungeon and deal a new room, so that I can escape unwinnable situations.
 29. As a player who just ran away, I want to be blocked from running a second consecutive room, so that the "no two runs in a row" rule is enforced.
-30. As a player with fewer than 4 cards remaining in the deck, I want the "Run Away" action to be disabled, so that I can't attempt to draw a room that can't exist.
+30. As a player in the final room (no cards left in the Dungeon after the deal), I want the "Run Away" action to be disabled, so that I can't attempt to escape the room I must resolve to win — fleeing it would just re-deal the same cards.
 31. As a player, I want the disabled Run action to be visibly greyed out with a tooltip explaining why, so that I understand the constraint.
 
 ### Undo
@@ -160,7 +160,7 @@ Explicit card-targeted actions, one per card type:
 
 ### Result union (state + result tuple)
 The reducer returns `{ state, result }`; `result` is a discriminated union:
-- Per-action: `MonsterDefeated{cardId, damage, weaponBroke, usedWeaponId?}`, `WeaponEquipped{cardId, discardedWeaponId?, discardedMonsterIds[]}`, `PotionQuaffed{cardId, healed, wasted}`, `RanAway{newCards}`, `RunAwayBlocked{reason: 'twice-in-row' | 'no-cards'}`, `RoomDealt{cards, carriedFrom?}`, `UndoDone`, `InvalidAction{reason}`
+- Per-action: `MonsterDefeated{cardId, damage, weaponBroke, usedWeaponId?}`, `WeaponEquipped{cardId, discardedWeaponId?, discardedMonsterIds[]}`, `PotionQuaffed{cardId, healed, wasted}`, `RanAway{newCards}`, `RunAwayBlocked{reason: 'twice-in-row' | 'final-room'}`, `RoomDealt{cards, carriedFrom?}`, `UndoDone`, `InvalidAction{reason}`
 - Terminal: `GameWon{score, seed, config}`, `GameLost{score, seed, config}`
 
 Terminal results live in the union (not derived from `state.phase` alone) so the UI can write the stats record once at the natural moment (the result handler) and so the win/lose screen is reload-safe.
@@ -174,7 +174,7 @@ A `mulberry32` PRNG (~10 lines, no dep) seeded by a `uint32`. The seed is shared
 - **Weapon swap** discards the weapon AND its entire kill stack; the new weapon starts fresh.
 - **Weapon layout**: weapon card rendered on the left, kill stack on the right, with monsters still drawn as physical cards, last-killed on top. (UI/layout decision recorded here for cross-reference.)
 - **Final partial room** (deck < 4 remaining): deal `min(4, remaining)`; if no next room exists (dungeon empty after this deal), resolve-all with no carryover; the final single-card room resolves that one card and triggers win. Unit tests must cover 4/3/2/1 remaining cases.
-- **Run away** is disabled when `dungeon.length < 4` (no new room can be dealt). The twice-in-a-row restriction is the primary rule; the deck-size check is a secondary gate. UI greys Run via the available-actions query.
+- **Run away** is disabled only in the final room (Dungeon empty after the current deal — fleeing would immediately re-deal the same cards). Whenever cards remain in the Dungeon, running is legal: the fled room's four cards go to the bottom and form part of the next deal. The twice-in-a-row restriction is the primary rule. UI greys Run via the available-actions query.
 - **Unresolved hearts carry normally** to the next room; the potions-per-room counter resets per room; the `potionsPerRoom` toggle only changes the within-room cap, not the carry rule.
 
 ### Persistence
@@ -203,8 +203,8 @@ A `mulberry32` PRNG (~10 lines, no dep) seeded by a `uint32`. The seed is shared
 - **Phased designer handoff**: Phase 1 = style guide + play screen + title (highest leverage); Phase 2 = stats, settings, win/lose scorecard. The designer overlaps Phase 2 once the style guide is approved; engineering implements Phase 1 in parallel.
 
 ### Toolchain
-- Scaffold via `npm create vite@latest -- --template react-ts`, then strip `App.tsx` boilerplate and add the `engine/`/`ui/`/`store/`/`assets/` layers.
-- **npm** (not pnpm/yarn/bun); CI uses `npm ci`.
+- Scaffold via `pnpm create vite@latest --template react-ts`, then strip `App.tsx` boilerplate and add the `engine/`/`ui/`/`store/`/`assets/` layers.
+- **pnpm** (pinned via the `packageManager` field in `package.json`); CI installs with `pnpm install --frozen-lockfile`, with pnpm set up via `pnpm/action-setup` before `actions/setup-node` (which restores the pnpm store cache).
 - **Strict TS + typescript-eslint (strict) + Prettier**.
 - **GitHub Pages** deploy with **env-driven base path**: `base: process.env.BASE_URL ?? '/'`; CI sets `BASE_URL=/scoundrel/`. Hash router tolerates any base.
 
@@ -221,7 +221,7 @@ A good test asserts **external behavior**, not implementation details. We test t
 
 We prefer the **fewest seams possible** — ideally one. This spec uses **three seams**, each at the highest practical point:
 
-1. **Engine reducer seam (pure unit tests)** — the highest-leverage single seam. Tests call `reducer(state, action)` and assert `{ state, result }`. Covers all rule behavior: deck composition (44-card), combat damage (`max(0, m−w)`), barehanded vs weapon, weapon degradation threshold, weapon swap discards stack, potion cap (1 vs toggle), potion counter reset on room, run-away twice-in-a-row block, run-away deck-size gate, unresolved-heart carry, final-partial-room shapes (4/3/2/1 remaining), win/lose detection, scoring formulas. Deterministic via mulberry32 seeds; runs in Node with no DOM. *This seam absorbs the vast majority of test surface.*
+1. **Engine reducer seam (pure unit tests)** — the highest-leverage single seam. Tests call `reducer(state, action)` and assert `{ state, result }`. Covers all rule behavior: deck composition (44-card), combat damage (`max(0, m−w)`), barehanded vs weapon, weapon degradation threshold, weapon swap discards stack, potion cap (1 vs toggle), potion counter reset on room, run-away twice-in-a-row block, run-away final-room gate, unresolved-heart carry, final-partial-room shapes (4/3/2/1 remaining), win/lose detection, scoring formulas. Deterministic via mulberry32 seeds; runs in Node with no DOM. *This seam absorbs the vast majority of test surface.*
 
 2. **React component seam (integration)** — React Testing Library + Vitest. Renders React components with a Zustand store and asserts on the accessible rendered output (queries like `getByRole`, `getByText`, `findByLiveAnnouncement`). Covers: card-selection state appears in the store (not engine), clicking a card selects it, confirming an action dispatches the engine action and re-renders, damage-preview tooltip reflects the reducer's preview, undo button rewinds, carryover marker appears on the carried card, win/lose screen renders the scorecard, replay-link affordance copies the URL. No mount of internal subcomponent state; no `instance()` access.
 

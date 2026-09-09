@@ -23,7 +23,7 @@
 - **Q42a** — On weapon swap, **entire stack discarded** (weapon + all defeated monsters); new weapon starts fresh
 - **Q40 custom** — **Weapon card on left, kill stack on right**; killed monsters still rendered as physical cards, **last-killed on top**
 - **Q52c** — **Adaptive final room**: deal `min(4, remaining)`; once no next room exists, **resolve-all** (no carryover); single-card final room resolves that card and triggers win
-- **Q53a** — **Run disabled when `dungeon.length < 4`** (can't form a new room)
+- **Q53a** — **Run disabled only in the final room** (Dungeon empty after deal — fleeing re-deals the same cards); legal whenever the Dungeon still holds cards
 - **Q54a** — **Unresolved hearts carry normally** to next room; potions-per-room counter resets per room; the Q10 toggle only changes the within-room cap, not carry rules
 
 ### E. Rule toggles (settings screen)
@@ -62,8 +62,8 @@
 
 ### K. Toolchain & deploy
 - **Q27a** — **Strict TS + typescript-eslint (strict) + Prettier**
-- **Q46a** — **npm** (`npm ci` in CI)
-- **Q47a** — Scaffold via **`npm create vite@latest -- --template react-ts`**, then strip `App.tsx` boilerplate and add `engine/`/`ui/`/`store/`/`assets/`
+- **Q46a** — **pnpm** (`pnpm install --frozen-lockfile` in CI; pinned via `packageManager`, installed via `pnpm/action-setup` + `actions/setup-node` with `cache: 'pnpm'`)
+- **Q47a** — Scaffold via **`pnpm create vite@latest --template react-ts`**, then strip `App.tsx` boilerplate and add `engine/`/`ui/`/`store/`/`assets/`
 - **Q20a / Q51c** — **GitHub Pages** deploy with **env-driven `base` path**: `process.env.BASE_URL ?? '/'`; CI sets `BASE_URL=/scoundrel/`. Hash router tolerates any base.
 
 ### L. Docs
