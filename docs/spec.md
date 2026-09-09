@@ -6,12 +6,12 @@ As a player, I want to play Scoundrel — a 1-player roguelike dungeon-crawling 
 
 ## Solution
 
-A pixel/retro-roguelike-styled web app (React + Vite + TypeScript) that implements the full Scoundrel rule set from `docs/rules.md` by default, with optional house-rule toggles, per-room undo, save/resume, seedable & shareable runs, a stats dashboard with run history, and full unit/integration/e2e test coverage. The game logic lives in a pure TS engine (no React imports) wrapped by a thin React + Zustand UI layer, enabling fast deterministic tests and a clean engine/UI separation.
+A modern-RPG-styled web app (React + Vite + TypeScript) with a dark dungeon-crawler theme and a sharp, modern UI (crisp typography, depth/shadow, high contrast), implementing the full Scoundrel rule set from `docs/rules.md` by default, with optional house-rule toggles, per-room undo, save/resume, seedable & shareable runs, a stats dashboard with run history, and full unit/integration/e2e test coverage. The game logic lives in a pure TS engine (no React imports) wrapped by a thin React + Zustand UI layer, enabling fast deterministic tests and a clean engine/UI separation.
 
 ## User Stories
 
 ### Setup & discovery
-1. As a new visitor, I want to land on a title screen with a pixel-roguelike backdrop, so that I immediately understand the game's mood and can choose an action.
+1. As a new visitor, I want to land on a title screen with a dark dungeon-crawler backdrop, so that I immediately understand the game's mysterious, adventurous mood and can choose an action.
 2. As a returning player with a saved run, I want a prominent "Continue" button on the title screen, so that I can resume my in-progress run in one click.
 3. As a player who wants a fresh game, I want a "New Run" button on the title screen, so that I can start a brand-new randomized dungeon.
 4. As a player who received a seed from a friend, I want an "Enter Seed" option on the title screen, so that I can reproduce their exact dungeon.
@@ -87,7 +87,7 @@ A pixel/retro-roguelike-styled web app (React + Vite + TypeScript) that implemen
 54. As a keyboard-only player, I want all cards and actions reachable via tab + arrow keys, so that I can play without a mouse.
 55. As a screen-reader user, I want ARIA labels on cards ("8 of Clubs, monster, value 8"), so that the game state is legible.
 56. As a screen-reader user, I want live-region announcements on combat results (damage taken, weapon broke), potion quaffs, and win/lose transitions, so that I can follow the game audibly.
-57. As a player with low vision, I want sufficient color contrast and clear focus indicators, so that the pixel aesthetic doesn't compromise legibility.
+57. As a player with low vision, I want sufficient color contrast and clear focus indicators, so that the dark theme doesn't compromise legibility.
 
 ### Onboarding & tooltips
 58. As a new player, I want hover/tap-and-hold tooltips on card types, the weapon/degradation mechanic, and the run-away restriction, so that I can learn the rules without a linear tutorial.
@@ -106,7 +106,7 @@ A pixel/retro-roguelike-styled web app (React + Vite + TypeScript) that implemen
 ## Implementation Decisions
 
 ### Architecture & module layout
-- **Engine/UI split**: A pure TypeScript engine module (`src/engine/`) holds all game rules, deck composition, RNG, combat math, weapon degradation, potion cap, run-away restriction, win/lose detection, and scoring. The engine imports zero React/UI code, so it runs in Node without a DOM for fast deterministic unit tests. The UI module (`src/ui/`) contains React components, the Zustand store, persistence adapters, and the router/renderer. Assets (`src/assets/`) hold raster sprites and the pixel font.
+- **Engine/UI split**: A pure TypeScript engine module (`src/engine/`) holds all game rules, deck composition, RNG, combat math, weapon degradation, potion cap, run-away restriction, win/lose detection, and scoring. The engine imports zero React/UI code, so it runs in Node without a DOM for fast deterministic unit tests. The UI module (`src/ui/`) contains React components, the Zustand store, persistence adapters, and the router/renderer. Assets (`src/assets/`) hold raster art (title backdrop / key art only).
 - **Reducer + pure functions**: The engine exposes `createInitialState(seed, config)` and a reducer `(state, action) → { state, result }`. The reducer is pure: it returns a new state and a typed result payload; no side effects. This is directly testable and supports per-room undo via snapshot/restore of a plain serializable object.
 - **Selection lives in the store, not engine state**: The transient "currently selected card" highlight belongs in the Zustand store as a UI-only slice and is NOT part of `GameState`. The engine answers "what is the game truth"; the store/UI answers "what is the user hovering." Snapshots therefore exclude selection; undo restores game truth without pulsing ephemeral UI state. This is the canonical engine/UI split.
 
@@ -199,7 +199,7 @@ A `mulberry32` PRNG (~10 lines, no dep) seeded by a `uint32`. The seed is shared
 - Live regions announce combat results, potion quaffs, run-away blocks, and win/lose — driven directly by the Q25b result payloads.
 
 ### Visual & design
-- **Pixel/retro roguelike** aesthetic; **hybrid assets**: CSS + pixel font for cards/HUD/UI; raster sprites only for the title backdrop and key art.
+- **Modern RPG** aesthetic: dark dungeon-crawler theme, sharp and modern UI (crisp typography, depth/shadow, high contrast), mysterious and adventurous atmosphere; **hybrid assets**: CSS + modern typography for cards/HUD/UI; raster art only for the title backdrop and key art.
 - **Phased designer handoff**: Phase 1 = style guide + play screen + title (highest leverage); Phase 2 = stats, settings, win/lose scorecard. The designer overlaps Phase 2 once the style guide is approved; engineering implements Phase 1 in parallel.
 
 ### Toolchain
@@ -252,7 +252,7 @@ No prior art in this greenfield repo. The codebase conventions do not yet exist;
 - **Additional e2e browsers in CI**. Chromium only for now (Q48a); WebKit/Firefox added later only if specific bugs justify them.
 - **Architecture docs parallel to the code**. Contracts live in typed TS, not separate markdown (Q39b). Only `README.md` (overview + commands) and `docs/rules.md` (canonical rules) are maintained as prose.
 - **Vercel/Netlify/custom-domain deploy**. GitHub Pages only (Q20a).
-- **Audio**. Not in scope; the pixel aesthetic is visual.
+- **Audio**. Not in scope; the dark theme is visual.
 - **Internationalization**. English-only for now.
 - **Server-side state or accounts**. All-local; no backend.
 

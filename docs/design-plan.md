@@ -51,8 +51,8 @@
 - **Q28b** — **Keyboard-navigable + ARIA labels + SR announcements**; Q25b result payloads map directly onto live-region announcements
 
 ### I. Visual / design
-- **Q8a** — **Pixel/retro roguelike** aesthetic
-- **Q12d** — **Hybrid assets**: CSS + pixel font for cards/UI/HUD; **raster sprites** only for title/backdrop/key art
+- **Q8a** — **Modern RPG** aesthetic: dark dungeon-crawler theme with a sharp, modern UI (crisp typography, depth/shadow, high contrast) and a mysterious, adventurous atmosphere
+- **Q12d** — **Hybrid assets**: CSS + modern typography for cards/UI/HUD; **raster sprites** only for title/backdrop/key art
 - **Q23c / Q44a / Q49b** — **Phased designer handoff**: Phase 1 = style guide + play screen + title (highest leverage, de-risks hardest screen); Phase 2 = stats, settings, win/lose scorecard. **Designer overlaps Phase 2 once the style guide is approved**; engineering implements Phase 1 in parallel.
 
 ### J. Testing
