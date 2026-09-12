@@ -9,6 +9,7 @@ import {
   type GameState,
 } from '../engine';
 import { announce } from './announcements';
+import { t } from '../i18n';
 import { STORAGE_KEYS, load, migrateVersion, remove, save } from './persistence';
 import { loadStats, recordRun, saveStats, type RunRecord } from './stats';
 
@@ -81,7 +82,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       selectedCardId: null,
       statsWritten: false,
       announcement: {
-        message: `A new run begins. Seed ${state.seed}. ${announce(result, state)}`,
+        message: `${t('announceRunStarted', { seed: state.seed })} ${announce(result, state)}`,
         id: ++announcementSeq,
       },
     });

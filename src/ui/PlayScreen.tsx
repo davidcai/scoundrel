@@ -4,7 +4,6 @@ import {
   canResolveMore,
   canUndo,
   cardKind,
-  cardLabel,
   cardValue,
   isFinalRoom,
   previewFight,
@@ -13,6 +12,7 @@ import {
   type GameAction,
   type GameState,
 } from '../engine';
+import { cardLabel, useT } from '../i18n';
 import { useGameStore } from '../store/gameStore';
 import { decodeConfig } from '../store/share';
 import { CardView } from './CardView';
@@ -30,6 +30,7 @@ export function PlayScreen() {
   const selectCard = useGameStore((s) => s.selectCard);
   const startRun = useGameStore((s) => s.startRun);
   const abandonRun = useGameStore((s) => s.abandonRun);
+  const t = useT();
 
   const seedParam = route.params.get('seed');
   const configParam = route.params.get('config');
@@ -81,10 +82,10 @@ export function PlayScreen() {
     return (
       <main className="screen">
         <div className="panel empty-state">
-          <h2>No run in progress</h2>
-          <p>Start a new run from the title screen, or open a shared replay link.</p>
+          <h2>{t('noRunTitle')}</h2>
+          <p>{t('noRunHint')}</p>
           <button type="button" className="btn primary" onClick={() => navigate('#/')}>
-            Back to title
+            {t('backToTitle')}
           </button>
         </div>
       </main>
@@ -106,7 +107,7 @@ export function PlayScreen() {
 
       {final && (
         <p className="final-banner" role="note">
-          The final room — resolve <strong>every</strong> card to win.
+          {t('finalBannerStart')} <strong>{t('finalBannerEvery')}</strong> {t('finalBannerEnd')}
         </p>
       )}
 
@@ -114,7 +115,7 @@ export function PlayScreen() {
         ref={roomRef}
         className="room"
         role="group"
-        aria-label="Current room"
+        aria-label={t('currentRoom')}
         onKeyDown={onKeyDown}
       >
         {game.room.map((cardId) => (
@@ -130,10 +131,10 @@ export function PlayScreen() {
 
       <p className="room-progress" aria-hidden="true">
         {!final && game.room.length === 1
-          ? 'This card will carry over to the next room.'
+          ? t('carrySingle')
           : final
-            ? 'No card will carry over — clear them all.'
-            : 'Choose a card, then resolve it. One card will carry over.'}
+            ? t('carryNone')
+            : t('carryDefault')}
       </p>
 
       {selected !== null && <ActionPanel game={game} cardId={selected} />}
@@ -141,26 +142,26 @@ export function PlayScreen() {
       <WeaponStack game={game} />
 
       <footer className="controls">
-        <Tooltip text="Rewind the current room to the moment it was dealt — health, weapon, kill stack and potions reset. The snapshot is cleared once you enter the next room.">
+        <Tooltip text={t('tooltipUndo')}>
           <button
             type="button"
             className="btn"
             aria-disabled={!canUndo(game)}
             onClick={() => act({ type: 'UndoToRoomStart' })}
           >
-            Undo to room start
+            {t('undoToRoomStart')}
           </button>
         </Tooltip>
 
         <Tooltip
           text={
             runStatus.legal
-              ? 'Send all four cards to the bottom of the dungeon and deal a fresh room.'
+              ? t('tooltipRunLegal')
               : runStatus.reason === 'twice-in-a-row'
-                ? 'You cannot run from two rooms in a row.'
+                ? t('tooltipRunTwice')
                 : runStatus.reason === 'final-room'
-                  ? 'This is the final room — fleeing would just re-deal the same cards.'
-                  : 'You already engaged this room.'
+                  ? t('tooltipRunFinal')
+                  : t('tooltipRunEngaged')
           }
         >
           <button
@@ -169,19 +170,19 @@ export function PlayScreen() {
             aria-disabled={!runStatus.legal}
             onClick={() => act({ type: 'RunAway' })}
           >
-            Run away
+            {t('runAway')}
           </button>
         </Tooltip>
 
         {!final && (
-          <Tooltip text="Resolve 3 of the 4 cards, then carry the remaining one into the next room.">
+          <Tooltip text={t('tooltipCarry')}>
             <button
               type="button"
               className="btn primary"
               aria-disabled={!canEnterNextRoom(game)}
               onClick={() => act({ type: 'EnterNextRoom' })}
             >
-              Enter next room →
+              {t('enterNextRoom')}
             </button>
           </Tooltip>
         )}
@@ -198,7 +199,7 @@ export function PlayScreen() {
             }
           }}
         >
-          {abandonArmed ? 'Really abandon?' : 'Abandon run'}
+          {abandonArmed ? t('reallyAbandon') : t('abandonRun')}
         </button>
       </footer>
     </main>
@@ -214,6 +215,7 @@ interface DispatchProps {
 function ActionPanel({ game, cardId }: { game: GameState; cardId: CardId }) {
   const selectCard = useGameStore((s) => s.selectCard);
   const act = useGameStore((s) => s.act);
+  const t = useT();
   const kind = cardKind(cardId);
   const label = cardLabel(cardId);
 
@@ -221,14 +223,14 @@ function ActionPanel({ game, cardId }: { game: GameState; cardId: CardId }) {
   // card: nothing can be resolved anymore — say so instead of offering actions.
   if (!canResolveMore(game)) {
     return (
-      <section className="action-panel" aria-label={`Actions for ${label}`}>
+      <section className="action-panel" aria-label={t('actionsFor', { label })}>
         <h3 className="zone-title">{label}</h3>
         <p className="action-note" role="note">
-          The other 3 cards of this room are resolved — this card carries over to the next room.
+          {t('carryNote')}
         </p>
         <div className="action-buttons">
           <button type="button" className="btn ghost" onClick={() => selectCard(null)}>
-            Cancel
+            {t('cancel')}
           </button>
         </div>
       </section>
@@ -236,7 +238,7 @@ function ActionPanel({ game, cardId }: { game: GameState; cardId: CardId }) {
   }
 
   return (
-    <section className="action-panel" aria-label={`Actions for ${label}`}>
+    <section className="action-panel" aria-label={t('actionsFor', { label })}>
       <h3 className="zone-title">{label}</h3>
 
       {kind === 'monster' && (
@@ -260,6 +262,7 @@ function MonsterActions({
   act,
   selectCard,
 }: DispatchProps & { game: GameState; cardId: CardId }) {
+  const t = useT();
   const withWeapon = game.weapon !== null ? previewFight(game, cardId, false) : null;
   const barehanded = previewFight(game, cardId, true);
   const label = cardLabel(cardId);
@@ -276,14 +279,21 @@ function MonsterActions({
             selectCard(null);
           }}
         >
-          Fight with {cardLabel(game.weapon)} — take {withWeapon.damage} damage
+          {t('fightWith', { weapon: cardLabel(game.weapon), damage: withWeapon.damage })}
         </button>
       )}
       {withWeapon !== null && !withWeapon.legal && (
         <p className="action-note" role="note">
-          Your {game.weapon !== null ? cardLabel(game.weapon) : 'weapon'} cannot fight the {label} —
-          it only defeats monsters weaker than its last kill
-          {lastKill !== undefined ? ` (the ${cardLabel(lastKill)})` : ''}.
+          {lastKill !== undefined
+            ? t('weaponCannotWith', {
+                weapon: game.weapon !== null ? cardLabel(game.weapon) : t('noWeapon'),
+                monster: label,
+                last: cardLabel(lastKill),
+              })
+            : t('weaponCannot', {
+                weapon: game.weapon !== null ? cardLabel(game.weapon) : t('noWeapon'),
+                monster: label,
+              })}
         </p>
       )}
       {barehanded.legal && (
@@ -295,11 +305,11 @@ function MonsterActions({
             selectCard(null);
           }}
         >
-          Fight barehanded — take {barehanded.damage} damage
+          {t('fightBarehanded', { damage: barehanded.damage })}
         </button>
       )}
       <button type="button" className="btn ghost" onClick={() => selectCard(null)}>
-        Cancel
+        {t('cancel')}
       </button>
     </div>
   );
@@ -311,6 +321,7 @@ function PotionActions({
   act,
   selectCard,
 }: DispatchProps & { game: GameState; cardId: CardId }) {
+  const t = useT();
   const value = cardValue(cardId);
   const wasted = game.config.potionsPerRoom === 'one' && game.potionsUsedThisRoom >= 1;
   const heal = wasted ? 0 : Math.min(value, game.maxHp - game.hp);
@@ -325,17 +336,11 @@ function PotionActions({
           selectCard(null);
         }}
       >
-        {wasted
-          ? `Drink potion — wasted (one potion per room, restores nothing)`
-          : `Drink potion — restore ${heal} health`}
+        {wasted ? t('drinkWasted') : t('drinkHeal', { heal })}
       </button>
-      <p className="action-note">
-        {wasted
-          ? 'You already drank a potion this room; a second one is discarded with no effect.'
-          : 'Only the first potion each room heals you.'}
-      </p>
+      <p className="action-note">{wasted ? t('potionWastedNote') : t('potionNote')}</p>
       <button type="button" className="btn ghost" onClick={() => selectCard(null)}>
-        Cancel
+        {t('cancel')}
       </button>
     </div>
   );
@@ -347,11 +352,16 @@ function WeaponActions({
   act,
   selectCard,
 }: DispatchProps & { game: GameState; cardId: CardId }) {
+  const t = useT();
   const label = cardLabel(cardId);
   const swapWarning =
     game.weapon !== null
-      ? `Equipping ${label} discards your ${cardLabel(game.weapon)} and its ${game.killStack.length} slain monsters.`
-      : `Equip ${label} as your weapon.`;
+      ? t('equipSwap', {
+          label,
+          old: cardLabel(game.weapon),
+          kills: game.killStack.length,
+        })
+      : t('equipFresh', { label });
 
   return (
     <div className="action-buttons">
@@ -363,11 +373,11 @@ function WeaponActions({
           selectCard(null);
         }}
       >
-        Equip {label}
+        {t('equip', { label })}
       </button>
       <p className="action-note">{swapWarning}</p>
       <button type="button" className="btn ghost" onClick={() => selectCard(null)}>
-        Cancel
+        {t('cancel')}
       </button>
     </div>
   );

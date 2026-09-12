@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_CONFIG, createInitialState } from '../src/engine';
 import { STORAGE_KEYS, load, migrateVersion, save } from '../src/store/persistence';
 import { emptyStats, loadStats, recordRun, saveStats, type RunRecord } from '../src/store/stats';
-import { loadSettings, saveSettings } from '../src/store/settings';
+import { loadSettings, saveLanguage, saveSettings } from '../src/store/settings';
 import { decodeConfig, encodeConfig, runUrl } from '../src/store/share';
 import { announce } from '../src/store/announcements';
 
@@ -59,7 +59,7 @@ describe('persistence wrappers', () => {
 
 describe('settings', () => {
   it('defaults to the canonical rule set', () => {
-    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG });
+    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'en' });
   });
 
   it('persists across loads', () => {
@@ -70,7 +70,25 @@ describe('settings', () => {
 
   it('falls back to defaults on corrupt data', () => {
     localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify({ version: 1, data: 'garbage' }));
-    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG });
+    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'en' });
+  });
+
+  it('persists the language independently of the rule config', () => {
+    saveLanguage('zh');
+    expect(loadSettings().language).toBe('zh');
+    const custom = { ...DEFAULT_CONFIG, weaponDegradation: false };
+    saveSettings(custom);
+    expect(loadSettings()).toEqual({ config: custom, language: 'zh' });
+    saveLanguage('en');
+    expect(loadSettings().language).toBe('en');
+  });
+
+  it('accepts legacy settings shards without a language field', () => {
+    localStorage.setItem(
+      STORAGE_KEYS.settings,
+      JSON.stringify({ version: 1, data: { config: DEFAULT_CONFIG } }),
+    );
+    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'en' });
   });
 });
 
