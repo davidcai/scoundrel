@@ -224,8 +224,7 @@ function ActionPanel({ game, cardId }: { game: GameState; cardId: CardId }) {
       <section className="action-panel" aria-label={`Actions for ${label}`}>
         <h3 className="zone-title">{label}</h3>
         <p className="action-note" role="note">
-          The other 3 cards of this room are resolved — this card carries over to
-          the next room.
+          The other 3 cards of this room are resolved — this card carries over to the next room.
         </p>
         <div className="action-buttons">
           <button type="button" className="btn ghost" onClick={() => selectCard(null)}>

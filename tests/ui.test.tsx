@@ -212,9 +212,7 @@ describe('play screen', () => {
     // Selecting the carry card explains WHY it cannot be resolved — the other
     // 3 cards of the room are already resolved (no fight/equip/drink buttons).
     await user.click(cardButton(carried));
-    expect(
-      screen.getByText(/the other 3 cards of this room are resolved/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/the other 3 cards of this room are resolved/i)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /fight|equip|drink/i })).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
