@@ -42,6 +42,9 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
+      - name: Build (default base path)
+        run: pnpm build
+
       - name: E2E tests
         run: pnpm exec playwright test
 
@@ -50,10 +53,6 @@ jobs:
         run: pnpm build
         env:
           BASE_URL: /scoundrel/
-
-      - name: Build (default base path)
-        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
-        run: pnpm build
 
       - name: Upload Playwright artifacts on failure
         if: failure() && github.event_name == 'pull_request'
