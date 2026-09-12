@@ -244,6 +244,7 @@ function MonsterActions({
   const withWeapon = game.weapon !== null ? previewFight(game, cardId, false) : null;
   const barehanded = previewFight(game, cardId, true);
   const label = cardLabel(cardId);
+  const lastKill = game.killStack[game.killStack.length - 1];
 
   return (
     <div className="action-buttons">
@@ -262,7 +263,8 @@ function MonsterActions({
       {withWeapon !== null && !withWeapon.legal && (
         <p className="action-note" role="note">
           Your {game.weapon !== null ? cardLabel(game.weapon) : 'weapon'} cannot fight the {label} —
-          it only defeats monsters weaker than its last kill.
+          it only defeats monsters weaker than its last kill
+          {lastKill !== undefined ? ` (the ${cardLabel(lastKill)})` : ''}.
         </p>
       )}
       {barehanded.legal && (

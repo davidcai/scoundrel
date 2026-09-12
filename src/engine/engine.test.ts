@@ -322,6 +322,23 @@ describe('weapon degradation', () => {
     expect(weaponThreshold(degraded())).toBe(7); // last kill 8 → must be < 8
   });
 
+  it('chains degradation across kills — each kill lowers the threshold', () => {
+    // Weapon killed the Ace of Spades (14), then a 10 in a later resolution.
+    const s = baseState({
+      room: [C('spade-10'), C('spade-j'), C('heart-2'), C('spade-4')],
+      dungeon: [C('club-2')],
+      weapon: C('diamond-6'),
+      killStack: [C('spade-a')],
+    });
+    const after = dispatch(s, { type: 'FightMonster', cardId: C('spade-10') });
+    expect(after.state.killStack).toEqual(['spade-a', 'spade-10']);
+    // The Jack (11) is stronger than the LAST kill (10) — blocked, even though
+    // the earlier Ace was stronger. Killing ANY monster with the weapon —
+    // including weak 0-damage kills — resets the threshold below it.
+    expect(previewFight(after.state, C('spade-j'), false).legal).toBe(false);
+    expect(weaponThreshold(after.state)).toBe(9);
+  });
+
   it('is lifted by the config toggle', () => {
     const s = {
       ...degraded(),

@@ -14,6 +14,7 @@ export function WeaponStack({ game }: { game: GameState }) {
   const threshold = weaponThreshold(game);
   const hasKills = game.killStack.length > 0;
   const degradationOn = game.config.weaponDegradation;
+  const lastKill = game.killStack[game.killStack.length - 1];
 
   const thresholdText = !degradationOn
     ? 'Weapon degradation is off: this weapon can fight any monster.'
@@ -37,11 +38,9 @@ export function WeaponStack({ game }: { game: GameState }) {
           {game.weapon !== null && <CardView cardId={game.weapon} className="weapon-card" />}
         </Tooltip>
         <p className="weapon-threshold" data-kind="info">
-          {!degradationOn
+          {!degradationOn || threshold === null || lastKill === undefined
             ? 'Fights any monster'
-            : threshold === null
-              ? 'Fights any monster'
-              : `Fights monsters up to ${threshold}`}
+            : `Fights monsters up to ${threshold} — last kill: ${cardLabel(lastKill)}`}
         </p>
       </div>
 
