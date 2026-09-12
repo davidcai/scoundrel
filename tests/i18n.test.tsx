@@ -27,7 +27,7 @@ describe('translate', () => {
 });
 
 describe('localized card labels', () => {
-  it('labels cards in English by default', () => {
+  it('labels cards in English when English is selected', () => {
     act(() => useLanguage.setState({ lang: 'en' }));
     expect(cardLabel('club-8')).toBe('8 of Clubs');
     expect(cardAriaLabel('diamond-5')).toBe('5 of Diamonds, weapon, value 5');
@@ -44,29 +44,29 @@ describe('localized card labels', () => {
 
 describe('language switcher', () => {
   it('renders the Chinese UI and persists the choice', async () => {
+    // Start from a clean slate in the default language (setLang also
+    // re-syncs <html lang>, which afterEach may have left as 'en').
+    localStorage.clear();
+    act(() => useLanguage.getState().setLang('zh'));
+
     const user = userEvent.setup();
     render(<App />);
 
-    expect(screen.getByRole('button', { name: 'New run' })).toBeInTheDocument();
-
-    // Switch language from the settings screen.
-    act(() => useLanguage.getState().setLang('zh'));
+    // Chinese is the app default; the title screen opens in Chinese.
+    expect(screen.getByRole('button', { name: '新开一局' })).toBeInTheDocument();
     expect(document.documentElement.lang).toBe('zh-CN');
     expect(loadSettings().language).toBe('zh');
 
-    // Title screen re-renders in Chinese.
-    expect(screen.getByRole('button', { name: '新开一局' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '统计' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '设置' })).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: '设置' }));
-    expect(screen.getByRole('heading', { name: '设置' })).toBeInTheDocument();
-    expect(screen.getByLabelText('语言 Language')).toBeInTheDocument();
-  });
-
-  it('auto-detects Chinese browsers only when nothing is stored', () => {
-    localStorage.clear();
-    // navigator.language is en-US in jsdom, so the default is English.
+    // Switching to English persists and re-renders.
+    act(() => useLanguage.getState().setLang('en'));
+    expect(document.documentElement.lang).toBe('en');
     expect(loadSettings().language).toBe('en');
+    expect(screen.getByRole('button', { name: 'New run' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Stats' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Settings' }));
+    expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Language')).toBeInTheDocument();
   });
 });

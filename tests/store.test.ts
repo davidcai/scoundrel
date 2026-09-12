@@ -5,6 +5,7 @@ import { emptyStats, loadStats, recordRun, saveStats, type RunRecord } from '../
 import { loadSettings, saveLanguage, saveSettings } from '../src/store/settings';
 import { decodeConfig, encodeConfig, runUrl } from '../src/store/share';
 import { announce } from '../src/store/announcements';
+import { useLanguage } from '../src/i18n';
 
 beforeEach(() => {
   localStorage.clear();
@@ -58,8 +59,8 @@ describe('persistence wrappers', () => {
 });
 
 describe('settings', () => {
-  it('defaults to the canonical rule set', () => {
-    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'en' });
+  it('defaults to the canonical rule set in Chinese', () => {
+    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'zh' });
   });
 
   it('persists across loads', () => {
@@ -70,17 +71,17 @@ describe('settings', () => {
 
   it('falls back to defaults on corrupt data', () => {
     localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify({ version: 1, data: 'garbage' }));
-    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'en' });
+    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'zh' });
   });
 
   it('persists the language independently of the rule config', () => {
-    saveLanguage('zh');
-    expect(loadSettings().language).toBe('zh');
-    const custom = { ...DEFAULT_CONFIG, weaponDegradation: false };
-    saveSettings(custom);
-    expect(loadSettings()).toEqual({ config: custom, language: 'zh' });
     saveLanguage('en');
     expect(loadSettings().language).toBe('en');
+    const custom = { ...DEFAULT_CONFIG, weaponDegradation: false };
+    saveSettings(custom);
+    expect(loadSettings()).toEqual({ config: custom, language: 'en' });
+    saveLanguage('zh');
+    expect(loadSettings().language).toBe('zh');
   });
 
   it('accepts legacy settings shards without a language field', () => {
@@ -88,7 +89,7 @@ describe('settings', () => {
       STORAGE_KEYS.settings,
       JSON.stringify({ version: 1, data: { config: DEFAULT_CONFIG } }),
     );
-    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'en' });
+    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'zh' });
   });
 });
 
@@ -171,6 +172,11 @@ describe('share URLs', () => {
 
 describe('announcements', () => {
   const state = createInitialState('abc', DEFAULT_CONFIG);
+
+  beforeEach(() => {
+    // These assertions use the English message table.
+    useLanguage.setState({ lang: 'en' });
+  });
 
   it('maps result payloads to readable text', () => {
     expect(

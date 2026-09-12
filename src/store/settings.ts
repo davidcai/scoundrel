@@ -5,6 +5,9 @@ export type Language = 'en' | 'zh';
 
 export const LANGUAGES: readonly Language[] = ['en', 'zh'] as const;
 
+/** The app opens in Chinese unless the player explicitly switches language. */
+export const DEFAULT_LANGUAGE: Language = 'zh';
+
 export interface SettingsData {
   config: GameConfig;
   language: Language;
@@ -24,19 +27,13 @@ function isValidLanguage(value: unknown): value is Language {
   return typeof value === 'string' && (LANGUAGES as readonly string[]).includes(value);
 }
 
-/** First-visit heuristic: browsers configured for Chinese start in Chinese. */
-export function detectLanguage(): Language {
-  if (typeof navigator !== 'undefined' && /^zh\b/i.test(navigator.language ?? '')) return 'zh';
-  return 'en';
-}
-
 function read(raw: unknown): SettingsData | null {
   if (typeof raw !== 'object' || raw === null) return null;
   const v = raw as Record<string, unknown>;
   if (!isValidConfig(v.config)) return null;
   return {
     config: v.config,
-    language: isValidLanguage(v.language) ? v.language : detectLanguage(),
+    language: isValidLanguage(v.language) ? v.language : DEFAULT_LANGUAGE,
   };
 }
 
@@ -44,7 +41,7 @@ export function loadSettings(): SettingsData {
   return (
     load<SettingsData>(STORAGE_KEYS.settings, migrateVersion(1, read)) ?? {
       config: { ...DEFAULT_CONFIG },
-      language: detectLanguage(),
+      language: DEFAULT_LANGUAGE,
     }
   );
 }
@@ -53,7 +50,7 @@ export function saveSettings(config: GameConfig, language?: Language): void {
   const stored = load<SettingsData>(STORAGE_KEYS.settings, migrateVersion(1, read));
   save<SettingsData>(STORAGE_KEYS.settings, {
     config,
-    language: language ?? stored?.language ?? detectLanguage(),
+    language: language ?? stored?.language ?? DEFAULT_LANGUAGE,
   });
 }
 
