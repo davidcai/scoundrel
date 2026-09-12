@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   canEnterNextRoom,
+  canResolveMore,
   canUndo,
   cardKind,
   cardLabel,
@@ -211,10 +212,29 @@ interface DispatchProps {
 
 /** Damage/cost preview + confirm step for the selected card. */
 function ActionPanel({ game, cardId }: { game: GameState; cardId: CardId }) {
-  const act = useGameStore((s) => s.act);
   const selectCard = useGameStore((s) => s.selectCard);
+  const act = useGameStore((s) => s.act);
   const kind = cardKind(cardId);
   const label = cardLabel(cardId);
+
+  // Once 3 of the 4 room cards are resolved, the remaining card is the carry
+  // card: nothing can be resolved anymore — say so instead of offering actions.
+  if (!canResolveMore(game)) {
+    return (
+      <section className="action-panel" aria-label={`Actions for ${label}`}>
+        <h3 className="zone-title">{label}</h3>
+        <p className="action-note" role="note">
+          The other 3 cards of this room are resolved — this card carries over to
+          the next room.
+        </p>
+        <div className="action-buttons">
+          <button type="button" className="btn ghost" onClick={() => selectCard(null)}>
+            Cancel
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="action-panel" aria-label={`Actions for ${label}`}>
