@@ -147,7 +147,7 @@ test.describe('language detection', () => {
   test('a zh-configured browser opens in Chinese by default', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
-    await expect(page.getByRole('button', { name: '新开一局' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '新开局' })).toBeVisible();
 
     // Fresh visits default to auto-detection; a zh browser resolves to Chinese.
     await page.getByRole('button', { name: '设置' }).click();
