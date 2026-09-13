@@ -27,9 +27,27 @@ async function hp(page: Page): Promise<number> {
   return Number(text.split('/')[0]);
 }
 
-async function potionAvailable(page: Page): Promise<boolean> {
-  const text = await page.locator('.hud-group', { hasText: 'Potion' }).innerText();
-  return text.includes('available');
+/**
+ * When hurt and a potion is on the table, select it and drink it — unless the
+ * confirm button says it would be wasted (second potion of the room), in which
+ * case cancel and leave it to the generic pick below.
+ */
+async function drinkUsefulPotion(page: Page, ids: string[], currentHp: number): Promise<boolean> {
+  const potionId = ids.find(isPotion);
+  if (potionId === undefined) return false;
+  await page.locator(`[data-card-id="${potionId}"]`).click();
+  const drink = page.getByRole('button', { name: /drink potion/i });
+  if (!(await drink.isVisible().catch(() => false))) return false;
+  if (/wasted/i.test(await drink.innerText())) {
+    await page.getByRole('button', { name: /cancel/i }).click();
+    return false;
+  }
+  if (currentHp >= 20) {
+    await page.getByRole('button', { name: /cancel/i }).click();
+    return false;
+  }
+  await drink.click();
+  return true;
 }
 
 /** Deterministic greedy strategy, played entirely through the real UI. */
@@ -62,10 +80,8 @@ async function playOutGreedy(page: Page): Promise<void> {
 
     // Pick: healing potion when hurt, weapon upgrade, weakest monster, fallback.
     const currentHp = await hp(page);
+    if (currentHp <= 12 && (await drinkUsefulPotion(page, ids, currentHp))) continue;
     let chosen: string | undefined;
-    if (currentHp <= 12 && (await potionAvailable(page))) {
-      chosen = ids.find(isPotion);
-    }
     if (chosen === undefined) {
       const bestRoomWeapon = ids.filter(isWeapon).sort((a, b) => valueOf(b) - valueOf(a))[0];
       const weaponCards = page.locator('.weapon-card');

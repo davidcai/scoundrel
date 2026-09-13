@@ -1,13 +1,24 @@
-import { isFinalRoom, roomResolveTarget, runAwayStatus, type GameState } from '../engine';
+import { useEffect, useRef, useState } from 'react';
+import type { GameState } from '../engine';
 import { useT } from '../i18n';
 import { Tooltip } from './Tooltip';
 
-/** Always-legible critical info: HP, deck count, room progress, run-away status, seed. */
-export function Hud({ game }: { game: GameState }) {
+/** Always-legible critical info: HP and deck count, plus the exit control. */
+export function Hud({ game, onAbandon }: { game: GameState; onAbandon: () => void }) {
   const t = useT();
-  const runStatus = runAwayStatus(game);
   const hpPct = Math.max(0, Math.min(100, (game.hp / game.maxHp) * 100));
-  const potionUsed = game.config.potionsPerRoom === 'one' && game.potionsUsedThisRoom > 0;
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const cancelRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!confirmOpen) return;
+    cancelRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setConfirmOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [confirmOpen]);
 
   return (
     <header className="hud" aria-label={t('gameStatus')}>
@@ -28,42 +39,66 @@ export function Hud({ game }: { game: GameState }) {
         </span>
       </div>
 
-      <div className="hud-group">
-        <span className="hud-label">{t('dungeon')}</span>
-        <span className="hud-value">{t('cardsLeft', { count: game.dungeon.length })}</span>
-      </div>
-
-      <div className="hud-group">
-        <span className="hud-label">{t('room')}</span>
-        <span className="hud-value">
-          {isFinalRoom(game)
-            ? t('roomFinal', { turn: game.turnCount })
-            : t('roomResolved', {
-                turn: game.turnCount,
-                resolved: game.resolvedCount,
-                target: roomResolveTarget(game),
-              })}
-        </span>
-      </div>
-
-      <div className="hud-group">
-        <span className="hud-label">{t('potion')}</span>
-        <span className="hud-value">{potionUsed ? t('potionUsed') : t('potionAvailable')}</span>
-      </div>
-
-      <Tooltip text={t('tooltipRunAwayHud')}>
-        <div className="hud-group run-status" data-legal={runStatus.legal}>
-          <span className="hud-label">{t('runAway')}</span>
-          <span className="hud-value">{runStatus.legal ? t('ready') : t('blocked')}</span>
-        </div>
-      </Tooltip>
-
-      <Tooltip text={t('tooltipSeed')}>
+      <div className="hud-cluster">
         <div className="hud-group">
-          <span className="hud-label">{t('seed')}</span>
-          <span className="hud-value mono">{game.seed}</span>
+          <span className="hud-label">{t('dungeon')}</span>
+          <span className="hud-value">{t('cardsLeft', { count: game.dungeon.length })}</span>
         </div>
-      </Tooltip>
+
+        <Tooltip text={t('tooltipAbandon')}>
+          <button
+            type="button"
+            className="btn danger hud-exit"
+            aria-label={t('abandonRun')}
+            aria-haspopup="dialog"
+            onClick={() => setConfirmOpen(true)}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
+        </Tooltip>
+      </div>
+
+      {confirmOpen && (
+        <div className="confirm-overlay" role="presentation" onClick={() => setConfirmOpen(false)}>
+          <div
+            className="confirm-card"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('reallyAbandon')}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="confirm-title">{t('reallyAbandon')}</h2>
+            <p className="confirm-body">{t('abandonConfirmBody')}</p>
+            <div className="confirm-actions">
+              <button
+                type="button"
+                className="btn"
+                ref={cancelRef}
+                onClick={() => setConfirmOpen(false)}
+              >
+                {t('cancel')}
+              </button>
+              <button type="button" className="btn danger" onClick={onAbandon}>
+                {t('abandonRun')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

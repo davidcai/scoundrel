@@ -227,7 +227,7 @@ describe('play screen', () => {
     expect(currentGame().room[0]).toBe(carried);
   });
 
-  it('rewinds the room with Undo to Room Start', async () => {
+  it('rewinds the room with Undo', async () => {
     const user = userEvent.setup();
     act(() => useGameStore.getState().startRun('undoseed', DEFAULT_CONFIG));
     await renderAt('#/play');
@@ -240,7 +240,7 @@ describe('play screen', () => {
     expect(currentGame().room).toHaveLength(3);
     expect(currentGame().resolvedCount).toBe(1);
 
-    await user.click(screen.getByRole('button', { name: /undo to room start/i }));
+    await user.click(screen.getByRole('button', { name: /^undo$/i }));
     expect(currentGame().room).toEqual(roomStart);
     expect(currentGame().resolvedCount).toBe(0);
   });
@@ -250,12 +250,12 @@ describe('play screen', () => {
     act(() => useGameStore.getState().startRun('runseed', DEFAULT_CONFIG));
     await renderAt('#/play');
 
-    const runButton = screen.getByRole('button', { name: /run away/i });
+    const runButton = screen.getByRole('button', { name: /flee/i });
     expect(runButton).toHaveAttribute('aria-disabled', 'false');
     await user.click(runButton);
     expect(screen.getByRole('status')).toHaveTextContent(/flee/i);
 
-    const blocked = screen.getByRole('button', { name: /run away/i });
+    const blocked = screen.getByRole('button', { name: /flee/i });
     expect(blocked).toHaveAttribute('aria-disabled', 'true');
     await user.click(blocked);
     expect(screen.getByRole('status')).toHaveTextContent(/two rooms in a row/i);
