@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { cardAriaLabel, cardKind, cardSymbol, cardValue, type CardId } from '../engine';
+import { cardKind, cardSymbol, cardValue, type CardId } from '../engine';
+import { cardAriaLabel, useT } from '../i18n';
 import { cardImageUrl } from './cardImage';
 
 interface CardViewProps {
@@ -25,6 +26,7 @@ export function CardView({
   className,
 }: CardViewProps) {
   const kind = cardKind(cardId);
+  const t = useT();
   const [imageFailed, setImageFailed] = useState(false);
   const showFallback = imageFailed || cardImageUrl(cardId) === '';
 
@@ -36,7 +38,7 @@ export function CardView({
       data-kind={kind}
       data-selected={selected === true}
       aria-pressed={selected}
-      aria-label={cardAriaLabel(cardId) + (carried ? ', carried from the previous room' : '')}
+      aria-label={cardAriaLabel(cardId) + (carried ? t('carriedAria') : '')}
       disabled={disabled}
       onClick={onClick}
     >
@@ -53,7 +55,7 @@ export function CardView({
           onError={() => setImageFailed(true)}
         />
       )}
-      {carried && <span className="carried-badge">Carried</span>}
+      {carried && <span className="carried-badge">{t('carriedBadge')}</span>}
       {selected && <span className="selected-ring" aria-hidden="true" />}
     </button>
   );

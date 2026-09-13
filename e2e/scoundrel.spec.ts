@@ -117,10 +117,52 @@ async function playOutGreedy(page: Page): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// Language fixtures
+// ---------------------------------------------------------------------------
+
+// The app defaults to Chinese; most e2e tests assert the English UI, so they
+// pin English before the app boots. The Chinese default gets its own test.
+const ENGLISH_SETTINGS = JSON.stringify({
+  version: 1,
+  data: {
+    config: { runAwayMode: 'once', potionsPerRoom: 'one', weaponDegradation: true },
+    language: 'en',
+  },
+});
+
+async function useEnglish(page: Page): Promise<void> {
+  await page.addInitScript(
+    (settings) => localStorage.setItem('scoundrel:settings', settings),
+    ENGLISH_SETTINGS,
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Title & interaction
 // ---------------------------------------------------------------------------
 
+test.describe('language detection', () => {
+  test.use({ locale: 'zh-CN' });
+
+  test('a zh-configured browser opens in Chinese by default', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+    await expect(page.getByRole('button', { name: '新开一局' })).toBeVisible();
+
+    // Fresh visits default to auto-detection; a zh browser resolves to Chinese.
+    await page.getByRole('button', { name: '设置' }).click();
+    await expect(page.getByLabel('语言 Language')).toHaveValue('auto');
+
+    // An explicit choice persists across a reload.
+    await page.getByLabel('语言 Language').selectOption('en');
+    await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+    await page.reload();
+    await expect(page.getByLabel('Language')).toHaveValue('en');
+  });
+});
+
 test('title screen offers the full menu and a new run deals a room', async ({ page }) => {
+  await useEnglish(page);
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1, name: /scoundrel/i })).toBeVisible();
   await expect(page.getByRole('button', { name: 'New run' })).toBeVisible();
@@ -132,6 +174,7 @@ test('title screen offers the full menu and a new run deals a room', async ({ pa
 });
 
 test('keyboard navigation reaches every card and arrows move focus', async ({ page }) => {
+  await useEnglish(page);
   await page.goto('/#/play?seed=kbtest');
   await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
 
@@ -156,6 +199,7 @@ test('keyboard navigation reaches every card and arrows move focus', async ({ pa
 
 test('carried cards are marked in the next room', async ({ page }) => {
   // s20 opens with [diamond-5, heart-9, spade-8, diamond-9].
+  await useEnglish(page);
   await page.goto('/#/play?seed=s20');
   await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
 
@@ -182,6 +226,7 @@ test('carried cards are marked in the next room', async ({ page }) => {
 // ---------------------------------------------------------------------------
 
 test('the same seed deals the same room every time', async ({ page }) => {
+  await useEnglish(page);
   await page.goto('/#/play?seed=determinism');
   await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
   const first = await roomIds(page);
@@ -195,6 +240,7 @@ test('the same seed deals the same room every time', async ({ page }) => {
 test('a full seeded run ends in a scorecard, records stats once, and survives reload', async ({
   page,
 }) => {
+  await useEnglish(page);
   await page.goto('/#/play?seed=e2fterm');
   await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
   await playOutGreedy(page);
@@ -224,6 +270,7 @@ test('the replay link round-trips through the clipboard', async ({ browser }) =>
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   const page = await context.newPage();
 
+  await useEnglish(page);
   await page.goto('/#/play?seed=sharetest');
   await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
   const firstRoom = await roomIds(page);
@@ -251,6 +298,7 @@ test('the replay link round-trips through the clipboard', async ({ browser }) =>
 
 test('a mid-run page load without the seed resumes the saved room state', async ({ page }) => {
   // s0 opens with [club-q, diamond-6, diamond-5, diamond-8].
+  await useEnglish(page);
   await page.goto('/#/play?seed=s0');
   await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
   const hpBefore = await hp(page);

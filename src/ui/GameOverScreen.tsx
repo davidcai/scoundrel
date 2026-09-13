@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { finalScore, type GameState } from '../engine';
-import { runUrl } from '../store/share';
-import { randomSeed } from '../engine';
+import { finalScore, randomSeed, type GameState } from '../engine';
+import { useT, type TFunc } from '../i18n';
 import { useGameStore } from '../store/gameStore';
 import { loadSettings } from '../store/settings';
+import { runUrl } from '../store/share';
 import { navigate } from './router';
 
 /** Win/Lose scorecard with run highlights and a copyable replay link. */
@@ -12,6 +12,7 @@ export function GameOverScreen({ game }: { game: GameState }) {
   const score = finalScore(game);
   const startRun = useGameStore((s) => s.startRun);
   const finishRun = useGameStore((s) => s.finishRun);
+  const t = useT();
   const [copied, setCopied] = useState(false);
 
   const link = `${window.location.origin}${window.location.pathname}${runUrl(game.seed, game.config)}`;
@@ -39,54 +40,50 @@ export function GameOverScreen({ game }: { game: GameState }) {
   };
 
   return (
-    <div className="gameover-overlay" role="dialog" aria-label={won ? 'Victory' : 'Defeat'}>
+    <div className="gameover-overlay" role="dialog" aria-label={won ? t('victory') : t('defeat')}>
       <div className="gameover-card" data-outcome={won ? 'won' : 'lost'}>
-        <h2 className="gameover-title">{won ? 'Victory' : 'Defeat'}</h2>
-        <p className="gameover-subtitle">
-          {won
-            ? 'You clear every room of the dungeon.'
-            : 'You fall in the dark. The dungeon claims another scoundrel.'}
-        </p>
+        <h2 className="gameover-title">{won ? t('victory') : t('defeat')}</h2>
+        <p className="gameover-subtitle">{won ? t('victorySub') : t('defeatSub')}</p>
 
         <dl className="scorecard">
           <div>
-            <dt>Score</dt>
+            <dt>{t('score')}</dt>
             <dd className="score-big" data-testid="final-score">
               {score}
             </dd>
           </div>
           <div>
-            <dt>Final health</dt>
+            <dt>{t('finalHealth')}</dt>
             <dd>{won ? game.hp : Math.max(0, game.hp)}</dd>
           </div>
           <div>
-            <dt>Seed</dt>
+            <dt>{t('seed')}</dt>
             <dd className="mono">{game.seed}</dd>
           </div>
           <div>
-            <dt>Toggles</dt>
-            <dd>{configSummary(game.config)}</dd>
+            <dt>{t('toggles')}</dt>
+            <dd>{configSummary(game.config, t)}</dd>
           </div>
           <div>
-            <dt>Monsters killed</dt>
+            <dt>{t('monstersKilled')}</dt>
             <dd>{game.runHighlights.monstersKilled}</dd>
           </div>
           <div>
-            <dt>Potions wasted</dt>
+            <dt>{t('potionsWasted')}</dt>
             <dd>{game.runHighlights.potionsWasted}</dd>
           </div>
           <div>
-            <dt>Rooms explored</dt>
+            <dt>{t('roomsExplored')}</dt>
             <dd>{game.runHighlights.roomsExplored}</dd>
           </div>
         </dl>
 
         <div className="gameover-actions">
           <button type="button" className="btn primary" onClick={copyLink}>
-            {copied ? 'Replay link copied!' : 'Copy replay link'}
+            {copied ? t('linkCopied') : t('copyLink')}
           </button>
           <button type="button" className="btn" onClick={playAgain}>
-            Play again
+            {t('playAgain')}
           </button>
           <button
             type="button"
@@ -96,7 +93,7 @@ export function GameOverScreen({ game }: { game: GameState }) {
               navigate('#/');
             }}
           >
-            Return to title
+            {t('returnTitle')}
           </button>
         </div>
       </div>
@@ -104,10 +101,10 @@ export function GameOverScreen({ game }: { game: GameState }) {
   );
 }
 
-function configSummary(config: GameState['config']): string {
+function configSummary(config: GameState['config'], t: TFunc): string {
   const parts: string[] = [];
-  parts.push(config.runAwayMode === 'once' ? 'run away: once' : 'run away: unlimited');
-  parts.push(config.potionsPerRoom === 'one' ? 'potions: 1/room' : 'potions: unlimited');
-  parts.push(config.weaponDegradation ? 'degradation: on' : 'degradation: off');
+  parts.push(config.runAwayMode === 'once' ? t('configRunOnce') : t('configRunUnlimited'));
+  parts.push(config.potionsPerRoom === 'one' ? t('configPotionOne') : t('configPotionUnlimited'));
+  parts.push(config.weaponDegradation ? t('configDegOn') : t('configDegOff'));
   return parts.join(' · ');
 }

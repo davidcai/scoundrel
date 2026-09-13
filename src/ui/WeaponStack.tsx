@@ -1,4 +1,5 @@
-import { cardAriaLabel, cardLabel, weaponThreshold, type GameState } from '../engine';
+import { weaponThreshold, type GameState } from '../engine';
+import { cardAriaLabel, cardLabel, useT } from '../i18n';
 import { CardView } from './CardView';
 import { Tooltip } from './Tooltip';
 
@@ -11,47 +12,48 @@ const KILL_STEP_Y = 16;
  * right with the last kill on top. The tooltip surfaces the degradation chain.
  */
 export function WeaponStack({ game }: { game: GameState }) {
+  const t = useT();
   const threshold = weaponThreshold(game);
   const hasKills = game.killStack.length > 0;
   const degradationOn = game.config.weaponDegradation;
   const lastKill = game.killStack[game.killStack.length - 1];
 
   const thresholdText = !degradationOn
-    ? 'Weapon degradation is off: this weapon can fight any monster.'
+    ? t('thresholdOff')
     : threshold === null
-      ? 'This weapon is fresh — it can fight any monster. After each kill it can only fight weaker monsters than the last one it killed.'
-      : `After a kill, a weapon can only fight monsters weaker than the last monster it killed. This weapon can fight monsters up to ${threshold}.`;
+      ? t('thresholdFresh')
+      : t('thresholdValue', { threshold });
 
   if (game.weapon === null && !hasKills) {
     return (
-      <section className="weapon-zone" aria-label="Weapon">
-        <p className="weapon-empty">No weapon equipped — fighting is barehanded and painful.</p>
+      <section className="weapon-zone" aria-label={t('weaponZone')}>
+        <p className="weapon-empty">{t('weaponEmpty')}</p>
       </section>
     );
   }
 
   return (
-    <section className="weapon-zone" aria-label="Weapon and slain monsters">
+    <section className="weapon-zone" aria-label={t('weaponZoneStack')}>
       <div className="weapon-side">
-        <h3 className="zone-title">Weapon</h3>
+        <h3 className="zone-title">{t('weaponZone')}</h3>
         <Tooltip text={thresholdText}>
           {game.weapon !== null && <CardView cardId={game.weapon} className="weapon-card" />}
         </Tooltip>
         <p className="weapon-threshold" data-kind="info">
           {!degradationOn || threshold === null || lastKill === undefined
-            ? 'Fights any monster'
-            : `Fights monsters up to ${threshold} — last kill: ${cardLabel(lastKill)}`}
+            ? t('fightsAny')
+            : t('fightsUpTo', { threshold, last: cardLabel(lastKill) })}
         </p>
       </div>
 
       <div className="kill-side">
-        <h3 className="zone-title">Slain monsters</h3>
+        <h3 className="zone-title">{t('slainMonsters')}</h3>
         {hasKills ? (
           <Tooltip text={thresholdText}>
             <div
               className="kill-stack"
               role="list"
-              aria-label="Slain monsters, last kill on top"
+              aria-label={t('slainAria')}
               style={{
                 width: `calc(var(--card-w) * 0.85 + ${(game.killStack.length - 1) * KILL_STEP_X}px)`,
                 height: `calc(var(--card-h) * 0.85 + ${(game.killStack.length - 1) * KILL_STEP_Y}px)`,
@@ -70,15 +72,16 @@ export function WeaponStack({ game }: { game: GameState }) {
                   aria-label={cardAriaLabel(cardId)}
                 >
                   <CardView cardId={cardId} disabled className="kill-card-view" />
-                  {i === 0 && <span className="last-kill-badge">Last kill</span>}
+                  {i === 0 && <span className="last-kill-badge">{t('lastKillBadge')}</span>}
                 </div>
               ))}
             </div>
           </Tooltip>
         ) : (
           <p className="weapon-threshold">
-            No kills yet —{' '}
-            {game.weapon !== null ? `${cardLabel(game.weapon)} is fresh` : 'no weapon'}.
+            {game.weapon !== null
+              ? t('noKillsFresh', { weapon: cardLabel(game.weapon) })
+              : t('noKillsNoWeapon')}
           </p>
         )}
       </div>

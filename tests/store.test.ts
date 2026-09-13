@@ -2,9 +2,16 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_CONFIG, createInitialState } from '../src/engine';
 import { STORAGE_KEYS, load, migrateVersion, save } from '../src/store/persistence';
 import { emptyStats, loadStats, recordRun, saveStats, type RunRecord } from '../src/store/stats';
-import { loadSettings, saveSettings } from '../src/store/settings';
+import {
+  loadLanguage,
+  loadLanguageSetting,
+  loadSettings,
+  saveLanguage,
+  saveSettings,
+} from '../src/store/settings';
 import { decodeConfig, encodeConfig, runUrl } from '../src/store/share';
 import { announce } from '../src/store/announcements';
+import { useLanguage } from '../src/i18n';
 
 beforeEach(() => {
   localStorage.clear();
@@ -58,8 +65,35 @@ describe('persistence wrappers', () => {
 });
 
 describe('settings', () => {
-  it('defaults to the canonical rule set', () => {
-    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG });
+  it('defaults to the canonical rule set with auto language', () => {
+    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'auto' });
+  });
+
+  it('resolves auto through browser detection', () => {
+    localStorage.clear();
+    expect(loadLanguageSetting()).toBe('auto');
+    // jsdom reports en-US, so auto resolves to English here.
+    expect(loadLanguage()).toBe('en');
+  });
+
+  it('detects Chinese for zh-configured browsers', () => {
+    const original = Object.getOwnPropertyDescriptor(navigator, 'language');
+    Object.defineProperty(navigator, 'language', { value: 'zh-CN', configurable: true });
+    Object.defineProperty(navigator, 'languages', {
+      value: ['zh-CN', 'en-US'],
+      configurable: true,
+    });
+    try {
+      localStorage.clear();
+      // Fresh visits stay stored as 'auto'; resolution applies the browser locale.
+      expect(loadLanguageSetting()).toBe('auto');
+      expect(loadLanguage()).toBe('zh');
+    } finally {
+      localStorage.clear();
+      if (original) Object.defineProperty(navigator, 'language', original);
+      else delete (navigator as { language?: unknown }).language;
+      delete (navigator as { languages?: unknown }).languages;
+    }
   });
 
   it('persists across loads', () => {
@@ -70,7 +104,26 @@ describe('settings', () => {
 
   it('falls back to defaults on corrupt data', () => {
     localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify({ version: 1, data: 'garbage' }));
-    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG });
+    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'auto' });
+  });
+
+  it('persists the language independently of the rule config', () => {
+    saveLanguage('zh');
+    expect(loadLanguageSetting()).toBe('zh');
+    const custom = { ...DEFAULT_CONFIG, weaponDegradation: false };
+    saveSettings(custom);
+    expect(loadSettings()).toEqual({ config: custom, language: 'zh' });
+    saveLanguage('auto');
+    expect(loadLanguageSetting()).toBe('auto');
+    expect(loadLanguage()).toBe('en');
+  });
+
+  it('accepts legacy settings shards without a language field', () => {
+    localStorage.setItem(
+      STORAGE_KEYS.settings,
+      JSON.stringify({ version: 1, data: { config: DEFAULT_CONFIG } }),
+    );
+    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'auto' });
   });
 });
 
@@ -153,6 +206,11 @@ describe('share URLs', () => {
 
 describe('announcements', () => {
   const state = createInitialState('abc', DEFAULT_CONFIG);
+
+  beforeEach(() => {
+    // These assertions use the English message table.
+    useLanguage.setState({ lang: 'en' });
+  });
 
   it('maps result payloads to readable text', () => {
     expect(

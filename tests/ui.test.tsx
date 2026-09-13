@@ -14,6 +14,7 @@ import {
   type GameState,
 } from '../src/engine';
 import { useGameStore } from '../src/store/gameStore';
+import { useLanguage } from '../src/i18n';
 import { loadStats } from '../src/store/stats';
 import { loadSettings } from '../src/store/settings';
 
@@ -23,6 +24,8 @@ import { loadSettings } from '../src/store/settings';
 
 beforeEach(() => {
   localStorage.clear();
+  // The app defaults to Chinese; these tests assert the English UI.
+  act(() => useLanguage.setState({ lang: 'en', setting: 'en' }));
   act(() => useGameStore.getState().reset());
   window.location.hash = '';
 });

@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { randomSeed } from '../../engine';
+import { useT } from '../../i18n';
 import { useGameStore } from '../../store/gameStore';
 import { loadSettings } from '../../store/settings';
 import { navigate } from '../router';
 
 export function TitleScreen() {
+  const t = useT();
   const game = useGameStore((s) => s.game);
   const startRun = useGameStore((s) => s.startRun);
   const [seedInput, setSeedInput] = useState('');
@@ -29,16 +31,16 @@ export function TitleScreen() {
       <div className="title-art" aria-hidden="true" />
       <div className="title-inner">
         <h1 className="title-word">Scoundrel</h1>
-        <p className="title-tagline">A lone scoundrel. A deck of cards. One way out.</p>
+        <p className="title-tagline">{t('tagline')}</p>
 
-        <nav className="title-menu" aria-label="Main menu">
+        <nav className="title-menu" aria-label={t('mainMenu')}>
           {game !== null && game.phase === 'playing' && (
             <button type="button" className="btn primary title-continue" onClick={continueRun}>
-              Continue run ({game.seed})
+              {t('continueRun', { seed: game.seed })}
             </button>
           )}
           <button type="button" className="btn primary" onClick={newRun}>
-            New run
+            {t('newRun')}
           </button>
           <button
             type="button"
@@ -46,7 +48,7 @@ export function TitleScreen() {
             aria-expanded={showSeedEntry}
             onClick={() => setShowSeedEntry((v) => !v)}
           >
-            Enter seed
+            {t('enterSeed')}
           </button>
           {showSeedEntry && (
             <form
@@ -57,30 +59,30 @@ export function TitleScreen() {
               }}
             >
               <label htmlFor="seed-input" className="hud-label">
-                Seed from a friend
+                {t('seedFromFriend')}
               </label>
               <input
                 id="seed-input"
                 className="text-input"
                 type="text"
                 value={seedInput}
-                placeholder="e.g. 1a2b3c"
+                placeholder={t('seedPlaceholder')}
                 onChange={(e) => setSeedInput(e.target.value)}
                 autoFocus
               />
               <button type="submit" className="btn">
-                Play seed
+                {t('playSeed')}
               </button>
             </form>
           )}
           <button type="button" className="btn" onClick={() => navigate('#/stats')}>
-            Stats
+            {t('stats')}
           </button>
           <button type="button" className="btn" onClick={() => navigate('#/settings')}>
-            Settings
+            {t('settings')}
           </button>
           <button type="button" className="btn" onClick={() => navigate('#/about')}>
-            About
+            {t('about')}
           </button>
         </nav>
       </div>
