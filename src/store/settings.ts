@@ -3,6 +3,9 @@ import { STORAGE_KEYS, load, migrateVersion, save } from './persistence';
 
 export type Language = 'en' | 'zh';
 
+/** Stored preference: a concrete language, or 'auto' (follow the browser). */
+export type LanguageSetting = Language | 'auto';
+
 export const LANGUAGES: readonly Language[] = ['en', 'zh'] as const;
 
 /** Fallback when browser language detection is unavailable (non-browser env). */
@@ -19,9 +22,14 @@ export function detectLanguage(): Language {
   return candidates.some((tag) => /^zh\b/i.test(tag ?? '')) ? 'zh' : 'en';
 }
 
+/** Resolves a stored preference to the language actually rendered. */
+export function resolveLanguage(setting: LanguageSetting): Language {
+  return setting === 'auto' ? detectLanguage() : setting;
+}
+
 export interface SettingsData {
   config: GameConfig;
-  language: Language;
+  language: LanguageSetting;
 }
 
 function isValidConfig(value: unknown): value is GameConfig {
@@ -34,8 +42,11 @@ function isValidConfig(value: unknown): value is GameConfig {
   );
 }
 
-function isValidLanguage(value: unknown): value is Language {
-  return typeof value === 'string' && (LANGUAGES as readonly string[]).includes(value);
+function isValidLanguage(value: unknown): value is LanguageSetting {
+  return (
+    typeof value === 'string' &&
+    (value === 'auto' || (LANGUAGES as readonly string[]).includes(value))
+  );
 }
 
 function read(raw: unknown): SettingsData | null {
@@ -44,7 +55,7 @@ function read(raw: unknown): SettingsData | null {
   if (!isValidConfig(v.config)) return null;
   return {
     config: v.config,
-    language: isValidLanguage(v.language) ? v.language : detectLanguage(),
+    language: isValidLanguage(v.language) ? v.language : 'auto',
   };
 }
 
@@ -52,20 +63,20 @@ export function loadSettings(): SettingsData {
   return (
     load<SettingsData>(STORAGE_KEYS.settings, migrateVersion(1, read)) ?? {
       config: { ...DEFAULT_CONFIG },
-      language: detectLanguage(),
+      language: 'auto',
     }
   );
 }
 
-export function saveSettings(config: GameConfig, language?: Language): void {
+export function saveSettings(config: GameConfig, language?: LanguageSetting): void {
   const stored = load<SettingsData>(STORAGE_KEYS.settings, migrateVersion(1, read));
   save<SettingsData>(STORAGE_KEYS.settings, {
     config,
-    language: language ?? stored?.language ?? detectLanguage(),
+    language: language ?? stored?.language ?? 'auto',
   });
 }
 
-export function saveLanguage(language: Language): void {
+export function saveLanguage(language: LanguageSetting): void {
   const stored = load<SettingsData>(STORAGE_KEYS.settings, migrateVersion(1, read));
   save<SettingsData>(STORAGE_KEYS.settings, {
     config: stored?.config ?? { ...DEFAULT_CONFIG },
@@ -73,6 +84,10 @@ export function saveLanguage(language: Language): void {
   });
 }
 
-export function loadLanguage(): Language {
+export function loadLanguageSetting(): LanguageSetting {
   return loadSettings().language;
+}
+
+export function loadLanguage(): Language {
+  return resolveLanguage(loadLanguageSetting());
 }

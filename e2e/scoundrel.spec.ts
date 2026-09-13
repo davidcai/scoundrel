@@ -149,8 +149,11 @@ test.describe('language detection', () => {
     await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
     await expect(page.getByRole('button', { name: '新开一局' })).toBeVisible();
 
-    // The switcher persists the choice across a reload.
+    // Fresh visits default to auto-detection; a zh browser resolves to Chinese.
     await page.getByRole('button', { name: '设置' }).click();
+    await expect(page.getByLabel('语言 Language')).toHaveValue('auto');
+
+    // An explicit choice persists across a reload.
     await page.getByLabel('语言 Language').selectOption('en');
     await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
     await page.reload();

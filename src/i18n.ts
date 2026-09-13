@@ -1,6 +1,12 @@
 import { create } from 'zustand';
 import { cardKind, cardRank, cardSuit, cardValue, type CardId, type CardKind } from './engine';
-import { loadLanguage, saveLanguage, type Language } from './store/settings';
+import {
+  loadLanguageSetting,
+  resolveLanguage,
+  saveLanguage,
+  type Language,
+  type LanguageSetting,
+} from './store/settings';
 
 /**
  * Minimal i18n layer: flat message dictionaries with `{name}` interpolation,
@@ -151,6 +157,7 @@ const en = {
   settingsIntro:
     'House-rule toggles. Defaults follow the official rule set. Changes apply to new runs.',
   languageLabel: 'Language',
+  languageAuto: 'Auto (browser language)',
   toggleRunLabel: 'Run-away restriction',
   toggleRunDesc: 'On: you cannot run from two rooms in a row. Off: run away as often as you like.',
   togglePotionLabel: 'One potion per room',
@@ -356,6 +363,7 @@ const zh: Record<MessageKey, string> = {
   // Settings
   settingsIntro: '房规开关。默认遵循官方规则。更改只对新对局生效。',
   languageLabel: '语言 Language',
+  languageAuto: '自动（跟随浏览器）',
   toggleRunLabel: '逃跑限制',
   toggleRunDesc: '开：不能连续两个房间逃跑。关：想逃就逃。',
   togglePotionLabel: '每房间一瓶药水',
@@ -423,25 +431,33 @@ const DICTS: Record<Language, Record<MessageKey, string>> = { en, zh };
 export const MESSAGES = DICTS;
 
 interface LanguageStore {
+  /** Resolved language actually rendered ('auto' resolves via detection). */
   lang: Language;
-  setLang: (lang: Language) => void;
+  /** Stored preference: 'auto' or the player's explicit choice. */
+  setting: LanguageSetting;
+  setLang: (setting: LanguageSetting) => void;
 }
 
 function htmlLang(lang: Language): string {
   return lang === 'zh' ? 'zh-CN' : 'en';
 }
 
+const initialSetting = loadLanguageSetting();
+const initialLang = resolveLanguage(initialSetting);
+
 export const useLanguage = create<LanguageStore>((set) => ({
-  lang: loadLanguage(),
-  setLang: (lang) => {
-    saveLanguage(lang);
+  lang: initialLang,
+  setting: initialSetting,
+  setLang: (setting) => {
+    saveLanguage(setting);
+    const lang = resolveLanguage(setting);
     document.documentElement.lang = htmlLang(lang);
-    set({ lang });
+    set({ lang, setting });
   },
 }));
 
 // Keep <html lang> in sync on first load too.
-document.documentElement.lang = htmlLang(useLanguage.getState().lang);
+document.documentElement.lang = htmlLang(initialLang);
 
 export function currentLang(): Language {
   return useLanguage.getState().lang;

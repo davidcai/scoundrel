@@ -4,7 +4,7 @@ import { act } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import App from '../src/App';
 import { MESSAGES, cardLabel, cardAriaLabel, translate, useLanguage } from '../src/i18n';
-import { loadSettings } from '../src/store/settings';
+import { loadLanguage, loadSettings } from '../src/store/settings';
 
 afterEach(() => {
   localStorage.clear();
@@ -28,13 +28,13 @@ describe('translate', () => {
 
 describe('localized card labels', () => {
   it('labels cards in English when English is selected', () => {
-    act(() => useLanguage.setState({ lang: 'en' }));
+    act(() => useLanguage.setState({ lang: 'en', setting: 'en' }));
     expect(cardLabel('club-8')).toBe('8 of Clubs');
     expect(cardAriaLabel('diamond-5')).toBe('5 of Diamonds, weapon, value 5');
   });
 
   it('labels cards in Chinese when selected', () => {
-    act(() => useLanguage.setState({ lang: 'zh' }));
+    act(() => useLanguage.setState({ lang: 'zh', setting: 'zh' }));
     expect(cardLabel('club-8')).toBe('梅花8');
     expect(cardLabel('heart-10')).toBe('红心10');
     expect(cardLabel('spade-a')).toBe('黑桃A');
@@ -71,7 +71,8 @@ describe('language switcher', () => {
 
   it('detects the browser language on first visit', () => {
     localStorage.clear();
-    // jsdom reports en-US: a fresh visit opens in English.
-    expect(loadSettings().language).toBe('en');
+    // Fresh visits store 'auto'; jsdom reports en-US, so it renders English.
+    expect(loadSettings().language).toBe('auto');
+    expect(loadLanguage()).toBe('en');
   });
 });

@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import type { GameConfig } from '../../engine';
 import { useLanguage, useT } from '../../i18n';
-import { loadSettings, saveSettings, type Language } from '../../store/settings';
+import {
+  loadSettings,
+  saveSettings,
+  type Language,
+  type LanguageSetting,
+} from '../../store/settings';
 import { navigate } from '../router';
 
 interface ToggleProps {
@@ -41,7 +46,7 @@ const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
 
 export function SettingsScreen() {
   const t = useT();
-  const lang = useLanguage((s) => s.lang);
+  const setting = useLanguage((s) => s.setting);
   const setLang = useLanguage((s) => s.setLang);
   const [config, setConfig] = useState<GameConfig>(() => loadSettings().config);
 
@@ -68,9 +73,10 @@ export function SettingsScreen() {
           <select
             id="language-select"
             className="text-input"
-            value={lang}
-            onChange={(e) => setLang(e.target.value as Language)}
+            value={setting}
+            onChange={(e) => setLang(e.target.value as LanguageSetting)}
           >
+            <option value="auto">{t('languageAuto')}</option>
             {LANGUAGE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
