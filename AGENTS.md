@@ -26,12 +26,14 @@ pnpm e2e          # Playwright e2e — run `pnpm build` first (serves dist/)
 - `src/engine/` — pure TypeScript game engine (deck, seeded RNG, reducer `(state, action) → { state, result }`, all rules, scoring). Zero React, zero DOM; Node-testable.
 - `src/store/` — Zustand store, sharded versioned localStorage persistence (`scoundrel:settings`/`stats`/`run`), stats aggregation, shareable replay URLs.
 - `src/ui/` — React screens and components. Transient card-selection lives in the store, never in engine state.
-- `assets/` — the 44 card artwork JPEGs (bundled via `import.meta.glob` in `src/ui/cardImage.ts`).
+- `assets/` — the 44 card artwork JPEGs (bundled via `import.meta.glob` in `src/ui/card-image.ts`).
 - `tests/` — store unit tests + RTL integration tests. Engine tests live next to the code in `src/engine/`.
 - `e2e/` — Playwright black-box tests (seeded URLs make runs deterministic).
 
 ## Conventions
 
+- File naming: React component files and their test files use CapitalCamelCase (e.g. `CardView.tsx`); everything else uses kebab-case (lower-dash-case).
+- i18n: powered by typesafe-i18n. Message text lives in the `en`/`zh` dictionaries in `src/i18n/`; `src/i18n.ts` exposes the zustand language store and `useT()`/`t()` helpers. Other files reference messages by `MessageKey`, never inline display strings.
 - Engine code must stay pure and React-free; all randomness is resolved in `createInitialState` so the reducer is deterministic given `(state, action)`.
 - CardId format is `${suit}-${rank}` matching the artwork filenames (`club-8.jpg`).
 - Shareable run URLs: `#/play?seed=...&config=...` (`src/store/share.ts`).

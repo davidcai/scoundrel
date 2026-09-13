@@ -1,4 +1,4 @@
-import { useGameStore } from '../store/gameStore';
+import { useGameStore } from '../store/game-store';
 
 /**
  * ARIA live region driven directly by engine result payloads. The announcement

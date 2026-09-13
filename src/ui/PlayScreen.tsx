@@ -12,8 +12,8 @@ import {
   type GameAction,
   type GameState,
 } from '../engine';
-import { cardLabel, useT } from '../i18n';
-import { useGameStore } from '../store/gameStore';
+import { cardHint, cardLabel, useT } from '../i18n';
+import { useGameStore } from '../store/game-store';
 import { decodeConfig } from '../store/share';
 import { CardView } from './CardView';
 import { GameOverScreen } from './GameOverScreen';
@@ -119,13 +119,14 @@ export function PlayScreen() {
         onKeyDown={onKeyDown}
       >
         {game.room.map((cardId) => (
-          <CardView
-            key={cardId}
-            cardId={cardId}
-            selected={selected === cardId}
-            carried={game.carriedCardId === cardId}
-            onClick={() => selectCard(selected === cardId ? null : cardId)}
-          />
+          <Tooltip key={cardId} text={cardHint(cardId)}>
+            <CardView
+              cardId={cardId}
+              selected={selected === cardId}
+              carried={game.carriedCardId === cardId}
+              onClick={() => selectCard(selected === cardId ? null : cardId)}
+            />
+          </Tooltip>
         ))}
       </div>
 

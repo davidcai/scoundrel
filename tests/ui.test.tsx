@@ -13,7 +13,7 @@ import {
   type GameAction,
   type GameState,
 } from '../src/engine';
-import { useGameStore } from '../src/store/gameStore';
+import { useGameStore } from '../src/store/game-store';
 import { useLanguage } from '../src/i18n';
 import { loadStats } from '../src/store/stats';
 import { loadSettings } from '../src/store/settings';

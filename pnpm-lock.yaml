@@ -14,6 +14,9 @@ importers:
       react-dom:
         specifier: ^19.3.0
         version: 19.3.0(react@19.3.0)
+      typesafe-i18n:
+        specifier: ^5.27.1
+        version: 5.27.1(typescript@5.8.3)
       zustand:
         specifier: ^5.0.15
         version: 5.0.15(@types/react@19.3.0)(react@19.3.0)
@@ -1400,6 +1403,12 @@ packages:
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
     engines: {node: '>= 0.8.0'}
+
+  typesafe-i18n@5.27.1:
+    resolution: {integrity: sha512-749uWo2ZXETT//kWjVYPm8QPYR8xLh8G0wLfoAyCAtAmysX67uCaAyLjAjAWojL6fuJpE5B6yIjwvO9orXzUPg==}
+    hasBin: true
+    peerDependencies:
+      typescript: '>=3.5.1'
 
   typescript-eslint@8.70.0:
     resolution: {integrity: sha512-P/W5cz70/cQAuKfY3xwQMWWTV7BvJ0mAQmi+9mBcsVPaBUpd6Ohpa+fECv9rBFrQcig86jAiNBFNWUqnTjr4pw==}
@@ -2807,6 +2816,10 @@ snapshots:
   type-check@0.4.0:
     dependencies:
       prelude-ls: 1.2.1
+
+  typesafe-i18n@5.27.1(typescript@5.8.3):
+    dependencies:
+      typescript: 5.8.3
 
   typescript-eslint@8.70.0(eslint@9.39.5)(typescript@5.8.3):
     dependencies:
