@@ -1,7 +1,7 @@
 # Scoundrel Rule Set
 
 Scoundrel is a popular 1-player roguelike dungeon-crawling card game. Played with a standard deck, you navigate rooms, fight monsters, equip weapons, and manage health to survive the dungeon.
-  
+
 ## Setup & Card Values
 
 - The Deck: Take a standard 52-card deck and remove both Jokers, all red face cards (Jack, Queen, King of Hearts and Diamonds), and both red Aces. You are left with 44 cards. Shuffle them face down into a draw pile called the Dungeon.

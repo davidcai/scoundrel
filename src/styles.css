@@ -434,7 +434,7 @@ body {
   line-height: 1.1;
 }
 
-.card:hover:not(:disabled):not(.weapon-card):not(.kill-card-view) {
+.card:hover:not(:disabled) {
   transform: translateY(-4px);
   filter: brightness(1.08);
 }
