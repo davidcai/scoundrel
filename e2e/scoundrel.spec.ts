@@ -141,17 +141,21 @@ async function useEnglish(page: Page): Promise<void> {
 // Title & interaction
 // ---------------------------------------------------------------------------
 
-test('the app opens in Chinese by default', async ({ page }) => {
-  await page.goto('/');
-  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
-  await expect(page.getByRole('button', { name: '新开一局' })).toBeVisible();
+test.describe('language detection', () => {
+  test.use({ locale: 'zh-CN' });
 
-  // The switcher persists the choice across a reload.
-  await page.getByRole('button', { name: '设置' }).click();
-  await page.getByLabel('语言 Language').selectOption('en');
-  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
-  await page.reload();
-  await expect(page.getByLabel('Language')).toHaveValue('en');
+  test('a zh-configured browser opens in Chinese by default', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+    await expect(page.getByRole('button', { name: '新开一局' })).toBeVisible();
+
+    // The switcher persists the choice across a reload.
+    await page.getByRole('button', { name: '设置' }).click();
+    await page.getByLabel('语言 Language').selectOption('en');
+    await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+    await page.reload();
+    await expect(page.getByLabel('Language')).toHaveValue('en');
+  });
 });
 
 test('title screen offers the full menu and a new run deals a room', async ({ page }) => {

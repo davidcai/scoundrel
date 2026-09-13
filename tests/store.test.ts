@@ -59,8 +59,27 @@ describe('persistence wrappers', () => {
 });
 
 describe('settings', () => {
-  it('defaults to the canonical rule set in Chinese', () => {
-    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'zh' });
+  it('defaults to the canonical rule set, language auto-detected', () => {
+    // jsdom reports en-US, so a fresh visit detects English.
+    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'en' });
+  });
+
+  it('detects Chinese for zh-configured browsers', () => {
+    const original = Object.getOwnPropertyDescriptor(navigator, 'language');
+    Object.defineProperty(navigator, 'language', { value: 'zh-CN', configurable: true });
+    Object.defineProperty(navigator, 'languages', {
+      value: ['zh-CN', 'en-US'],
+      configurable: true,
+    });
+    try {
+      localStorage.clear();
+      expect(loadSettings().language).toBe('zh');
+    } finally {
+      localStorage.clear();
+      if (original) Object.defineProperty(navigator, 'language', original);
+      else delete (navigator as { language?: unknown }).language;
+      delete (navigator as { languages?: unknown }).languages;
+    }
   });
 
   it('persists across loads', () => {
@@ -71,17 +90,17 @@ describe('settings', () => {
 
   it('falls back to defaults on corrupt data', () => {
     localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify({ version: 1, data: 'garbage' }));
-    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'zh' });
+    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'en' });
   });
 
   it('persists the language independently of the rule config', () => {
-    saveLanguage('en');
-    expect(loadSettings().language).toBe('en');
-    const custom = { ...DEFAULT_CONFIG, weaponDegradation: false };
-    saveSettings(custom);
-    expect(loadSettings()).toEqual({ config: custom, language: 'en' });
     saveLanguage('zh');
     expect(loadSettings().language).toBe('zh');
+    const custom = { ...DEFAULT_CONFIG, weaponDegradation: false };
+    saveSettings(custom);
+    expect(loadSettings()).toEqual({ config: custom, language: 'zh' });
+    saveLanguage('en');
+    expect(loadSettings().language).toBe('en');
   });
 
   it('accepts legacy settings shards without a language field', () => {
@@ -89,7 +108,7 @@ describe('settings', () => {
       STORAGE_KEYS.settings,
       JSON.stringify({ version: 1, data: { config: DEFAULT_CONFIG } }),
     );
-    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'zh' });
+    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'en' });
   });
 });
 

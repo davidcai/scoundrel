@@ -44,15 +44,14 @@ describe('localized card labels', () => {
 
 describe('language switcher', () => {
   it('renders the Chinese UI and persists the choice', async () => {
-    // Start from a clean slate in the default language (setLang also
-    // re-syncs <html lang>, which afterEach may have left as 'en').
+    // Start from a clean slate with Chinese selected (setLang also re-syncs
+    // <html lang>, which afterEach may have left as 'en').
     localStorage.clear();
     act(() => useLanguage.getState().setLang('zh'));
 
     const user = userEvent.setup();
     render(<App />);
 
-    // Chinese is the app default; the title screen opens in Chinese.
     expect(screen.getByRole('button', { name: '新开一局' })).toBeInTheDocument();
     expect(document.documentElement.lang).toBe('zh-CN');
     expect(loadSettings().language).toBe('zh');
@@ -68,5 +67,11 @@ describe('language switcher', () => {
     await user.click(screen.getByRole('button', { name: 'Settings' }));
     expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument();
     expect(screen.getByLabelText('Language')).toBeInTheDocument();
+  });
+
+  it('detects the browser language on first visit', () => {
+    localStorage.clear();
+    // jsdom reports en-US: a fresh visit opens in English.
+    expect(loadSettings().language).toBe('en');
   });
 });
