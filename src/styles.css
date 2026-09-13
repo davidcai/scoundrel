@@ -339,12 +339,63 @@ body {
   font-size: 0.95rem;
 }
 
-.hud-group.run-status[data-legal='false'] .hud-value {
-  color: var(--danger);
+/* DUNGEON + EXIT travel together: if they don't fit beside HEALTH, both wrap. */
+.hud-cluster {
+  display: flex;
+  flex: 1;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 10px 26px;
 }
 
-.hud-group.run-status[data-legal='true'] .hud-value {
-  color: var(--hp);
+.hud-cluster > .tooltip-wrap {
+  margin-left: auto;
+}
+
+.hud-exit {
+  padding: 0.45em 0.7em;
+  font-size: 0.9rem;
+}
+
+.hud-exit svg {
+  display: block;
+}
+
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(3, 5, 9, 0.82);
+  backdrop-filter: blur(4px);
+}
+
+.confirm-card {
+  width: min(360px, 100%);
+  padding: 22px 24px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  box-shadow: var(--shadow);
+}
+
+.confirm-title {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+}
+
+.confirm-body {
+  margin: 0 0 16px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .hp {
@@ -495,6 +546,7 @@ body {
 /* ── Action panel ────────────────────────────────────────────────────────── */
 
 .action-panel {
+  position: relative;
   max-width: 640px;
   margin: 0 auto 14px;
   padding: 14px 18px;
@@ -502,6 +554,18 @@ body {
   border-radius: 14px;
   background: linear-gradient(180deg, rgba(217, 164, 74, 0.1), rgba(20, 25, 38, 0.9));
   box-shadow: var(--shadow);
+}
+
+.action-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 0.4em 0.45em;
+  line-height: 1;
+}
+
+.action-close svg {
+  display: block;
 }
 
 .action-panel .zone-title {
@@ -616,6 +680,15 @@ body {
   gap: 10px;
   justify-content: center;
   margin-top: 10px;
+}
+
+.seed-note {
+  margin: 14px 0 0;
+  font-size: 0.75rem;
+  font-weight: 400;
+  text-align: center;
+  color: var(--muted);
+  opacity: 0.7;
 }
 
 /* ── Game over ───────────────────────────────────────────────────────────── */
@@ -819,9 +892,9 @@ a {
   position: absolute;
   bottom: calc(100% + 8px);
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(calc(-50% + var(--tooltip-shift, 0px)));
   width: max-content;
-  max-width: 280px;
+  max-width: min(280px, calc(100vw - 16px));
   padding: 8px 12px;
   border-radius: 8px;
   border: 1px solid var(--accent);
@@ -844,6 +917,12 @@ a {
 .tooltip-wrap:focus-within .tooltip {
   opacity: 1;
   visibility: visible;
+}
+
+/* No room above the trigger (e.g. HUD controls near the top) — open below. */
+.tooltip-below {
+  bottom: auto;
+  top: calc(100% + 8px);
 }
 
 /* ── Mobile ──────────────────────────────────────────────────────────────── */

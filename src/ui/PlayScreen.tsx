@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   canEnterNextRoom,
   canResolveMore,
@@ -34,7 +34,11 @@ export function PlayScreen() {
 
   const seedParam = route.params.get('seed');
   const configParam = route.params.get('config');
-  const [abandonArmed, setAbandonArmed] = useState(false);
+
+  const abandon = () => {
+    abandonRun();
+    navigate('#/');
+  };
 
   // Shareable replay URL: `#/play?seed=...&config=...` deterministically restarts that run.
   useEffect(() => {
@@ -103,46 +107,9 @@ export function PlayScreen() {
 
   return (
     <main className="screen play">
-      <Hud game={game} />
+      <Hud game={game} onAbandon={abandon} />
 
-      {final && (
-        <p className="final-banner" role="note">
-          {t('finalBannerStart')} <strong>{t('finalBannerEvery')}</strong> {t('finalBannerEnd')}
-        </p>
-      )}
-
-      <div
-        ref={roomRef}
-        className="room"
-        role="group"
-        aria-label={t('currentRoom')}
-        onKeyDown={onKeyDown}
-      >
-        {game.room.map((cardId) => (
-          <Tooltip key={cardId} text={cardHint(cardId)}>
-            <CardView
-              cardId={cardId}
-              selected={selected === cardId}
-              carried={game.carriedCardId === cardId}
-              onClick={() => selectCard(selected === cardId ? null : cardId)}
-            />
-          </Tooltip>
-        ))}
-      </div>
-
-      <p className="room-progress" aria-hidden="true">
-        {!final && game.room.length === 1
-          ? t('carrySingle')
-          : final
-            ? t('carryNone')
-            : t('carryDefault')}
-      </p>
-
-      {selected !== null && <ActionPanel game={game} cardId={selected} />}
-
-      <WeaponStack game={game} />
-
-      <footer className="controls">
+      <div className="controls">
         <Tooltip text={t('tooltipUndo')}>
           <button
             type="button"
@@ -187,22 +154,52 @@ export function PlayScreen() {
             </button>
           </Tooltip>
         )}
+      </div>
 
-        <button
-          type="button"
-          className="btn danger"
-          onClick={() => {
-            if (abandonArmed) {
-              abandonRun();
-              navigate('#/');
-            } else {
-              setAbandonArmed(true);
-            }
-          }}
-        >
-          {abandonArmed ? t('reallyAbandon') : t('abandonRun')}
-        </button>
-      </footer>
+      {final && (
+        <p className="final-banner" role="note">
+          {t('finalBannerStart')} <strong>{t('finalBannerEvery')}</strong> {t('finalBannerEnd')}
+        </p>
+      )}
+
+      <div
+        ref={roomRef}
+        className="room"
+        role="group"
+        aria-label={t('currentRoom')}
+        onKeyDown={onKeyDown}
+      >
+        {game.room.map((cardId) => (
+          <Tooltip key={cardId} text={cardHint(cardId)}>
+            <CardView
+              cardId={cardId}
+              selected={selected === cardId}
+              carried={game.carriedCardId === cardId}
+              onClick={() => selectCard(selected === cardId ? null : cardId)}
+            />
+          </Tooltip>
+        ))}
+      </div>
+
+      <p className="room-progress" aria-hidden="true">
+        {!final && game.room.length === 1
+          ? t('carrySingle')
+          : final
+            ? t('carryNone')
+            : t('carryDefault')}
+      </p>
+
+      {selected !== null && <ActionPanel game={game} cardId={selected} />}
+
+      <WeaponStack game={game} />
+
+      <p className="seed-note">
+        <Tooltip text={t('tooltipSeed')}>
+          <span>
+            {t('seed')}: <span className="mono">{game.seed}</span>
+          </span>
+        </Tooltip>
+      </p>
     </main>
   );
 }
@@ -229,11 +226,7 @@ function ActionPanel({ game, cardId }: { game: GameState; cardId: CardId }) {
         <p className="action-note" role="note">
           {t('carryNote')}
         </p>
-        <div className="action-buttons">
-          <button type="button" className="btn ghost" onClick={() => selectCard(null)}>
-            {t('cancel')}
-          </button>
-        </div>
+        <CancelCloseButton onCancel={() => selectCard(null)} label={t('cancel')} />
       </section>
     );
   }
@@ -241,6 +234,7 @@ function ActionPanel({ game, cardId }: { game: GameState; cardId: CardId }) {
   return (
     <section className="action-panel" aria-label={t('actionsFor', { label })}>
       <h3 className="zone-title">{label}</h3>
+      <CancelCloseButton onCancel={() => selectCard(null)} label={t('cancel')} />
 
       {kind === 'monster' && (
         <MonsterActions game={game} cardId={cardId} act={act} selectCard={selectCard} />
@@ -309,9 +303,6 @@ function MonsterActions({
           {t('fightBarehanded', { damage: barehanded.damage })}
         </button>
       )}
-      <button type="button" className="btn ghost" onClick={() => selectCard(null)}>
-        {t('cancel')}
-      </button>
     </div>
   );
 }
@@ -340,9 +331,6 @@ function PotionActions({
         {wasted ? t('drinkWasted') : t('drinkHeal', { heal })}
       </button>
       <p className="action-note">{wasted ? t('potionWastedNote') : t('potionNote')}</p>
-      <button type="button" className="btn ghost" onClick={() => selectCard(null)}>
-        {t('cancel')}
-      </button>
     </div>
   );
 }
@@ -377,9 +365,27 @@ function WeaponActions({
         {t('equip', { label })}
       </button>
       <p className="action-note">{swapWarning}</p>
-      <button type="button" className="btn ghost" onClick={() => selectCard(null)}>
-        {t('cancel')}
-      </button>
     </div>
+  );
+}
+
+/** Compact X icon in the panel's top-right corner that deselects the card. */
+function CancelCloseButton({ onCancel, label }: { onCancel: () => void; label: string }) {
+  return (
+    <button type="button" className="btn ghost action-close" aria-label={label} onClick={onCancel}>
+      <svg
+        viewBox="0 0 24 24"
+        width="16"
+        height="16"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        aria-hidden="true"
+      >
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
+    </button>
   );
 }

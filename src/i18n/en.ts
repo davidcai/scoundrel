@@ -23,11 +23,14 @@ const en = {
   carrySingle: 'This card will carry over to the next room.',
   carryNone: 'No card will carry over — clear them all.',
   carryDefault: 'Choose a card, then resolve it. One card will carry over.',
-  undoToRoomStart: 'Undo to room start',
-  runAway: 'Run away',
+  undoToRoomStart: 'Undo',
+  runAway: 'Flee',
   enterNextRoom: 'Enter next room →',
   reallyAbandon: 'Really abandon?',
-  abandonRun: 'Abandon run',
+  abandonRun: 'Abandon',
+  tooltipAbandon:
+    'Abandon the current run and return to the title screen — the run is not recorded and its progress is lost.',
+  abandonConfirmBody: 'Your progress will be lost and the run will not be recorded.',
   tooltipUndo:
     'Rewind the current room to the moment it was dealt — health, weapon, kill stack and potions reset. The snapshot is cleared once you enter the next room.',
   tooltipRunLegal: 'Send all four cards to the bottom of the dungeon and deal a fresh room.',
@@ -66,17 +69,7 @@ const en = {
   currentHealth: 'Current health',
   dungeon: 'Dungeon',
   cardsLeft: '{count} cards',
-  room: 'Room',
-  roomFinal: '{turn} · final',
-  roomResolved: '{turn} · {resolved}/{target} resolved',
-  potion: 'Potion',
-  potionUsed: 'used this room',
-  potionAvailable: 'available',
-  ready: 'ready',
-  blocked: 'blocked',
   seed: 'Seed',
-  tooltipRunAwayHud:
-    'You may run away once per turn — never from two rooms in a row, never from a room you have engaged, and never from the final room.',
   tooltipSeed:
     'The seed uniquely determines this dungeon. Share it to challenge a friend with the same run.',
 
