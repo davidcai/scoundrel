@@ -15,7 +15,9 @@ concurrency:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Cold runs include apt system deps + Chromium download before build and
+    # e2e, so allow generous headroom.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -37,41 +39,13 @@ jobs:
       - name: Unit & integration tests
         run: pnpm test
 
-      # pnpm build = typecheck (tsc -b) + bundle. Must run before e2e:
+      # pnpm build = typecheck (tsc -b) + vite bundle. Must run before e2e:
       # playwright preview serves dist/.
       - name: Build (typecheck + bundle)
         run: pnpm build
 
-      - name: Resolve Playwright version
-        id: playwright-version
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-
-      # Keyed on the resolved Playwright version so only a Playwright
-      # upgrade (direct or transitive) churns the cache. restore-keys falls
-      # back to the previous version's browsers on a miss and `playwright
-      # install` fetches the missing revision.
-      - name: Restore Playwright browsers
-        id: playwright-cache
-        uses: actions/cache/restore@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
-          restore-keys: playwright-${{ runner.os }}-
-
-      # Assumes the default PLAYWRIGHT_BROWSERS_PATH (~/.cache/ms-playwright).
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
-
-      # Save is split from restore so a failed install never persists a
-      # partial cache. Skipped on an exact-key hit (nothing to save);
-      # continue-on-error tolerates a concurrent run saving the same key.
-      - name: Save Playwright browsers
-        if: success() && steps.playwright-cache.outputs.cache-hit != 'true'
-        continue-on-error: true
-        uses: actions/cache/save@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
 
       - name: E2E tests
         run: pnpm exec playwright test
