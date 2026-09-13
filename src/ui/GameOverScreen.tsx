@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { finalScore, randomSeed, type GameState } from '../engine';
 import { useT, type TFunc } from '../i18n';
-import { useGameStore } from '../store/gameStore';
+import { useGameStore } from '../store/game-store';
 import { loadSettings } from '../store/settings';
 import { runUrl } from '../store/share';
 import { navigate } from './router';

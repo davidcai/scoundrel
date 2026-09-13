@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useGameStore } from './store/gameStore';
+import { useGameStore } from './store/game-store';
 import { LiveAnnouncer } from './ui/LiveAnnouncer';
 import { PlayScreen } from './ui/PlayScreen';
 import { useHashRoute } from './ui/router';

@@ -3,7 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { act } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import App from '../src/App';
-import { MESSAGES, cardLabel, cardAriaLabel, translate, useLanguage } from '../src/i18n';
+import { cardLabel, cardAriaLabel, translate, useLanguage } from '../src/i18n';
+import { locales, translations } from '../src/i18n/i18n-util.sync';
 import { loadLanguage, loadSettings } from '../src/store/settings';
 
 afterEach(() => {
@@ -17,12 +18,14 @@ describe('translate', () => {
     expect(translate('zh', 'scoreOf', { score: 14 })).toBe('得分 14');
   });
 
-  it('covers every message key in both languages', () => {
-    const enKeys = Object.keys(MESSAGES.en);
+  it('defines every message key in both languages', () => {
+    const enKeys = Object.keys(translations.en);
     expect(enKeys.length).toBeGreaterThan(100);
     for (const key of enKeys) {
-      expect(MESSAGES.zh[key as keyof typeof MESSAGES.en]).toBeTruthy();
+      expect(translations.zh[key as keyof typeof translations.en]).toBeTruthy();
     }
+    // The runtime dictionary record is exactly the shipped locales.
+    expect(Object.keys(translations).sort()).toEqual([...locales].sort());
   });
 });
 

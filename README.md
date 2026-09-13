@@ -25,6 +25,7 @@ pnpm e2e              # Playwright e2e (run `pnpm build` first; serves dist/)
 - `src/engine/` — the pure TypeScript game engine: deck composition, mulberry32 seeded RNG, the reducer `(state, action) → { state, result }`, combat/weapon-degradation/potion/run-away rules, win/lose and scoring. Zero React, zero DOM — runs in Node.
 - `src/store/` — Zustand store wiring the engine to React, with transient card-selection UI state (kept out of engine truth), sharded versioned localStorage persistence (`scoundrel:settings`, `scoundrel:stats`, `scoundrel:run`), idempotent stats writes, and shareable run URL encoding (`#/play?seed=...&config=...`).
 - `src/ui/` — screens (title, play, stats, settings, about), card/HUD/weapon-stack components, ARIA live-region announcer and tooltips.
+- `src/i18n/` — typesafe-i18n dictionaries (`en.ts`, `zh.ts`) and typed translation setup; `src/i18n.ts` adds the zustand language store and `useT()`/`t()` helpers.
 - `assets/` — the 44 card artwork JPEGs; doubles as the Vite public dir (served at `/<suit>-<rank>.jpg`).
 - `e2e/` — Playwright black-box tests; seeded URLs (`#/play?seed=...`) make runs fully deterministic.
 

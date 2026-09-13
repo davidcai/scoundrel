@@ -13,7 +13,7 @@ import {
   type GameState,
 } from '../engine';
 import { cardHint, cardLabel, useT } from '../i18n';
-import { useGameStore } from '../store/gameStore';
+import { useGameStore } from '../store/game-store';
 import { decodeConfig } from '../store/share';
 import { CardView } from './CardView';
 import { GameOverScreen } from './GameOverScreen';

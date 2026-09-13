@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { randomSeed } from '../../engine';
 import { useT } from '../../i18n';
-import { useGameStore } from '../../store/gameStore';
+import { useGameStore } from '../../store/game-store';
 import { loadSettings } from '../../store/settings';
 import { navigate } from '../router';
 

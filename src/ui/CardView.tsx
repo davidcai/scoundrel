@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { cardKind, cardSymbol, cardValue, type CardId } from '../engine';
 import { cardAriaLabel, useT } from '../i18n';
-import { cardImageUrl } from './cardImage';
+import { cardImageUrl } from './card-image';
 
 interface CardViewProps {
   cardId: CardId;
