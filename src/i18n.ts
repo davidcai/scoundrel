@@ -51,6 +51,9 @@ const en = {
   tooltipRunFinal: 'This is the final room — fleeing would just re-deal the same cards.',
   tooltipRunEngaged: 'You already engaged this room.',
   tooltipCarry: 'Resolve 3 of the 4 cards, then carry the remaining one into the next room.',
+  hintMonster: 'Monster — attack {value}',
+  hintWeapon: 'Weapon — power {value}',
+  hintPotion: 'Potion — restores {value} health',
 
   // Action panel
   actionsFor: 'Actions for {label}',
@@ -259,11 +262,14 @@ const zh: Record<MessageKey, string> = {
   abandonRun: '放弃对局',
   tooltipUndo:
     '把当前房间倒回发牌那一刻——生命、武器、击杀牌堆和药水全部重置。一旦进入下一个房间，快照即被清除。',
-  tooltipRunLegal: '把四张牌都沉到地城底部，重新发一手新房间。',
+  tooltipRunLegal: '把四张牌都沉到地下城底部，重新发一手新房间。',
   tooltipRunTwice: '不能连续两个房间逃跑。',
   tooltipRunFinal: '这是最终房间——逃跑只会重新发出同样的牌。',
   tooltipRunEngaged: '你已经与这个房间交手过了。',
   tooltipCarry: '解决4张牌中的3张，剩下的那张带入下一个房间。',
+  hintMonster: '怪物——攻击力{value}',
+  hintWeapon: '武器——威力{value}',
+  hintPotion: '药水——恢复{value}点生命',
 
   // Action panel
   actionsFor: '{label}的可选操作',
@@ -286,7 +292,7 @@ const zh: Record<MessageKey, string> = {
   gameStatus: '游戏状态',
   health: '生命',
   currentHealth: '当前生命',
-  dungeon: '地城',
+  dungeon: '地下城',
   cardsLeft: '剩余{count}张牌',
   room: '房间',
   roomFinal: '第{turn}手 · 最终',
@@ -298,7 +304,7 @@ const zh: Record<MessageKey, string> = {
   blocked: '受阻',
   seed: '种子',
   tooltipRunAwayHud: '每手可逃跑一次——不能连续两次、不能在已交手的房间、也不能在最终房间逃跑。',
-  tooltipSeed: '种子唯一决定了这个地城。把它分享给朋友，即可挑战完全相同的对局。',
+  tooltipSeed: '种子唯一决定了这个地下城。把它分享给朋友，即可挑战完全相同的对局。',
 
   // Weapon zone
   weaponZone: '武器',
@@ -324,8 +330,8 @@ const zh: Record<MessageKey, string> = {
   // Game over
   victory: '胜利',
   defeat: '失败',
-  victorySub: '你清空了地城的每一个房间。',
-  defeatSub: '你倒在了黑暗中。地城又吞噬了一个恶棍。',
+  victorySub: '你清空了地下城的每一个房间。',
+  defeatSub: '你倒在了黑暗中。地下城又吞噬了一个恶棍。',
   score: '得分',
   finalHealth: '最终生命',
   toggles: '规则开关',
@@ -353,7 +359,7 @@ const zh: Record<MessageKey, string> = {
   bestStreak: '最长连胜',
   runHistory: '对局历史',
   runHistoryAria: '对局历史（最新在前）',
-  noRuns: '还没有对局——去清空一座地城吧。',
+  noRuns: '还没有对局——去清空一座地下城吧。',
   win: '胜',
   loss: '负',
   scoreOf: '得分 {score}',
@@ -383,7 +389,7 @@ const zh: Record<MessageKey, string> = {
   ruleRooms: '每个房间发4张牌；必须解决其中3张。第4张带入下一个房间。',
   ruleDegradation: '武器击杀怪物后，只能对抗更弱的怪物。拾起新武器会丢弃旧武器及其击杀牌堆。',
   rulePotion: '每个房间喝下的第一瓶药水才会生效。',
-  ruleRunAway: '每手可逃跑一次：四张牌沉到地城底部，重新发一手房间——但不能连续逃跑。',
+  ruleRunAway: '每手可逃跑一次：四张牌沉到地下城底部，重新发一手房间——但不能连续逃跑。',
   ruleWin: '清空所有房间即获胜。得分为剩余生命；死亡时得分为零减去牌堆中仍在潜伏的怪物总和。',
   credits: '制作与链接',
   creditsText: 'Scoundrel 由 Zach Gage 和 Kurt Bieg 设计。这是原版单人 Roguelike 的浏览器实现。',
@@ -403,11 +409,11 @@ const zh: Record<MessageKey, string> = {
   announceEquip: '你装备了{card}。',
   announcePotionWasted: '你喝下了{card}，但它毫无效果。',
   announcePotionHeal: '你喝下了{card}，恢复了{healed}点生命。',
-  announceRanAway: '你逃离了房间。这些牌沉到了地城底部。',
+  announceRanAway: '你逃离了房间。这些牌沉到了地下城底部。',
   announceRunBlocked: '你不能逃跑：{reason}。',
   announceUndo: '房间已倒回开始状态。',
   announceInvalid: '该操作不被允许：{reason}。',
-  announceGameWon: '胜利！你以{score}点生命清空了地城。',
+  announceGameWon: '胜利！你以{score}点生命清空了地下城。',
   announceGameLost: '你被击败了。最终得分{score}。',
   blockTwice: '不能连续两个房间逃跑',
   blockFinalRoom: '这是最终房间',
@@ -520,4 +526,18 @@ export function cardAriaLabel(cardId: CardId): string {
     return `${cardLabel(cardId)}，${KIND_NAMES.zh[cardKind(cardId)]}，数值${cardValue(cardId)}`;
   }
   return `${cardLabel(cardId)}, ${cardKind(cardId)}, value ${cardValue(cardId)}`;
+}
+
+/** Localized hover hint, e.g. "Monster — attack 8" / "怪物——攻击力8"。 */
+export function cardHint(cardId: CardId): string {
+  const lang = currentLang();
+  const value = cardValue(cardId);
+  switch (cardKind(cardId)) {
+    case 'monster':
+      return translate(lang, 'hintMonster', { value });
+    case 'weapon':
+      return translate(lang, 'hintWeapon', { value });
+    case 'potion':
+      return translate(lang, 'hintPotion', { value });
+  }
 }
