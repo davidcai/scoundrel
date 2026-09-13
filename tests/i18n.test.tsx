@@ -55,7 +55,7 @@ describe('language switcher', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    expect(screen.getByRole('button', { name: '新开一局' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '新开局' })).toBeInTheDocument();
     expect(document.documentElement.lang).toBe('zh-CN');
     expect(loadSettings().language).toBe('zh');
 

@@ -2,10 +2,10 @@ import type { Translation } from './i18n-types';
 
 const zh: Translation = {
   // Title screen
-  tagline: '孤身一人的恶棍。一副纸牌。唯一的生路。',
+  tagline: '一人流浪。一副纸牌。一条生路。',
   mainMenu: '主菜单',
   continueRun: '继续对局（{seed}）',
-  newRun: '新开一局',
+  newRun: '新开局',
   enterSeed: '输入种子',
   seedFromFriend: '好友分享的种子',
   seedPlaceholder: '例如 1a2b3c',
