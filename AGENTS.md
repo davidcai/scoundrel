@@ -37,4 +37,4 @@ pnpm e2e          # Playwright e2e — run `pnpm build` first (serves dist/)
 - Engine code must stay pure and React-free; all randomness is resolved in `createInitialState` so the reducer is deterministic given `(state, action)`.
 - CardId format is `${suit}-${rank}` matching the artwork filenames (`club-8.jpg`).
 - Shareable run URLs: `#/play?seed=...&config=...` (`src/store/share.ts`).
-- CI (`.github/workflows/ci.yml`) runs lint, typecheck, unit+integration, e2e (build first — `vite preview` serves `dist/`), then deploys `main` to GitHub Pages with `BASE_URL=/scoundrel/`.
+- CI (`.github/workflows/ci.yml`) runs lint, typecheck, unit+integration, and e2e (build first — `vite preview` serves `dist/`). Deployment is handled by Vercel (previews on PRs, production from `main`); the Vite build reads the base path from `BASE_URL` (`vite.config.ts`, default `/`) and the hash router tolerates any base.

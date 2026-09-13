@@ -35,4 +35,4 @@ Settings exposes three toggles (run-away restriction, potions per room, weapon d
 
 ## Deploy
 
-Deploys to GitHub Pages from `main` via CI with `BASE_URL=/scoundrel/`. The Vite build reads the base path from the environment (`vite.config.ts`), and the hash router tolerates any base.
+Deploys via Vercel (previews on PRs, production from `main`). The Vite build reads the base path from the environment (`vite.config.ts`), and the hash router tolerates any base.
