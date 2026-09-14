@@ -136,6 +136,10 @@ export class PlayScene extends Phaser.Scene {
   private killStackLength = -1;
   private panelKey: string | null = null;
   private lastMode: SceneMode | null = null;
+  /** Roving keyboard focus over the current room's cards (null = none). */
+  private focusIndex: number | null = null;
+  /** Keyboard listeners installed in create(), removed on shutdown. */
+  private keyBindings: Array<[string, (event: KeyboardEvent) => void]> = [];
 
   constructor() {
     super('PlayScene');
@@ -162,6 +166,7 @@ export class PlayScene extends Phaser.Scene {
     this.syncSeededStart();
     this.buildPlayUi();
     this.syncFromStore();
+    this.installKeyboard();
 
     this.storeUnsubscribe = useGameStore.subscribe(() => this.syncFromStore());
     this.langUnsubscribe = useLanguage.subscribe(() => this.rebuildAll());
@@ -173,6 +178,8 @@ export class PlayScene extends Phaser.Scene {
       this.langUnsubscribe = null;
       this.toastCenter?.destroy();
       this.toastCenter = null;
+      this.uninstallKeyboard();
+      this.clearFocus();
       this.closeDialog();
     });
   }
@@ -369,6 +376,7 @@ export class PlayScene extends Phaser.Scene {
 
     if (mode !== this.lastMode) {
       this.lastMode = mode;
+      if (mode !== 'playing') this.clearFocus();
       this.playLayer.setVisible(mode === 'playing');
       // Game over is handled by the GameOverScene overlay; "no run" gets the
       // in-scene panel.
@@ -409,10 +417,13 @@ export class PlayScene extends Phaser.Scene {
     // Room sprites: rebuild on composition change, update in place otherwise.
     const composition = game.room.join('|');
     if (composition !== this.roomComposition) this.rebuildRoom(game);
-    for (const [cardId, sprite] of this.roomSprites) {
+    game.room.forEach((cardId, index) => {
+      const sprite = this.roomSprites.get(cardId);
+      if (sprite === undefined) return;
       sprite.setSelected(selected === cardId);
       sprite.setCarried(game.carriedCardId === cardId);
-    }
+      sprite.setFocused(this.focusIndex === index);
+    });
 
     // Weapon zone: rebuild only when weapon / kill stack / degradation change.
     const weaponComposition = `${game.weapon ?? '-'}|${game.killStack.join(',')}|${
@@ -525,6 +536,13 @@ export class PlayScene extends Phaser.Scene {
       this.roomLayer.add(sprite);
       this.roomSprites.set(cardId, sprite);
     });
+
+    // Keyboard focus re-clamps to the new room composition: if the focused
+    // card left the room, focus lands on the (new) last card — or nowhere.
+    if (this.focusIndex !== null) {
+      this.focusIndex =
+        game.room.length === 0 ? null : Math.min(this.focusIndex, game.room.length - 1);
+    }
   }
 
   /**
@@ -1015,6 +1033,104 @@ export class PlayScene extends Phaser.Scene {
       debugId: 'btn-back-title',
     });
     this.stateLayer.add([title, hint, button]);
+  }
+
+  // ── Keyboard: roving card focus ─────────────────────────────────────────
+
+  /**
+   * Keyboard support ported from the old PlayScreen onKeyDown: ArrowLeft /
+   * ArrowRight / Home / End rove focus across the current room's cards
+   * (wrapping, left→right render order), Enter acts on the focused card
+   * (same as clicking it), Escape deselects. Keys are inert when no run is
+   * playing, while the abandon dialog is open (its own ESC handler owns it),
+   * and while the GameOverScene overlay is up (which owns Escape → title).
+   */
+  private installKeyboard(): void {
+    const keyboard = this.input.keyboard;
+    if (keyboard === null) return;
+
+    /** Keys only act on a live run with no modal in the way. */
+    const guard = (): boolean => {
+      const { game } = useGameStore.getState();
+      return (
+        game !== null &&
+        game.phase === 'playing' &&
+        this.dialog === null &&
+        !this.scene.isActive('GameOverScene')
+      );
+    };
+
+    const move = (dir: 'left' | 'right' | 'home' | 'end'): void => {
+      const count = useGameStore.getState().game?.room.length ?? 0;
+      if (count === 0) return;
+      const index = this.focusIndex;
+      if (index === null) {
+        this.focusIndex = dir === 'left' || dir === 'end' ? count - 1 : 0;
+      } else {
+        this.focusIndex =
+          dir === 'left'
+            ? (index - 1 + count) % count
+            : dir === 'right'
+              ? (index + 1) % count
+              : dir === 'home'
+                ? 0
+                : count - 1;
+      }
+      this.applyRoomFocus();
+    };
+
+    const act = (): void => {
+      const index = this.focusIndex;
+      if (index === null) return;
+      const store = useGameStore.getState();
+      if (store.game === null || index >= store.game.room.length) return;
+      const cardId = store.game.room[index];
+      if (cardId === undefined) return;
+      store.selectCard(store.selectedCardId === cardId ? null : cardId);
+    };
+
+    const deselect = (): void => {
+      if (this.scene.isActive('GameOverScene')) return;
+      if (this.dialog !== null) return; // the dialog's own ESC handler closes it
+      const store = useGameStore.getState();
+      if (store.game === null || store.game.phase !== 'playing') return;
+      if (store.selectedCardId !== null) store.selectCard(null);
+    };
+
+    this.keyBindings = [
+      ['keydown-LEFT', (event) => { event.preventDefault(); if (guard()) move('left'); }],
+      ['keydown-RIGHT', (event) => { event.preventDefault(); if (guard()) move('right'); }],
+      ['keydown-HOME', (event) => { event.preventDefault(); if (guard()) move('home'); }],
+      ['keydown-END', (event) => { event.preventDefault(); if (guard()) move('end'); }],
+      ['keydown-ENTER', (event) => { event.preventDefault(); if (guard()) act(); }],
+      ['keydown-ESC', (event) => { event.preventDefault(); deselect(); }],
+    ];
+    for (const [name, handler] of this.keyBindings) keyboard.on(name, handler);
+  }
+
+  private uninstallKeyboard(): void {
+    const keyboard = this.input.keyboard;
+    for (const [name, handler] of this.keyBindings) keyboard?.off(name, handler);
+    this.keyBindings = [];
+  }
+
+  /** Drop keyboard focus entirely (mode left 'playing' / scene shutdown). */
+  private clearFocus(): void {
+    this.focusIndex = null;
+    this.applyRoomFocus();
+  }
+
+  /**
+   * Push the current focusIndex onto the room sprites. Keyboard focus moves
+   * outside the store, so this is called directly from the key handlers —
+   * waiting for the next store sync would render the ring one change late.
+   */
+  private applyRoomFocus(): void {
+    const room = useGameStore.getState().game?.room ?? [];
+    room.forEach((cardId, index) => {
+      const sprite = this.roomSprites.get(cardId);
+      if (sprite !== undefined) sprite.setFocused(this.focusIndex === index);
+    });
   }
 
   // ── Abandon dialog ──────────────────────────────────────────────────────

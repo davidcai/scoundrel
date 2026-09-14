@@ -16,12 +16,41 @@ export interface CardSpriteOptions {
   onClick?: () => void;
 }
 
+/**
+ * Stroke a dashed rectangle (Phaser Graphics has no native dash support).
+ * Square corners are fine — this is a keyboard-focus outline, not card chrome.
+ */
+function drawDashedRect(
+  g: Phaser.GameObjects.Graphics,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  dash = 10,
+  gap = 6,
+): void {
+  const step = dash + gap;
+  for (let px = x; px < x + width; px += step) {
+    const end = Math.min(px + dash, x + width);
+    g.lineBetween(px, y, end, y);
+    g.lineBetween(px, y + height, end, y + height);
+  }
+  for (let py = y; py < y + height; py += step) {
+    const end = Math.min(py + dash, y + height);
+    g.lineBetween(x, py, x, end);
+    g.lineBetween(x + width, py, x + width, end);
+  }
+}
+
 export class CardSprite extends Phaser.GameObjects.Container {
   readonly cardId: CardId;
   /** Click handler — invoked on pointerup over the card. */
   onClick: (() => void) | null = null;
 
   private readonly ring: Phaser.GameObjects.Graphics;
+  /** Keyboard-focus outline (roving arrow-key focus), separate from `ring`. */
+  private readonly focusRing: Phaser.GameObjects.Graphics;
+  private focused = false;
   private readonly carriedBadge: Phaser.GameObjects.Container;
   /**
    * Child container holding the card art: the only layer hover/selection
@@ -85,6 +114,21 @@ export class CardSprite extends Phaser.GameObjects.Container {
       .strokeRoundedRect(-width / 2 - 4, -height / 2 - 4, width + 8, height + 8, RADIUS.card + 2);
     this.ring.setVisible(false);
 
+    // Keyboard-focus indicator: thin dashed outline outside the selection
+    // ring (white at ~65% — distinct from the thicker solid gold selection
+    // ring). Its own layer so it never fights the hover/selection tweens.
+    this.focusRing = scene.add.graphics();
+    this.focusRing
+      .lineStyle(2, rgb(COLORS.suitLight), 0.65);
+    drawDashedRect(
+      this.focusRing,
+      -width / 2 - 8,
+      -height / 2 - 8,
+      width + 16,
+      height + 16,
+    );
+    this.focusRing.setVisible(false).setAlpha(0);
+
     // Carried-over badge placeholder (hidden until setCarried).
     this.carriedBadge = scene.add.container(width / 2 - 16, -height / 2 + 16);
     const badgeDot = scene.add.graphics();
@@ -95,7 +139,7 @@ export class CardSprite extends Phaser.GameObjects.Container {
     this.carriedBadge.add([badgeDot, badgeArrow]);
     this.carriedBadge.setVisible(false);
 
-    this.add([this.bodyRoot, this.ring, this.carriedBadge]);
+    this.add([this.bodyRoot, this.ring, this.focusRing, this.carriedBadge]);
 
     // Hit area = card rect. Bound once at the FINAL position — hover/selection
     // tweens animate child layers, never the container, so the hit rect never
@@ -144,6 +188,34 @@ export class CardSprite extends Phaser.GameObjects.Container {
 
   setCarried(carried: boolean): this {
     this.carriedBadge.setVisible(carried);
+    return this;
+  }
+
+  /**
+   * Keyboard-focus indicator (roving arrow-key focus in PlayScene). Fully
+   * independent of selection and of the pointer hover lift: a thin dashed
+   * outline on its own layer with a subtle 80ms alpha fade — no scale tween,
+   * so it cannot fight the hover animation on bodyRoot.
+   */
+  setFocused(focused: boolean): this {
+    if (this.focused === focused) return this;
+    this.focused = focused;
+    this.focusRing.setVisible(true);
+    const tweens = this.scene?.tweens;
+    if (tweens) {
+      tweens.add({
+        targets: this.focusRing,
+        alpha: focused ? 1 : 0,
+        duration: 80,
+        ease: 'Sine.easeOut',
+        onComplete: () => {
+          if (!focused && this.focusRing.active) this.focusRing.setVisible(false);
+        },
+      });
+    } else {
+      this.focusRing.setAlpha(focused ? 1 : 0);
+      this.focusRing.setVisible(focused);
+    }
     return this;
   }
 

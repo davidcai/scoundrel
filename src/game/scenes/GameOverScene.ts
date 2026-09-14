@@ -32,6 +32,7 @@ export class GameOverScene extends Phaser.Scene {
   private scoreText: Phaser.GameObjects.Text | null = null;
   private langUnsubscribe: (() => void) | null = null;
   private storeUnsubscribe: (() => void) | null = null;
+  private escapeHandler: (() => void) | null = null;
 
   constructor() {
     super('GameOverScene');
@@ -187,9 +188,18 @@ export class GameOverScene extends Phaser.Scene {
       debugId: 'btn-return-title',
     }).setDepth(2);
 
+    // Escape → return to title, consistent with the dialog's ESC-to-dismiss
+    // semantics. PlayScene's own Escape handler bails while this overlay runs.
+    this.escapeHandler = () => this.returnToTitle();
+    this.input.keyboard?.on('keydown-ESC', this.escapeHandler);
+
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.copiedTimer?.remove(false);
       this.copiedTimer = null;
+      if (this.escapeHandler !== null) {
+        this.input.keyboard?.off('keydown-ESC', this.escapeHandler);
+        this.escapeHandler = null;
+      }
       unregisterSceneObject('text-final-score');
       this.scoreText = null;
       this.copyButton = null;
