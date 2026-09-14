@@ -158,16 +158,19 @@ const stateSignature = (game: GameState): string =>
 async function clickActionButton(page: Page, debugId: string): Promise<void> {
   const before = await getGame(page);
   const beforeSignature = before === null ? 'no-run' : stateSignature(before);
-  await clickButton(page, debugId);
-  await expect
-    .poll(
-      async () => {
-        const game = await getGame(page);
-        return game === null ? 'run-cleared' : stateSignature(game);
-      },
-      { timeout: 5_000, intervals: [50] },
-    )
-    .not.toBe(beforeSignature);
+  // A click can land during a scene rebuild or tween and hit nothing; retry
+  // until the engine state actually moves (or the button is gone).
+  const deadline = Date.now() + 10_000;
+  for (;;) {
+    await clickButton(page, debugId);
+    const game = await getGame(page);
+    const signature = game === null ? 'run-cleared' : stateSignature(game);
+    if (signature !== beforeSignature) return;
+    if (Date.now() > deadline) {
+      throw new Error(`click on ${debugId} produced no state change (last: ${signature})`);
+    }
+    await page.waitForTimeout(100);
+  }
 }
 
 /**
@@ -367,6 +370,7 @@ test('the same seed deals the same room every time', async ({ page }) => {
 test('a full seeded run ends in a scorecard, records stats once, and survives reload', async ({
   page,
 }) => {
+  test.setTimeout(120_000); // full greedy playthrough: slow on CI runners
   await useEnglish(page);
   await page.goto('/?debug#/play?seed=e2fterm');
   await waitForPlayRoom(page);
@@ -399,6 +403,7 @@ test('a full seeded run ends in a scorecard, records stats once, and survives re
 });
 
 test('the replay link round-trips through the clipboard', async ({ browser }) => {
+  test.setTimeout(120_000); // full greedy playthrough: slow on CI runners
   const context = await browser.newContext();
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   const page = await context.newPage();

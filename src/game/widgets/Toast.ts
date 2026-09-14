@@ -13,14 +13,14 @@ import { COLORS, FONT, RADIUS, SPACING, rgb } from '../theme';
  * E2E safety: toasts are purely visual — they are never interactive, so Phaser
  * input passes straight through them to the UI underneath, and they
  * auto-dismiss after ~2.7s. The column sits in the dead strip between the HUD
- * (y ≤ 70) and the control row (y 126+), so it never overlaps the room grid,
- * action panel, or any hit area at rest.
+ * (y ≤ 70) and the control row (top ~y 126), so it never overlaps the room
+ * grid, action panel, or any hit area at rest.
  */
 
 const DEPTH = 900;
 const CENTER_X = 640;
-/** Bottom edge of the newest toast — just above the control row (y 150). */
-const BOTTOM_Y = 140;
+/** Bottom edge of the newest toast — clear of the control row (top ~y 126). */
+const BOTTOM_Y = 122;
 const MAX_WIDTH = 700;
 const MAX_TOASTS = 3;
 const STACK_GAP = 8;
