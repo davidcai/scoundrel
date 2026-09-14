@@ -6,7 +6,7 @@ import { loadSettings } from '../../store/settings';
 import { navigate } from '../router';
 import { COLORS, FONT, RADIUS, rgb } from '../theme';
 import { Button } from '../widgets/Button';
-import { installRouter } from './route-map';
+import { installRouter, fadeInOnCreate } from './route-map';
 
 /**
  * Title screen, ported from the old React TitleScreen: word mark, tagline,
@@ -41,6 +41,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create(): void {
+    fadeInOnCreate(this);
     this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, rgb(COLORS.bg)).setOrigin(0, 0);
 
     this.root = this.add.container(0, 0);

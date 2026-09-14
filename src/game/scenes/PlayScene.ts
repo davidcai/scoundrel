@@ -28,7 +28,8 @@ import { Button } from '../widgets/Button';
 import { CardSprite } from '../widgets/CardSprite';
 import { Dialog } from '../widgets/Dialog';
 import { attachTooltip } from '../widgets/Tooltip';
-import { installRouter } from './route-map';
+import { ToastCenter } from '../widgets/Toast';
+import { installRouter, fadeInOnCreate } from './route-map';
 
 /**
  * Play scene, ported from the old React PlayScreen + Hud: HUD strip (health
@@ -106,13 +107,18 @@ export class PlayScene extends Phaser.Scene {
   private storeUnsubscribe: (() => void) | null = null;
   private langUnsubscribe: (() => void) | null = null;
   private dialog: Dialog | null = null;
+  private toastCenter: ToastCenter | null = null;
 
   private playLayer!: Phaser.GameObjects.Container;
   private panelLayer!: Phaser.GameObjects.Container;
   private stateLayer!: Phaser.GameObjects.Container;
+  /** Transient tween-out sprites (resolved cards) live here. */
+  private fxLayer!: Phaser.GameObjects.Container;
 
   // HUD references (rebuilt wholesale on language change).
   private hpFill!: Phaser.GameObjects.Graphics;
+  /** Current (animated) HP fill fraction, for the width tween. */
+  private hpPct = 1;
   private hpText!: Phaser.GameObjects.Text;
   private dungeonText!: Phaser.GameObjects.Text;
   private undoButton!: Button;
@@ -128,6 +134,9 @@ export class PlayScene extends Phaser.Scene {
   private roomComposition: string | null = null;
   private weaponLayer!: Phaser.GameObjects.Container;
   private weaponComposition: string | null = null;
+  /** Previous kill-stack top card + length, for the drop-in animation. */
+  private lastKillTop: CardId | null = null;
+  private killStackLength = -1;
   private panelKey: string | null = null;
   private lastMode: SceneMode | null = null;
 
@@ -136,6 +145,7 @@ export class PlayScene extends Phaser.Scene {
   }
 
   create(): void {
+    fadeInOnCreate(this);
     this.add
       .rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, rgb(COLORS.bg))
       .setOrigin(0, 0);
@@ -143,6 +153,11 @@ export class PlayScene extends Phaser.Scene {
     this.playLayer = this.add.container(0, 0);
     this.panelLayer = this.add.container(0, 0);
     this.stateLayer = this.add.container(0, 0);
+    this.fxLayer = this.add.container(0, 0);
+    this.fxLayer.setDepth(5);
+
+    // Announcement toasts (visual layer; non-interactive, auto-dismiss).
+    this.toastCenter = new ToastCenter(this);
 
     installRouter(this, '/play');
 
@@ -159,6 +174,8 @@ export class PlayScene extends Phaser.Scene {
       this.storeUnsubscribe = null;
       this.langUnsubscribe?.();
       this.langUnsubscribe = null;
+      this.toastCenter?.destroy();
+      this.toastCenter = null;
       this.closeDialog();
     });
   }
@@ -333,6 +350,8 @@ export class PlayScene extends Phaser.Scene {
     this.closeDialog();
     this.panelLayer.removeAll(true);
     this.panelKey = null;
+    // Transient fx sprites are stale after a language rebuild — drop them.
+    this.fxLayer.removeAll(true);
     this.buildPlayUi();
     this.buildStatePanel(this.lastMode ?? 'none');
     this.syncFromStore();
@@ -367,9 +386,9 @@ export class PlayScene extends Phaser.Scene {
     const selected =
       selectedCardId !== null && game.room.includes(selectedCardId) ? selectedCardId : null;
 
-    // HP bar.
+    // HP bar (fill width tweens toward the new fraction instead of snapping).
     const pct = Math.max(0, Math.min(1, game.hp / game.maxHp));
-    this.redrawHpFill(pct);
+    this.tweenHpFill(pct);
     this.hpText.setText(`${game.hp}/${game.maxHp}`);
 
     // Dungeon count + seed note.
@@ -446,7 +465,49 @@ export class PlayScene extends Phaser.Scene {
     );
   }
 
+  /**
+   * Tween the HP fill's width toward the new fraction (~250ms) by animating a
+   * plain number and redrawing the Graphics each frame. The fill is pure
+   * decoration (no hit area), so animating it is safe.
+   */
+  private tweenHpFill(target: number): void {
+    if (!this.scene.isActive() || Math.abs(target - this.hpPct) < 0.001) {
+      this.hpPct = target;
+      this.redrawHpFill(target);
+      return;
+    }
+    const proxy = { pct: this.hpPct };
+    this.tweens.add({
+      targets: proxy,
+      pct: target,
+      duration: 250,
+      ease: 'Sine.easeOut',
+      onUpdate: () => {
+        if (this.hpFill.active) this.redrawHpFill(proxy.pct);
+      },
+      onComplete: () => {
+        this.hpPct = target;
+        if (this.hpFill.active) this.redrawHpFill(target);
+      },
+    });
+  }
+
   private rebuildRoom(game: GameState): void {
+    // Resolve animation: cards that just left the room fade/scale out in
+    // place (their sprite was unregistered by CardSprite.destroy, so the
+    // clone is inert — no tooltip, no clicks).
+    if (this.roomComposition !== null && this.roomSprites.size > 0) {
+      const previous = this.roomComposition.split('|').filter((id) => id !== '');
+      const kept = new Set<CardId>(game.room);
+      for (const cardId of previous) {
+        if (kept.has(cardId as CardId)) continue;
+        const old = this.roomSprites.get(cardId as CardId);
+        if (old === undefined) continue;
+        this.roomSprites.delete(cardId as CardId);
+        this.animateResolvedOut(old, old.x, old.y, old.scale);
+      }
+    }
+
     this.roomLayer.removeAll(true);
     this.roomSprites.clear();
     this.roomComposition = game.room.join('|');
@@ -466,6 +527,44 @@ export class PlayScene extends Phaser.Scene {
     });
   }
 
+  /**
+   * Tween a resolved card out (scale down + fade + upward drift, ~180ms) and
+   * destroy it. The sprite is detached from the room layer first so the layer
+   * rebuild doesn't destroy it mid-tween; if the scene is shutting down
+   * (tweens gone) it is destroyed immediately.
+   */
+  private animateResolvedOut(
+    sprite: CardSprite,
+    x: number,
+    y: number,
+    scale: number,
+  ): void {
+    sprite.removeAll(true);
+    sprite.setPosition(x, y);
+    sprite.setScale(scale);
+    sprite.disableInteractive();
+    // Detach from the room layer (no-op when the layer is already gone) and
+    // park on the fx layer so the rebuild can't destroy the sprite mid-tween;
+    // the fx layer is only cleared on shutdown/language rebuild.
+    this.roomLayer.remove(sprite);
+    this.fxLayer.add(sprite);
+    if (!this.scene.isActive() || this.tweens === undefined) {
+      sprite.destroy();
+      return;
+    }
+    this.tweens.add({
+      targets: sprite,
+      alpha: 0,
+      scale: scale * 0.9,
+      y: y - 18,
+      duration: 180,
+      ease: 'Sine.easeIn',
+      onComplete: () => {
+        if (sprite.active) sprite.destroy();
+      },
+    });
+  }
+
   // ── Weapon zone ─────────────────────────────────────────────────────────
 
   /**
@@ -478,6 +577,11 @@ export class PlayScene extends Phaser.Scene {
     this.weaponComposition = `${game.weapon ?? '-'}|${game.killStack.join(',')}|${
       game.config.weaponDegradation ? 'on' : 'off'
     }`;
+    // A weapon swap / degradation toggle resets the stack — no drop-in then.
+    if (game.weapon === null && game.killStack.length === 0) {
+      this.lastKillTop = null;
+      this.killStackLength = 0;
+    }
 
     const degradationOn = game.config.weaponDegradation;
     const threshold = weaponThreshold(game);
@@ -559,6 +663,9 @@ export class PlayScene extends Phaser.Scene {
     // Oldest kills first so the newest (last) renders on top; older layers
     // peek out to the left and slightly down.
     const count = game.killStack.length;
+    // Kill-stack growth animation: the previous top card moved down one slot.
+    const previousTop = this.lastKillTop;
+    this.lastKillTop = lastKill ?? null;
     game.killStack.forEach((cardId, index) => {
       const depthFromTop = count - 1 - index;
       const sprite = new CardSprite(
@@ -571,7 +678,20 @@ export class PlayScene extends Phaser.Scene {
       sprite.setScale(WEAPON_SCALE);
       if (depthFromTop === 0) attachTooltip(this, sprite, () => thresholdText);
       this.weaponLayer.add(sprite);
+      // The new top card drops in from above (grew stack), provided the
+      // weapon itself didn't just change (a fresh weapon resets the stack —
+      // no drop for the full rebuild).
+      if (
+        depthFromTop === 0 &&
+        count > 1 &&
+        previousTop === cardId &&
+        this.killStackLength >= 0 &&
+        count === this.killStackLength + 1
+      ) {
+        this.animateKillDrop(sprite, sprite.y);
+      }
     });
+    this.killStackLength = count;
 
     // "Last kill" badge on the newest card.
     const badge = this.add.container(
@@ -590,6 +710,25 @@ export class PlayScene extends Phaser.Scene {
       .setOrigin(0.5);
     badge.add([badgeBg, badgeText]);
     this.weaponLayer.add(badge);
+  }
+
+  /**
+   * Drop-in for a newly stacked kill card: starts 20px above its final spot
+   * and fades in (~200ms). Only the sprite's y/alpha animate — kill-stack
+   * sprites are non-interactive except the top one's tooltip, which rides on
+   * pointer position, not the sprite bounds.
+   */
+  private animateKillDrop(sprite: CardSprite, finalY: number): void {
+    if (!this.scene.isActive()) return;
+    sprite.setAlpha(0);
+    sprite.y = finalY - 20;
+    this.tweens.add({
+      targets: sprite,
+      y: finalY,
+      alpha: 1,
+      duration: 200,
+      ease: 'Sine.easeOut',
+    });
   }
 
   // ── Action panel ────────────────────────────────────────────────────────
