@@ -21,7 +21,7 @@ rather than merely re-skin the DOM app.
   the regression stays cheap to reverse; optionally re-add screen-reader
   announcements late via a small off-screen DOM live region (see stage 10).
 - **Testing**: replace the React Testing Library seam with (a) pure view-model
-  helpers unit-tested in Vitest — extracted from the React UI *before* any of it
+  helpers unit-tested in Vitest — extracted from the React UI _before_ any of it
   is deleted, so the behavioral spec survives the deletion — and (b) rewritten
   Playwright e2e that drives the real canvas via a `window.__SCOUNDREL__` debug
   handle exposed only when the URL carries a `?debug` query param (opt-in, so it
@@ -91,7 +91,7 @@ src/
   `@types/react*`, `@vitejs/plugin-react`, `@testing-library/*`,
   `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`.
 - **vite.config.ts**: drop the react plugin; add `optimizeDeps:
-  { exclude: ['phaser'] }` (Phaser must not be pre-bundled in dev) and
+{ exclude: ['phaser'] }` (Phaser must not be pre-bundled in dev) and
   `build.rollupOptions.output.manualChunks` to split phaser into its own vendor
   chunk. Vitest inline config stays (jsdom still needed for store/i18n tests).
 - **tsconfig**: remove `jsx` React settings; ensure `"lib": ["dom"]` (Phaser
@@ -111,7 +111,7 @@ src/
 > **E2e suspension window (intentional).** The old Playwright spec is deleted
 > at stage 1 and its rewritten replacement lands at stage 9, so stages 1–8
 > have no e2e safety net. That is why stage 0 moves the behavioral spec into
-> pure, unit-tested code *first*.
+> pure, unit-tested code _first_.
 
 0. **Extract view-models (React still present)**: move the action-panel logic
    out of `PlayScreen.tsx` — `previewFight` fight previews (Monster/Potion/

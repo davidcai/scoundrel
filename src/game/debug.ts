@@ -10,15 +10,16 @@ import { useGameStore } from '../store/game-store';
 
 /**
  * Anything the debug registry can track: a GameObject that knows its scene
- * and can report its world-space center. `getCenter` matches Phaser's
- * Components signature (e.g. Sprite/Image/Text); plain `x`/`y` works too.
+ * and can report its world-space center. `getCenter`, when present, matches
+ * Phaser's Components signature (e.g. Sprite/Image/Text); containers omit it
+ * and the tracker falls back to plain `x`/`y`.
  */
 export interface TrackableObject {
   readonly x: number;
   readonly y: number;
   readonly active: boolean;
   readonly scene: Phaser.Scene;
-  getCenter<O extends Phaser.Types.Math.Vector2Like>(output?: O, includeParent?: boolean): O;
+  getCenter?<O extends Phaser.Types.Math.Vector2Like>(output?: O, includeParent?: boolean): O;
 }
 
 const registry = new Map<string, TrackableObject>();

@@ -81,6 +81,11 @@ export const RADIUS = {
   panel: 16,
 } as const;
 
+/** Parse a theme color string (`#rrggbb`) into an integer for Phaser Graphics/Shape fills. */
+export function rgb(color: string): number {
+  return parseInt(color.slice(1), 16);
+}
+
 export const SPACING = {
   xs: 4,
   sm: 8,
