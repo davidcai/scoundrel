@@ -10,7 +10,7 @@ import {
 import type { Locales } from './i18n/i18n-util.sync';
 import { i18n } from './i18n/i18n-util';
 import type { MessageKey } from './i18n/i18n-types';
-import { cardTitleKey } from './ui/card-titles';
+import { cardTitleKey } from './game/card-titles';
 
 export type { MessageKey };
 export type { Locales as Language } from './i18n/i18n-util.sync';
