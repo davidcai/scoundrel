@@ -32,6 +32,7 @@ export class CardSprite extends Phaser.GameObjects.Container {
     opts: CardSpriteOptions = {},
   ) {
     super(scene, x, y);
+    scene.add.existing(this);
     this.cardId = cardId;
     this.onClick = opts.onClick ?? null;
 

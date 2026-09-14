@@ -69,6 +69,7 @@ export class Button extends Phaser.GameObjects.Container {
 
   constructor(scene: Phaser.Scene, x: number, y: number, text: string, opts: ButtonOptions = {}) {
     super(scene, x, y);
+    scene.add.existing(this);
     this.variant = opts.variant ?? 'default';
     this.onClick = opts.onClick ?? null;
     this.debugId = opts.debugId ?? null;
