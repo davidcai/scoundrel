@@ -3,7 +3,6 @@ import {
   canEnterNextRoom,
   canUndo,
   cardKind,
-  finalScore,
   isFinalRoom,
   runAwayStatus,
   weaponThreshold,
@@ -83,9 +82,7 @@ const PANEL_Y = 545;
 const PANEL_WIDTH = 760;
 const PANEL_HEIGHT = 172;
 
-type SceneMode = 'none' | 'playing' | 'over';
-
-interface LabelStyle {
+type SceneMode = 'none' | 'playing' | 'over';interface LabelStyle {
   fontFamily: string;
   fontSize: string;
   color: string;
@@ -134,8 +131,8 @@ export class PlayScene extends Phaser.Scene {
   private roomComposition: string | null = null;
   private weaponLayer!: Phaser.GameObjects.Container;
   private weaponComposition: string | null = null;
-  /** Previous kill-stack top card + length, for the drop-in animation. */
-  private lastKillTop: CardId | null = null;
+  /** Previous weapon + kill-stack length, for the kill drop-in animation. */
+  private lastWeapon: CardId | null = null;
   private killStackLength = -1;
   private panelKey: string | null = null;
   private lastMode: SceneMode | null = null;
@@ -353,7 +350,8 @@ export class PlayScene extends Phaser.Scene {
     // Transient fx sprites are stale after a language rebuild — drop them.
     this.fxLayer.removeAll(true);
     this.buildPlayUi();
-    this.buildStatePanel(this.lastMode ?? 'none');
+    // The "no run" panel may need re-rendering; game over re-syncs below.
+    if (this.lastMode === 'none') this.buildStatePanel();
     this.syncFromStore();
   }
 
@@ -372,8 +370,10 @@ export class PlayScene extends Phaser.Scene {
     if (mode !== this.lastMode) {
       this.lastMode = mode;
       this.playLayer.setVisible(mode === 'playing');
-      this.buildStatePanel(mode);
-      // Leaving play (or losing the store game) also drops the action panel.
+      // Game over is handled by the GameOverScene overlay; "no run" gets the
+      // in-scene panel.
+      if (mode === 'over') this.scene.launch('GameOverScene');
+      if (mode === 'none') this.buildStatePanel();
       if (mode !== 'playing') {
         this.panelLayer.removeAll(true);
         this.panelKey = null;
@@ -579,7 +579,7 @@ export class PlayScene extends Phaser.Scene {
     }`;
     // A weapon swap / degradation toggle resets the stack — no drop-in then.
     if (game.weapon === null && game.killStack.length === 0) {
-      this.lastKillTop = null;
+      this.lastWeapon = null;
       this.killStackLength = 0;
     }
 
@@ -663,9 +663,12 @@ export class PlayScene extends Phaser.Scene {
     // Oldest kills first so the newest (last) renders on top; older layers
     // peek out to the left and slightly down.
     const count = game.killStack.length;
-    // Kill-stack growth animation: the previous top card moved down one slot.
-    const previousTop = this.lastKillTop;
-    this.lastKillTop = lastKill ?? null;
+    // Kill-stack growth animation: the stack grew by exactly one kill on the
+    // same weapon (a weapon swap resets the stack — no drop-in for that).
+    const grewByOne =
+      game.weapon !== null &&
+      game.weapon === this.lastWeapon &&
+      count === this.killStackLength + 1;
     game.killStack.forEach((cardId, index) => {
       const depthFromTop = count - 1 - index;
       const sprite = new CardSprite(
@@ -678,19 +681,9 @@ export class PlayScene extends Phaser.Scene {
       sprite.setScale(WEAPON_SCALE);
       if (depthFromTop === 0) attachTooltip(this, sprite, () => thresholdText);
       this.weaponLayer.add(sprite);
-      // The new top card drops in from above (grew stack), provided the
-      // weapon itself didn't just change (a fresh weapon resets the stack —
-      // no drop for the full rebuild).
-      if (
-        depthFromTop === 0 &&
-        count > 1 &&
-        previousTop === cardId &&
-        this.killStackLength >= 0 &&
-        count === this.killStackLength + 1
-      ) {
-        this.animateKillDrop(sprite, sprite.y);
-      }
+      if (depthFromTop === 0 && grewByOne) this.animateKillDrop(sprite, sprite.y);
     });
+    this.lastWeapon = game.weapon;
     this.killStackLength = count;
 
     // "Last kill" badge on the newest card.
@@ -970,13 +963,11 @@ export class PlayScene extends Phaser.Scene {
     );
   }
 
-  // ── Empty state / game over ─────────────────────────────────────────────
+  // ── Empty state ─────────────────────────────────────────────────────────
 
-  /** Centered panel for "no run in progress" and the game-over outcome. */
-  private buildStatePanel(mode: SceneMode): void {
+  /** Centered panel for "no run in progress" (game over uses GameOverScene). */
+  private buildStatePanel(): void {
     this.stateLayer.removeAll(true);
-    if (mode === 'playing') return;
-
     const cx = GAME_WIDTH / 2;
     const cy = GAME_HEIGHT / 2;
     const width = 560;
@@ -1000,47 +991,15 @@ export class PlayScene extends Phaser.Scene {
       );
     this.stateLayer.add([scrim, panel]);
 
-    if (mode === 'none') {
-      const title = this.add
-        .text(cx, cy - 60, t('noRunTitle'), {
-          fontFamily: FONT.display,
-          fontSize: `${FONT.size.h1}px`,
-          color: COLORS.gold,
-        })
-        .setOrigin(0.5);
-      const hint = this.add
-        .text(cx, cy - 8, t('noRunHint'), {
-          fontFamily: FONT.family,
-          fontSize: `${FONT.size.value}px`,
-          color: COLORS.muted,
-          align: 'center',
-          wordWrap: { width: width - SPACING.xl * 3, useAdvancedWrap: true },
-        })
-        .setOrigin(0.5);
-      const button = new Button(this, cx, cy + 66, t('backToTitle'), {
-        variant: 'primary',
-        width: 240,
-        height: 48,
-        onClick: () => navigate('#/'),
-        debugId: 'btn-back-title',
-      });
-      this.stateLayer.add([title, hint, button]);
-      return;
-    }
-
-    // Game over: minimal outcome scorecard (full version comes in a later stage).
-    const game = useGameStore.getState().game;
-    if (game === null) return;
-    const won = game.phase === 'won';
     const title = this.add
-      .text(cx, cy - 80, won ? t('victory') : t('defeat'), {
+      .text(cx, cy - 60, t('noRunTitle'), {
         fontFamily: FONT.display,
-        fontSize: `${FONT.size.h1 + 8}px`,
-        color: won ? COLORS.gold : COLORS.danger,
+        fontSize: `${FONT.size.h1}px`,
+        color: COLORS.gold,
       })
       .setOrigin(0.5);
-    const subtitle = this.add
-      .text(cx, cy - 30, won ? t('victorySub') : t('defeatSub'), {
+    const hint = this.add
+      .text(cx, cy - 8, t('noRunHint'), {
         fontFamily: FONT.family,
         fontSize: `${FONT.size.value}px`,
         color: COLORS.muted,
@@ -1048,24 +1007,14 @@ export class PlayScene extends Phaser.Scene {
         wordWrap: { width: width - SPACING.xl * 3, useAdvancedWrap: true },
       })
       .setOrigin(0.5);
-    const score = this.add
-      .text(cx, cy + 18, `${t('score')}: ${finalScore(game)}`, {
-        fontFamily: FONT.mono,
-        fontSize: `${FONT.size.value + 8}px`,
-        color: COLORS.text,
-      })
-      .setOrigin(0.5);
-    const button = new Button(this, cx, cy + 84, t('returnTitle'), {
+    const button = new Button(this, cx, cy + 66, t('backToTitle'), {
       variant: 'primary',
       width: 240,
       height: 48,
-      onClick: () => {
-        useGameStore.getState().finishRun();
-        navigate('#/');
-      },
-      debugId: 'btn-return-title',
+      onClick: () => navigate('#/'),
+      debugId: 'btn-back-title',
     });
-    this.stateLayer.add([title, subtitle, score, button]);
+    this.stateLayer.add([title, hint, button]);
   }
 
   // ── Abandon dialog ──────────────────────────────────────────────────────
