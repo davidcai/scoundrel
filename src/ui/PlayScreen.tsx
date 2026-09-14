@@ -1,17 +1,22 @@
 import { useEffect, useRef } from 'react';
 import {
   canEnterNextRoom,
-  canResolveMore,
   canUndo,
   cardKind,
-  cardValue,
   isFinalRoom,
-  previewFight,
   runAwayStatus,
   type CardId,
   type GameAction,
   type GameState,
 } from '../engine';
+import {
+  carryNoteState,
+  monsterActions,
+  potionActions,
+  roomProgressKey,
+  weaponActions,
+  weaponCannotNote,
+} from '../game/view-models/action-panel';
 import { cardHint, cardLabel, useT } from '../i18n';
 import { useGameStore } from '../store/game-store';
 import { decodeConfig } from '../store/share';
@@ -182,11 +187,7 @@ export function PlayScreen() {
       </div>
 
       <p className="room-progress" aria-hidden="true">
-        {!final && game.room.length === 1
-          ? t('carrySingle')
-          : final
-            ? t('carryNone')
-            : t('carryDefault')}
+        {t(roomProgressKey(game))}
       </p>
 
       {selected !== null && <ActionPanel game={game} cardId={selected} />}
@@ -219,7 +220,7 @@ function ActionPanel({ game, cardId }: { game: GameState; cardId: CardId }) {
 
   // Once 3 of the 4 room cards are resolved, the remaining card is the carry
   // card: nothing can be resolved anymore — say so instead of offering actions.
-  if (!canResolveMore(game)) {
+  if (carryNoteState(game)) {
     return (
       <section className="action-panel" aria-label={t('actionsFor', { label })}>
         <h3 className="zone-title">{label}</h3>
@@ -258,14 +259,13 @@ function MonsterActions({
   selectCard,
 }: DispatchProps & { game: GameState; cardId: CardId }) {
   const t = useT();
-  const withWeapon = game.weapon !== null ? previewFight(game, cardId, false) : null;
-  const barehanded = previewFight(game, cardId, true);
+  const actions = monsterActions(game, cardId);
+  const note = weaponCannotNote(game, cardId);
   const label = cardLabel(cardId);
-  const lastKill = game.killStack[game.killStack.length - 1];
 
   return (
     <div className="action-buttons">
-      {withWeapon?.legal && game.weapon !== null && (
+      {actions.withWeaponLegal && game.weapon !== null && (
         <button
           type="button"
           className="btn primary"
@@ -274,24 +274,27 @@ function MonsterActions({
             selectCard(null);
           }}
         >
-          {t('fightWith', { weapon: cardLabel(game.weapon), damage: withWeapon.damage })}
+          {t('fightWith', {
+            weapon: cardLabel(game.weapon),
+            damage: actions.withWeaponDamage ?? 0,
+          })}
         </button>
       )}
-      {withWeapon !== null && !withWeapon.legal && (
+      {!actions.withWeaponLegal && note.weapon !== null && (
         <p className="action-note" role="note">
-          {lastKill !== undefined
+          {note.lastKill !== undefined
             ? t('weaponCannotWith', {
-                weapon: game.weapon !== null ? cardLabel(game.weapon) : t('noWeapon'),
+                weapon: note.weapon !== null ? cardLabel(note.weapon) : t('noWeapon'),
                 monster: label,
-                last: cardLabel(lastKill),
+                last: cardLabel(note.lastKill),
               })
             : t('weaponCannot', {
-                weapon: game.weapon !== null ? cardLabel(game.weapon) : t('noWeapon'),
+                weapon: note.weapon !== null ? cardLabel(note.weapon) : t('noWeapon'),
                 monster: label,
               })}
         </p>
       )}
-      {barehanded.legal && (
+      {actions.barehanded.legal && (
         <button
           type="button"
           className="btn"
@@ -300,7 +303,7 @@ function MonsterActions({
             selectCard(null);
           }}
         >
-          {t('fightBarehanded', { damage: barehanded.damage })}
+          {t('fightBarehanded', { damage: actions.barehanded.damage })}
         </button>
       )}
     </div>
@@ -314,9 +317,7 @@ function PotionActions({
   selectCard,
 }: DispatchProps & { game: GameState; cardId: CardId }) {
   const t = useT();
-  const value = cardValue(cardId);
-  const wasted = game.config.potionsPerRoom === 'one' && game.potionsUsedThisRoom >= 1;
-  const heal = wasted ? 0 : Math.min(value, game.maxHp - game.hp);
+  const { wasted, heal } = potionActions(game, cardId);
 
   return (
     <div className="action-buttons">
@@ -343,8 +344,9 @@ function WeaponActions({
 }: DispatchProps & { game: GameState; cardId: CardId }) {
   const t = useT();
   const label = cardLabel(cardId);
+  const { swap } = weaponActions(game, cardId);
   const swapWarning =
-    game.weapon !== null
+    swap && game.weapon !== null
       ? t('equipSwap', {
           label,
           old: cardLabel(game.weapon),
