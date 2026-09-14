@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { BootScene } from './game/scenes/BootScene';
+import { enableDebugHandle } from './game/debug';
 import './styles.css';
 
 const game = new Phaser.Game({
@@ -11,5 +12,7 @@ const game = new Phaser.Game({
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   scene: [BootScene],
 });
+
+enableDebugHandle(game);
 
 export default game;
