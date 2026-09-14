@@ -6,9 +6,9 @@ import { defineConfig } from 'vite';
 // serving setup (dev, preview, GitHub Pages subpath).
 export default defineConfig({
   base: process.env.BASE_URL ?? '/',
-  optimizeDeps: {
-    exclude: ['phaser'],
-  },
+  // Phaser's ESM build has only named exports (no default), so it must be
+  // pre-bundled by Vite in dev for `import Phaser from 'phaser'` to resolve —
+  // do not exclude it from optimizeDeps.
   build: {
     rollupOptions: {
       output: {
