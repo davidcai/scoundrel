@@ -67,8 +67,7 @@ export class StatsScene extends Phaser.Scene {
   private buildUi(): void {
     if (this.root === null) return;
     const stats = loadStats();
-    const winRate =
-      stats.gamesPlayed > 0 ? Math.round((stats.wins / stats.gamesPlayed) * 100) : 0;
+    const winRate = stats.gamesPlayed > 0 ? Math.round((stats.wins / stats.gamesPlayed) * 100) : 0;
 
     // Header.
     this.root.add(
@@ -157,7 +156,12 @@ export class StatsScene extends Phaser.Scene {
   }
 
   /** One stat card: small panel, big gold value, muted label below. */
-  private statCard(cx: number, cy: number, value: string, label: string): Phaser.GameObjects.Container {
+  private statCard(
+    cx: number,
+    cy: number,
+    value: string,
+    label: string,
+  ): Phaser.GameObjects.Container {
     const card = this.add.container(cx, cy);
     const panel = this.add.graphics();
     panel
@@ -201,9 +205,7 @@ export class StatsScene extends Phaser.Scene {
     };
     const monoStyle = { ...labelStyle, fontFamily: FONT.mono };
 
-    row.add(
-      this.add.text(COL_SEED, 0, run.seed, monoStyle).setOrigin(0, 0.5),
-    );
+    row.add(this.add.text(COL_SEED, 0, run.seed, monoStyle).setOrigin(0, 0.5));
     row.add(
       this.add
         .text(COL_OUTCOME, 0, won ? t('win') : t('loss'), {

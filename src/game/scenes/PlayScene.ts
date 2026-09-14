@@ -82,7 +82,8 @@ const PANEL_Y = 545;
 const PANEL_WIDTH = 760;
 const PANEL_HEIGHT = 172;
 
-type SceneMode = 'none' | 'playing' | 'over';interface LabelStyle {
+type SceneMode = 'none' | 'playing' | 'over';
+interface LabelStyle {
   fontFamily: string;
   fontSize: string;
   color: string;
@@ -147,9 +148,7 @@ export class PlayScene extends Phaser.Scene {
 
   create(): void {
     fadeInOnCreate(this);
-    this.add
-      .rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, rgb(COLORS.bg))
-      .setOrigin(0, 0);
+    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, rgb(COLORS.bg)).setOrigin(0, 0);
 
     this.playLayer = this.add.container(0, 0);
     this.panelLayer = this.add.container(0, 0);
@@ -246,13 +245,9 @@ export class PlayScene extends Phaser.Scene {
 
     // HUD — dungeon group + abandon (right).
     this.playLayer.add(
-      this.add
-        .text(DUNGEON_X, HUD_LABEL_Y, t('dungeon'), LABEL_STYLE)
-        .setOrigin(0, 0.5),
+      this.add.text(DUNGEON_X, HUD_LABEL_Y, t('dungeon'), LABEL_STYLE).setOrigin(0, 0.5),
     );
-    this.dungeonText = this.add
-      .text(DUNGEON_X, HUD_VALUE_Y, '', VALUE_STYLE)
-      .setOrigin(0, 0.5);
+    this.dungeonText = this.add.text(DUNGEON_X, HUD_VALUE_Y, '', VALUE_STYLE).setOrigin(0, 0.5);
     this.playLayer.add(this.dungeonText);
 
     const abandonButton = new Button(this, 1170, HUD_VALUE_Y, t('abandonRun'), {
@@ -371,8 +366,7 @@ export class PlayScene extends Phaser.Scene {
    */
   private syncFromStore(): void {
     const { game, selectedCardId } = useGameStore.getState();
-    const mode: SceneMode =
-      game === null ? 'none' : game.phase === 'playing' ? 'playing' : 'over';
+    const mode: SceneMode = game === null ? 'none' : game.phase === 'playing' ? 'playing' : 'over';
 
     if (mode !== this.lastMode) {
       this.lastMode = mode;
@@ -551,12 +545,7 @@ export class PlayScene extends Phaser.Scene {
    * rebuild doesn't destroy it mid-tween; if the scene is shutting down
    * (tweens gone) it is destroyed immediately.
    */
-  private animateResolvedOut(
-    sprite: CardSprite,
-    x: number,
-    y: number,
-    scale: number,
-  ): void {
+  private animateResolvedOut(sprite: CardSprite, x: number, y: number, scale: number): void {
     sprite.removeAll(true);
     sprite.setPosition(x, y);
     sprite.setScale(scale);
@@ -684,9 +673,7 @@ export class PlayScene extends Phaser.Scene {
     // Kill-stack growth animation: the stack grew by exactly one kill on the
     // same weapon (a weapon swap resets the stack — no drop-in for that).
     const grewByOne =
-      game.weapon !== null &&
-      game.weapon === this.lastWeapon &&
-      count === this.killStackLength + 1;
+      game.weapon !== null && game.weapon === this.lastWeapon && count === this.killStackLength + 1;
     game.killStack.forEach((cardId, index) => {
       const depthFromTop = count - 1 - index;
       const sprite = new CardSprite(
@@ -750,11 +737,7 @@ export class PlayScene extends Phaser.Scene {
    * While the carry note applies (room resolved down to the carry card) only
    * the note + cancel are shown. Hides entirely when nothing is selected.
    */
-  private rebuildActionPanel(
-    game: GameState,
-    selected: CardId | null,
-    panelKey: string,
-  ): void {
+  private rebuildActionPanel(game: GameState, selected: CardId | null, panelKey: string): void {
     this.panelLayer.removeAll(true);
     this.panelKey = panelKey;
     if (selected === null) return;
@@ -991,9 +974,7 @@ export class PlayScene extends Phaser.Scene {
     const width = 560;
     const height = 300;
 
-    const scrim = this.add
-      .rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, rgb(COLORS.bg))
-      .setOrigin(0, 0);
+    const scrim = this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, rgb(COLORS.bg)).setOrigin(0, 0);
     const panel = this.add.graphics();
     panel
       .fillStyle(rgb(COLORS.panel), 1)
@@ -1098,12 +1079,48 @@ export class PlayScene extends Phaser.Scene {
     };
 
     this.keyBindings = [
-      ['keydown-LEFT', (event) => { event.preventDefault(); if (guard()) move('left'); }],
-      ['keydown-RIGHT', (event) => { event.preventDefault(); if (guard()) move('right'); }],
-      ['keydown-HOME', (event) => { event.preventDefault(); if (guard()) move('home'); }],
-      ['keydown-END', (event) => { event.preventDefault(); if (guard()) move('end'); }],
-      ['keydown-ENTER', (event) => { event.preventDefault(); if (guard()) act(); }],
-      ['keydown-ESC', (event) => { event.preventDefault(); deselect(); }],
+      [
+        'keydown-LEFT',
+        (event) => {
+          event.preventDefault();
+          if (guard()) move('left');
+        },
+      ],
+      [
+        'keydown-RIGHT',
+        (event) => {
+          event.preventDefault();
+          if (guard()) move('right');
+        },
+      ],
+      [
+        'keydown-HOME',
+        (event) => {
+          event.preventDefault();
+          if (guard()) move('home');
+        },
+      ],
+      [
+        'keydown-END',
+        (event) => {
+          event.preventDefault();
+          if (guard()) move('end');
+        },
+      ],
+      [
+        'keydown-ENTER',
+        (event) => {
+          event.preventDefault();
+          if (guard()) act();
+        },
+      ],
+      [
+        'keydown-ESC',
+        (event) => {
+          event.preventDefault();
+          deselect();
+        },
+      ],
     ];
     for (const [name, handler] of this.keyBindings) keyboard.on(name, handler);
   }

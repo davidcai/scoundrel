@@ -44,14 +44,7 @@ export class Dialog extends Phaser.GameObjects.Container {
 
     // Swallow clicks on the panel body so they don't fall through to the scrim.
     const blocker = scene.add
-      .rectangle(
-        cx - WIDTH / 2,
-        cy - HEIGHT / 2,
-        WIDTH,
-        HEIGHT,
-        SCRIM.color,
-        0.001,
-      )
+      .rectangle(cx - WIDTH / 2, cy - HEIGHT / 2, WIDTH, HEIGHT, SCRIM.color, 0.001)
       .setOrigin(0, 0)
       .setInteractive();
 
@@ -87,32 +80,20 @@ export class Dialog extends Phaser.GameObjects.Container {
       })
       .setOrigin(0.5);
 
-    const cancelButton = new Button(
-      scene,
-      cx - 110,
-      cy + HEIGHT / 2 - 52,
-      opts.cancelLabel,
-      {
-        variant: 'default',
-        width: 180,
-        height: 48,
-        onClick: opts.onCancel,
-        debugId: opts.cancelDebugId,
-      },
-    );
-    const confirmButton = new Button(
-      scene,
-      cx + 110,
-      cy + HEIGHT / 2 - 52,
-      opts.confirmLabel,
-      {
-        variant: 'danger',
-        width: 180,
-        height: 48,
-        onClick: opts.onConfirm,
-        debugId: opts.confirmDebugId,
-      },
-    );
+    const cancelButton = new Button(scene, cx - 110, cy + HEIGHT / 2 - 52, opts.cancelLabel, {
+      variant: 'default',
+      width: 180,
+      height: 48,
+      onClick: opts.onCancel,
+      debugId: opts.cancelDebugId,
+    });
+    const confirmButton = new Button(scene, cx + 110, cy + HEIGHT / 2 - 52, opts.confirmLabel, {
+      variant: 'danger',
+      width: 180,
+      height: 48,
+      onClick: opts.onConfirm,
+      debugId: opts.confirmDebugId,
+    });
 
     this.add([scrim, blocker, panel, title, body, cancelButton, confirmButton]);
 

@@ -47,9 +47,8 @@ export class BootScene extends Phaser.Scene {
   create(): void {
     // BootScene is reached before any router-driven transition, so fade out
     // manually before handing off (TitleScene fades itself back in).
-    this.cameras.main.once(
-      Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,
-      () => this.scene.start('TitleScene'),
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () =>
+      this.scene.start('TitleScene'),
     );
     this.cameras.main.fadeOut(180, 0, 0, 0);
   }

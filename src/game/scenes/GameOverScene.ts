@@ -78,13 +78,15 @@ export class GameOverScene extends Phaser.Scene {
     panel
       .fillStyle(rgb(COLORS.panel), 1)
       .fillRoundedRect(cx - CARD_WIDTH / 2, cardTop, CARD_WIDTH, cardHeight, RADIUS.panel);
-    panel.lineStyle(2, rgb(won ? COLORS.gold : COLORS.danger), 1).strokeRoundedRect(
-      cx - CARD_WIDTH / 2 + 1,
-      cardTop + 1,
-      CARD_WIDTH - 2,
-      cardHeight - 2,
-      RADIUS.panel,
-    );
+    panel
+      .lineStyle(2, rgb(won ? COLORS.gold : COLORS.danger), 1)
+      .strokeRoundedRect(
+        cx - CARD_WIDTH / 2 + 1,
+        cardTop + 1,
+        CARD_WIDTH - 2,
+        cardHeight - 2,
+        RADIUS.panel,
+      );
 
     // Title + subtitle.
     this.add

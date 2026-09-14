@@ -88,12 +88,20 @@ export class ToastCenter {
     const height = text.height + padY * 2;
 
     const bg = scene.add.graphics();
-    bg
-      .fillStyle(rgb(COLORS.bgDeep), 0.95)
-      .fillRoundedRect(-width / 2, -height / 2, width, height, RADIUS.button);
-    bg
-      .lineStyle(1, rgb(COLORS.gold), 0.55)
-      .strokeRoundedRect(-width / 2 + 0.5, -height / 2 + 0.5, width - 1, height - 1, RADIUS.button);
+    bg.fillStyle(rgb(COLORS.bgDeep), 0.95).fillRoundedRect(
+      -width / 2,
+      -height / 2,
+      width,
+      height,
+      RADIUS.button,
+    );
+    bg.lineStyle(1, rgb(COLORS.gold), 0.55).strokeRoundedRect(
+      -width / 2 + 0.5,
+      -height / 2 + 0.5,
+      width - 1,
+      height - 1,
+      RADIUS.button,
+    );
 
     const container = scene.add.container(CENTER_X, 0, [bg, text]).setDepth(DEPTH).setAlpha(0);
     const entry: ToastEntry = { container, height };
@@ -146,7 +154,12 @@ export class ToastCenter {
       if (entry === undefined) continue;
       const y = bottomEdge - entry.height / 2;
       if (animate) {
-        this.scene.tweens.add({ targets: entry.container, y, duration: RELAYOUT_MS, ease: 'Sine.easeOut' });
+        this.scene.tweens.add({
+          targets: entry.container,
+          y,
+          duration: RELAYOUT_MS,
+          ease: 'Sine.easeOut',
+        });
       } else {
         entry.container.setPosition(CENTER_X, y);
       }

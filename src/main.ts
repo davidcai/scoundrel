@@ -7,6 +7,7 @@ import { StatsScene } from './game/scenes/StatsScene';
 import { SettingsScene } from './game/scenes/SettingsScene';
 import { AboutScene } from './game/scenes/AboutScene';
 import { enableDebugHandle } from './game/debug';
+import { installLiveRegion } from './game/live-region';
 import './styles.css';
 
 const game = new Phaser.Game({
@@ -23,5 +24,6 @@ const game = new Phaser.Game({
 game.scene.add('GameOverScene', GameOverScene, false);
 
 enableDebugHandle(game);
+installLiveRegion();
 
 export default game;

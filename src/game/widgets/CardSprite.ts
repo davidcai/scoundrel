@@ -118,15 +118,8 @@ export class CardSprite extends Phaser.GameObjects.Container {
     // ring (white at ~65% — distinct from the thicker solid gold selection
     // ring). Its own layer so it never fights the hover/selection tweens.
     this.focusRing = scene.add.graphics();
-    this.focusRing
-      .lineStyle(2, rgb(COLORS.suitLight), 0.65);
-    drawDashedRect(
-      this.focusRing,
-      -width / 2 - 8,
-      -height / 2 - 8,
-      width + 16,
-      height + 16,
-    );
+    this.focusRing.lineStyle(2, rgb(COLORS.suitLight), 0.65);
+    drawDashedRect(this.focusRing, -width / 2 - 8, -height / 2 - 8, width + 16, height + 16);
     this.focusRing.setVisible(false).setAlpha(0);
 
     // Carried-over badge placeholder (hidden until setCarried).

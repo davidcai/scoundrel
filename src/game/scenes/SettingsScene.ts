@@ -120,7 +120,9 @@ class ToggleSwitch extends Phaser.GameObjects.Container {
       SWITCH_HEIGHT / 2,
     );
     const margin = 5;
-    this.knob.x = this.checked ? SWITCH_WIDTH / 2 - SWITCH_HEIGHT / 2 - margin : -SWITCH_WIDTH / 2 + SWITCH_HEIGHT / 2 + margin;
+    this.knob.x = this.checked
+      ? SWITCH_WIDTH / 2 - SWITCH_HEIGHT / 2 - margin
+      : -SWITCH_WIDTH / 2 + SWITCH_HEIGHT / 2 + margin;
   }
 
   destroy(fromScene?: boolean): void {
@@ -204,10 +206,13 @@ export class SettingsScene extends Phaser.Scene {
       ...option,
       label: option.value === 'auto' ? t('languageAuto') : option.label,
     }));
-    const totalWidth =
-      options.length * LANG_BUTTON_WIDTH + (options.length - 1) * LANG_BUTTON_GAP;
+    const totalWidth = options.length * LANG_BUTTON_WIDTH + (options.length - 1) * LANG_BUTTON_GAP;
     options.forEach((option, index) => {
-      const x = GAME_WIDTH / 2 - totalWidth / 2 + index * (LANG_BUTTON_WIDTH + LANG_BUTTON_GAP) + LANG_BUTTON_WIDTH / 2;
+      const x =
+        GAME_WIDTH / 2 -
+        totalWidth / 2 +
+        index * (LANG_BUTTON_WIDTH + LANG_BUTTON_GAP) +
+        LANG_BUTTON_WIDTH / 2;
       this.root?.add(
         new Button(this, x, LANG_BUTTON_Y, option.label, {
           variant: language === option.value ? 'primary' : 'default',

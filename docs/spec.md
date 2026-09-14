@@ -6,7 +6,7 @@ As a player, I want to play Scoundrel — a 1-player roguelike dungeon-crawling 
 
 ## Solution
 
-A modern-RPG-styled web app (React + Vite + TypeScript) with a dark dungeon-crawler theme and a sharp, modern UI (crisp typography, depth/shadow, high contrast), implementing the full Scoundrel rule set from `docs/rules.md` by default, with optional house-rule toggles, per-room undo, save/resume, seedable & shareable runs, a stats dashboard with run history, and full unit/integration/e2e test coverage. The game logic lives in a pure TS engine (no React imports) wrapped by a thin React + Zustand UI layer, enabling fast deterministic tests and a clean engine/UI separation.
+A modern-RPG-styled web app (Phaser 3 + Vite + TypeScript) with a dark dungeon-crawler theme and a sharp, modern UI (crisp typography, depth/shadow, high contrast), implementing the full Scoundrel rule set from `docs/rules.md` by default, with optional house-rule toggles, per-room undo, save/resume, seedable & shareable runs, a stats dashboard with run history, and full unit/e2e test coverage. The game logic lives in a pure TS engine (no UI imports) wrapped by a thin Phaser + Zustand UI layer rendered to a single canvas, enabling fast deterministic tests and a clean engine/UI separation. (Originally built with React; ported to Phaser on the `refactor/phaser` branch — see `docs/plans/phaser-migration.md`.)
 
 ## User Stories
 
@@ -121,7 +121,7 @@ A modern-RPG-styled web app (React + Vite + TypeScript) with a dark dungeon-craw
 
 ### Architecture & module layout
 
-- **Engine/UI split**: A pure TypeScript engine module (`src/engine/`) holds all game rules, deck composition, RNG, combat math, weapon degradation, potion cap, run-away restriction, win/lose detection, and scoring. The engine imports zero React/UI code, so it runs in Node without a DOM for fast deterministic unit tests. The UI module (`src/ui/`) contains React components, the Zustand store, persistence adapters, and the router/renderer. Assets (`src/assets/`) hold raster art (title backdrop / key art only).
+- **Engine/UI split**: A pure TypeScript engine module (`src/engine/`) holds all game rules, deck composition, RNG, combat math, weapon degradation, potion cap, run-away restriction, win/lose detection, and scoring. The engine imports zero UI code, so it runs in Node without a DOM for fast deterministic unit tests. The UI module (`src/game/`) contains Phaser scenes, widgets, pure view-models, the theme constants, and the hash router; the Zustand store, persistence adapters, and announcement strings live in `src/store/`. Assets (`assets/`) hold the 44 card artwork JPEGs.
 - **Reducer + pure functions**: The engine exposes `createInitialState(seed, config)` and a reducer `(state, action) → { state, result }`. The reducer is pure: it returns a new state and a typed result payload; no side effects. This is directly testable and supports per-room undo via snapshot/restore of a plain serializable object.
 - **Selection lives in the store, not engine state**: The transient "currently selected card" highlight belongs in the Zustand store as a UI-only slice and is NOT part of `GameState`. The engine answers "what is the game truth"; the store/UI answers "what is the user hovering." Snapshots therefore exclude selection; undo restores game truth without pulsing ephemeral UI state. This is the canonical engine/UI split.
 
@@ -212,31 +212,32 @@ A `mulberry32` PRNG (~10 lines, no dep) seeded by a `uint32`. The seed is shared
 
 ### Routing & flow
 
-- **Hash router** (`#/`, `#/play`, `#/stats`, `#/settings`) — no SPA-fallback config needed on GitHub Pages.
+- **Hash router** (`#/`, `#/play`, `#/stats`, `#/settings`) — no SPA-fallback config needed on GitHub Pages. A `RouteController` (`src/game/router.ts`) subscribes to `hashchange` and swaps Phaser scenes (Boot, Title, Play, Stats, Settings, About; GameOver is an overlay scene launched above Play).
 - **Title screen** with full menu (New Run, Continue if save, Enter Seed, Stats, Settings, About). App opens to the title; `Continue` is enabled only when a saved run exists.
 - **Shareable run URL**: `#/play?seed=...&config=...` encodes the seed and the `GameConfig`. Opening this URL starts the run deterministically.
 
 ### UI interaction model
 
-- **Click-to-select + damage preview + confirm**: click a card highlights it and shows a damage/cost preview; choosing "Fight" / "Drink" / "Equip" confirms. Keyboard-navigable and mobile-friendly.
+- **Click-to-select + damage preview + confirm**: click a card highlights it (select ring tween) and shows a damage/cost preview; choosing "Fight" / "Drink" / "Equip" confirms. Keyboard play is preserved: arrow keys rove card focus (Home/End jump to the first/last card), Enter acts on the focused card, Escape closes dialogs or deselects.
 - **Carryover auto-determined**: the un-resolved 4th card auto-carries to the next room and is visually marked (tint/badge) there.
 - **Explicit "Enter Next Room" button**: creates the clean undo seam. Clicking it clears the current snapshot and snapshots the new room at its start.
-- **Tooltips** (no linear tutorial): hover/tap-and-hold on card types, the weapon stack, and the run-away restriction. Tooltips reuse the damage-preview + ARIA live-region infrastructure.
+- **Tooltips** (no linear tutorial): pointer hover on card types, the weapon stack, and the run-away restriction; the `Tooltip` widget follows the pointer and flips at screen edges.
 
 ### Accessibility
 
-- All cards and actions are keyboard-reachable (tab + arrow navigation through the room).
-- ARIA roles/labels describe cards ("8 of Clubs, monster, value 8").
-- Live regions announce combat results, potion quaffs, run-away blocks, and win/lose — driven directly by the Q25b result payloads.
+- All cards and actions are keyboard-reachable (arrow-key roving through the room, Enter to act, Escape to close) — implemented inside Phaser.
+- **Known regression of the Phaser port**: the React build's ARIA roles/labels on cards, DOM focus semantics, and focus-triggered tooltips are gone (the canvas has no a11y tree). `cardAriaLabel` stays in `src/i18n.ts`, so reversing this stays cheap.
+- **Screen-reader announcements survive**: an off-screen DOM live region (`aria-live="polite"`, `src/game/live-region.ts`) is fed from the store's `announcement` slice, whose strings come from `src/store/announcements.ts` — combat results, potion quaffs, run-away blocks, and win/lose, driven directly by the Q25b result payloads.
 
 ### Visual & design
 
-- **Modern RPG** aesthetic: dark dungeon-crawler theme, sharp and modern UI (crisp typography, depth/shadow, high contrast), mysterious and adventurous atmosphere; **hybrid assets**: CSS + modern typography for cards/HUD/UI; raster art only for the title backdrop and key art.
+- **Modern RPG** aesthetic: dark dungeon-crawler theme, sharp and modern UI (crisp typography, depth/shadow, high contrast), mysterious and adventurous atmosphere; **canvas rendering**: everything is drawn on a single Phaser canvas (1280×720 design resolution, `Scale.FIT`) using the dark RPG palette / gold accent as theme constants (`src/game/theme.ts`), with motion the DOM app couldn't do — card select/resolve tweens, kill-stack fan, toast animations, scene transitions. Raster art for the 44 card faces; everything else is Phaser graphics/text.
 - **Phased designer handoff**: Phase 1 = style guide + play screen + title (highest leverage); Phase 2 = stats, settings, win/lose scorecard. The designer overlaps Phase 2 once the style guide is approved; engineering implements Phase 1 in parallel.
 
 ### Toolchain
 
-- Scaffold via `pnpm create vite@latest --template react-ts`, then strip `App.tsx` boilerplate and add the `engine/`/`ui/`/`store/`/`assets/` layers.
+- Scaffolded via `pnpm create vite@latest` (TypeScript), then added the `engine/`/`game/`/`store/` layers. The Phaser port dropped the React toolchain: no `@vitejs/plugin-react`, no React ESLint plugins, no `jsx` tsconfig settings.
+- **Phaser** is excluded from dev `optimizeDeps` (it must not be pre-bundled) and split into its own vendor chunk via `build.rollupOptions.output.manualChunks` (the app chunk stays free of the ~1.1 MB min / ~350 KB gzip Phaser vendor).
 - **pnpm** (pinned via the `packageManager` field in `package.json`); CI installs with `pnpm install --frozen-lockfile`, with pnpm set up via `pnpm/action-setup` before `actions/setup-node` (which restores the pnpm store cache).
 - **Strict TS + typescript-eslint (strict) + Prettier**.
 - **GitHub Pages** deploy with **env-driven base path**: `base: process.env.BASE_URL ?? '/'`; CI sets `BASE_URL=/scoundrel/`. Hash router tolerates any base.
@@ -250,7 +251,7 @@ A `mulberry32` PRNG (~10 lines, no dep) seeded by a `uint32`. The seed is shared
 
 ### Testing philosophy
 
-A good test asserts **external behavior**, not implementation details. We test the engine through its public reducer API `(state, action) → { state, result }` and assert the returned state and result; we never reach into private helpers or assert on internal data structures that aren't part of the contract. Integration tests assert user-visible outcomes (rendered text, accessibility tree) via React Testing Library queries, not on component internals. E2e tests assert player-visible flow outcomes via Playwright locators, treating the app as a black box.
+A good test asserts **external behavior**, not implementation details. We test the engine through its public reducer API `(state, action) → { state, result }` and assert the returned state and result; we never reach into private helpers or assert on internal data structures that aren't part of the contract. View-model tests assert user-visible outcomes (action previews, button enable/disable states) through the pure helper API, since a canvas app has no render tree to query. E2e tests assert player-visible flow outcomes via Playwright, driving the real canvas through the `?debug` handle and treating the app as a black box.
 
 ### Seams
 
@@ -258,25 +259,25 @@ We prefer the **fewest seams possible** — ideally one. This spec uses **three 
 
 1. **Engine reducer seam (pure unit tests)** — the highest-leverage single seam. Tests call `reducer(state, action)` and assert `{ state, result }`. Covers all rule behavior: deck composition (44-card), combat damage (`max(0, m−w)`), barehanded vs weapon, weapon degradation threshold, weapon swap discards stack, potion cap (1 vs toggle), potion counter reset on room, run-away twice-in-a-row block, run-away final-room gate, unresolved-heart carry, final-partial-room shapes (4/3/2/1 remaining), win/lose detection, scoring formulas. Deterministic via mulberry32 seeds; runs in Node with no DOM. _This seam absorbs the vast majority of test surface._
 
-2. **React component seam (integration)** — React Testing Library + Vitest. Renders React components with a Zustand store and asserts on the accessible rendered output (queries like `getByRole`, `getByText`, `findByLiveAnnouncement`). Covers: card-selection state appears in the store (not engine), clicking a card selects it, confirming an action dispatches the engine action and re-renders, damage-preview tooltip reflects the reducer's preview, undo button rewinds, carryover marker appears on the carried card, win/lose screen renders the scorecard, replay-link affordance copies the URL. No mount of internal subcomponent state; no `instance()` access.
+2. **View-model seam (pure unit tests)** — Vitest against the pure helpers in `src/game/view-models/` (never importing Phaser or the engine's UI). Covers the action-panel behavioral spec extracted from the original UI layer: fight previews (`previewFight` → Monster/Potion/Weapon actions), button enable/disable gating (room complete, carried card selected, no weapon), and the exact preview payloads the action panel renders. These tests survived the React→Phaser port unchanged — they are the behavioral spec that made the UI deletion safe. (Store-level tests in `tests/` cover the zustand wiring — persistence, stats idempotency, selection — against jsdom.)
 
-3. **Playwright seam (e2e)** — highest seam for behavior that crosses the whole stack (router, persistence, real browser). Tests drive the title → new run → play → win/lose → stats flow with seeded URLs (`#/play?seed=FIXED&config=...`) for deterministic assertions of exact outcomes (the seedability decision Q16a makes this possible — this is the rare e2e case that can assert _exact_ final scores, not just invariants). Covers: localStorage persistence survives reload, win/lose screen survives reload (Q37b idempotent stats — reloading the win screen does NOT double-count the run), shareable URL round-trip, keyboard navigation through a full room, SR announcements present in the a11y tree. _Chromium-only in CI_ (Q48a); one config line to add Firefox/WebKit later if bugs surface.
+3. **Playwright seam (e2e)** — highest seam for behavior that crosses the whole stack (router, persistence, real browser). The Playwright viewport is pinned to 1280×720 (`Scale.FIT` scale factor 1), and tests drive the real Phaser canvas through `window.__SCOUNDREL__ = { game, store, worldToScreen }` — a debug handle exposed only when the URL carries `?debug` (opt-in, so it is not an always-on public surface). Clicks land at `worldToScreen(cardId)` coordinates via `page.mouse`; keyboard tests use real key events. Tests drive the title → new run → play → win/lose → stats flow with seeded URLs (`#/play?seed=FIXED&config=...`) for deterministic assertions of exact outcomes (the seedability decision Q16a makes this possible — this is the rare e2e case that can assert _exact_ final scores, not just invariants). Covers: localStorage persistence survives reload, win/lose screen survives reload (Q37b idempotent stats — reloading the win screen does NOT double-count the run), shareable URL round-trip, keyboard navigation through a full room. _Chromium-only in CI_ (Q48a); one config line to add Firefox/WebKit later if bugs surface.
 
 ### Why three seams and not one
 
-A single seam (e2e only) would force every rule edge case through a full browser run — too slow and too brittle for the rule-coverage the engine needs. A single seam (engine only) would miss React store/UI wiring (selection-in-store, persistence reload-safety, SR announcements). The three-seam split puts each concern at its highest feasible point: pure rules at the reducer, React wiring at RTL, cross-stack behavior at Playwright.
+A single seam (e2e only) would force every rule edge case through a full browser run — too slow and too brittle for the rule-coverage the engine needs. A single seam (engine only) would miss store/UI wiring (selection-in-store, persistence reload-safety, announcements, view-model rendering). The three-seam split puts each concern at its highest feasible point: pure rules at the reducer, UI logic at the view-models, cross-stack behavior at Playwright.
 
 ### Modules under test
 
 - **Engine**: deck builder, mulberry32 PRNG, reducer, action handlers, result constructors, win/lose detection, scoring. (Seam 1.)
-- **Persistence adapters**: localStorage wrappers, migrator, schema versioning. (Seam 2, via RTL — render the app, reload the JS context, assert state restored.)
-- **UI components**: title, play, stats, settings, about screens; card components; HUD; weapon stack; damage preview; tooltips; win/lose scorecard. (Seam 2.)
-- **Store**: Zustand store wiring actions to the reducer, selection state, undo snapshot management. (Seam 2, via the rendered UI.)
-- **Cross-stack flows**: full run lifecycle, persistence reload, shareable URL, a11y. (Seam 3.)
+- **Persistence adapters**: localStorage wrappers, migrator, schema versioning. (Seam 2 — store unit tests simulate reload round-trips.)
+- **View-models + widgets**: action-panel previews and gating (Seam 2); scenes/widgets (title, play, stats, settings, about, game over; CardSprite, Button, Tooltip, Toast, Dialog) are exercised end-to-end at the canvas seam (Seam 3), matching their visual nature.
+- **Store**: Zustand store wiring actions to the reducer, selection state, undo snapshot management. (Seam 2, unit level.)
+- **Cross-stack flows**: full run lifecycle, persistence reload, shareable URL, keyboard play. (Seam 3, via the `?debug` handle.)
 
 ### Prior art
 
-No prior art in this greenfield repo. The codebase conventions do not yet exist; this spec establishes them. The React Testing Library "test behavior, not implementation" approach is the prior art we adopt. Playwright's seeded-URL pattern (deterministic e2e via app-controlled RNG) is the prior art we adopt for exact-outcome e2e.
+No prior art in this greenfield repo. The codebase conventions do not yet exist; this spec establishes them. The "test behavior, not implementation" approach — originally adopted from React Testing Library, now applied to pure view-models — is the prior art we keep. Playwright's seeded-URL pattern (deterministic e2e via app-controlled RNG) is the prior art we adopt for exact-outcome e2e.
 
 ## Out of Scope
 
@@ -311,11 +312,11 @@ No prior art in this greenfield repo. The codebase conventions do not yet exist;
 - **Seedability (Q16a) + hash router (Q13c)** = shareable replay URLs (`#/play?seed=...&config=...`) are essentially free.
 - **Result union (Q35b) + accessibility (Q28b)** = SR live-region announcements map 1:1 to result payloads.
 - **Result union (Q35b) + damage preview (Q17d)** = previews read the same typed payloads the UI uses for feedback.
-- **Engine/UI split (Q14a) + selection-in-store (Q45b)** = engine unit tests run in Node with zero React; the snapshot excludes ephemeral UI state, keeping undo and persistence honest.
+- **Engine/UI split (Q14a) + selection-in-store (Q45b)** = engine unit tests run in Node with zero UI-framework imports; the snapshot excludes ephemeral UI state, keeping undo and persistence honest.
 
 ### Mechanical leftovers (no spec decision needed; handled by the builder)
 
 - `CardId` string format and the 44-card definition table.
 - ESLint rule selection within the strict preset.
 - Exact `mulberry32` implementation module.
-- Component folder layout under `src/ui/`.
+- Component folder layout under `src/game/`.

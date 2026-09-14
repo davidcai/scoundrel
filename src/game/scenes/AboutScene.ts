@@ -107,17 +107,28 @@ export class AboutScene extends Phaser.Scene {
     const cx = GAME_WIDTH / 2;
     this.root.add(
       this.add
-        .text(cx, SECTION1_Y + 44, `${t('termMonsters')}${t('restMonsters')} ${t('termWeapons')}${t('restWeapons')} ${t('termPotions')}${t('restPotions')}`, {
-          fontFamily: FONT.family,
-          fontSize: `${FONT.size.value}px`,
-          color: COLORS.muted,
-          align: 'center',
-          lineSpacing: 6,
-          wordWrap: { width: CONTENT_WIDTH, useAdvancedWrap: true },
-        })
+        .text(
+          cx,
+          SECTION1_Y + 44,
+          `${t('termMonsters')}${t('restMonsters')} ${t('termWeapons')}${t('restWeapons')} ${t('termPotions')}${t('restPotions')}`,
+          {
+            fontFamily: FONT.family,
+            fontSize: `${FONT.size.value}px`,
+            color: COLORS.muted,
+            align: 'center',
+            lineSpacing: 6,
+            wordWrap: { width: CONTENT_WIDTH, useAdvancedWrap: true },
+          },
+        )
         .setOrigin(0.5, 0),
     );
-    const shortRules = [t('ruleRooms'), t('ruleDegradation'), t('rulePotion'), t('ruleRunAway'), t('ruleWin')];
+    const shortRules = [
+      t('ruleRooms'),
+      t('ruleDegradation'),
+      t('rulePotion'),
+      t('ruleRunAway'),
+      t('ruleWin'),
+    ];
     let ruleY = SECTION1_Y + 108;
     for (const rule of shortRules) {
       const line = this.add
@@ -185,7 +196,12 @@ export class AboutScene extends Phaser.Scene {
    * the same page mapping as the seed input (canvas rect + game size; the
    * text is inline-block so the anchor shrinks to its content and centers).
    */
-  private makeLinkAnchor(href: string, label: string, gameX: number, gameY: number): HTMLAnchorElement {
+  private makeLinkAnchor(
+    href: string,
+    label: string,
+    gameX: number,
+    gameY: number,
+  ): HTMLAnchorElement {
     const anchor = document.createElement('a');
     anchor.href = href;
     anchor.target = '_blank';
