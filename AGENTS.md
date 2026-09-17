@@ -32,6 +32,7 @@ pnpm e2e          # Playwright e2e — run `pnpm build` first (serves dist/)
 
 ## Conventions
 
+- When creating a GIT branch and its worktree, create the worktree at `.worktrees/<kebab-cased-branch-name>`.
 - File naming: React component files and their test files use CapitalCamelCase (e.g. `CardView.tsx`); everything else uses kebab-case (lower-dash-case).
 - i18n: powered by typesafe-i18n. Message text lives in the `en`/`zh` dictionaries in `src/i18n/`; `src/i18n.ts` exposes the zustand language store and `useT()`/`t()` helpers. Other files reference messages by `MessageKey`, never inline display strings.
 - Engine code must stay pure and React-free; all randomness is resolved in `createInitialState` so the reducer is deterministic given `(state, action)`.
