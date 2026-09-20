@@ -30,3 +30,6 @@ blob-report
 *.njsproj
 *.sln
 *.sw?
+
+# ZCode workspace scope file (auto-synced from this .gitignore)
+.zcodeignore
