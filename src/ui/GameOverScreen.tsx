@@ -46,7 +46,7 @@ export function GameOverScreen({ game }: { game: GameState }) {
         <p className="gameover-subtitle">{won ? t('victorySub') : t('defeatSub')}</p>
 
         <dl className="scorecard">
-          <div>
+          <div className="scorecard-hero">
             <dt>{t('score')}</dt>
             <dd className="score-big" data-testid="final-score">
               {score}
@@ -55,14 +55,6 @@ export function GameOverScreen({ game }: { game: GameState }) {
           <div>
             <dt>{t('finalHealth')}</dt>
             <dd>{won ? game.hp : Math.max(0, game.hp)}</dd>
-          </div>
-          <div>
-            <dt>{t('seed')}</dt>
-            <dd className="mono">{game.seed}</dd>
-          </div>
-          <div>
-            <dt>{t('toggles')}</dt>
-            <dd>{configSummary(game.config, t)}</dd>
           </div>
           <div>
             <dt>{t('monstersKilled')}</dt>
@@ -76,13 +68,21 @@ export function GameOverScreen({ game }: { game: GameState }) {
             <dt>{t('roomsExplored')}</dt>
             <dd>{game.runHighlights.roomsExplored}</dd>
           </div>
+          <div className="scorecard-meta">
+            <dt>{t('seed')}</dt>
+            <dd className="mono">{game.seed}</dd>
+          </div>
+          <div className="scorecard-meta">
+            <dt>{t('toggles')}</dt>
+            <dd>{configSummary(game.config, t)}</dd>
+          </div>
         </dl>
 
         <div className="gameover-actions">
           <button type="button" className="btn primary" onClick={copyLink}>
             {copied ? t('linkCopied') : t('copyLink')}
           </button>
-          <button type="button" className="btn" onClick={playAgain}>
+          <button type="button" className="btn primary-outline" onClick={playAgain}>
             {t('playAgain')}
           </button>
           <button
