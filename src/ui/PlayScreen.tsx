@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   canEnterNextRoom,
   canResolveMore,
@@ -20,7 +20,13 @@ import { GameOverScreen } from './GameOverScreen';
 import { Hud } from './Hud';
 import { Tooltip } from './Tooltip';
 import { WeaponStack } from './WeaponStack';
+import { CardHoverLayer } from './phaser/CardHoverLayer';
+import { CardSelectionControl } from './phaser/CardSelectionControl';
+import { RoomMirror } from './phaser/RoomMirror';
+import { WeaponReadout } from './phaser/WeaponReadout';
+import type { PlayTableHandle } from './phaser/use-card-hover';
 import { navigate, useHashRoute } from './router';
+import { useTableRenderer } from './table-renderer';
 
 export function PlayScreen() {
   const route = useHashRoute();
@@ -30,6 +36,7 @@ export function PlayScreen() {
   const selectCard = useGameStore((s) => s.selectCard);
   const startRun = useGameStore((s) => s.startRun);
   const abandonRun = useGameStore((s) => s.abandonRun);
+  const tableRenderer = useTableRenderer((s) => s.renderer);
   const t = useT();
 
   const seedParam = route.params.get('seed');
@@ -104,9 +111,10 @@ export function PlayScreen() {
   const selected =
     selectedCardId !== null && game.room.includes(selectedCardId) ? selectedCardId : null;
   const runStatus = runAwayStatus(game);
+  const phaser = tableRenderer === 'phaser';
 
   return (
-    <main className="screen play">
+    <main className={`screen play${phaser ? ' play-phaser' : ''}`}>
       <Hud game={game} onAbandon={abandon} />
 
       <div className="controls">
@@ -156,30 +164,36 @@ export function PlayScreen() {
         )}
       </div>
 
+      {phaser && <CardSelectionControl game={game} />}
+
       {final && (
         <p className="final-banner" role="note">
           {t('finalBannerStart')} <strong>{t('finalBannerEvery')}</strong> {t('finalBannerEnd')}
         </p>
       )}
 
-      <div
-        ref={roomRef}
-        className="room"
-        role="group"
-        aria-label={t('currentRoom')}
-        onKeyDown={onKeyDown}
-      >
-        {game.room.map((cardId) => (
-          <Tooltip key={cardId} text={cardHint(cardId)}>
-            <CardView
-              cardId={cardId}
-              selected={selected === cardId}
-              carried={game.carriedCardId === cardId}
-              onClick={() => selectCard(selected === cardId ? null : cardId)}
-            />
-          </Tooltip>
-        ))}
-      </div>
+      {phaser ? (
+        <PlayTableRegion game={game} />
+      ) : (
+        <div
+          ref={roomRef}
+          className="room"
+          role="group"
+          aria-label={t('currentRoom')}
+          onKeyDown={onKeyDown}
+        >
+          {game.room.map((cardId) => (
+            <Tooltip key={cardId} text={cardHint(cardId)}>
+              <CardView
+                cardId={cardId}
+                selected={selected === cardId}
+                carried={game.carriedCardId === cardId}
+                onClick={() => selectCard(selected === cardId ? null : cardId)}
+              />
+            </Tooltip>
+          ))}
+        </div>
+      )}
 
       <p className="room-progress" aria-hidden="true">
         {!final && game.room.length === 1
@@ -191,7 +205,7 @@ export function PlayScreen() {
 
       {selected !== null && <ActionPanel game={game} cardId={selected} />}
 
-      <WeaponStack game={game} />
+      {phaser ? <WeaponReadout game={game} /> : <WeaponStack game={game} />}
 
       <p className="seed-note">
         <Tooltip text={t('tooltipSeed')}>
@@ -201,6 +215,73 @@ export function PlayScreen() {
         </Tooltip>
       </p>
     </main>
+  );
+}
+
+/**
+ * The Phaser path's canvas region (docs/phaser-plan.md §4 Phase 1): an
+ * explicit-dimension box (`aspect-ratio: 960/600`, width-constrained within
+ * `.screen`) so FIT has real dimensions — a zero-height container breaks its
+ * centering — with the aria-hidden DOM room mirror layered inside for e2e
+ * input, and the cursor tooltip layer edge-anchored above.
+ *
+ * The game module is reached ONLY through a dynamic import: Phaser and the
+ * rest of `src/game` must stay out of the main bundle and off every
+ * RTL-tested import chain (jsdom has no canvas/WebGL). Mount failure is
+ * non-fatal: the region stays inert and the rest of the screen keeps working.
+ */
+function PlayTableRegion({ game }: { game: GameState }) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [handle, setHandle] = useState<PlayTableHandle | null>(null);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (container === null) return;
+    let cancelled = false;
+    let localHandle: PlayTableHandle | null = null;
+
+    const reducedMotion =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    void (async () => {
+      try {
+        const { createPlayTable } = await import('../game');
+        if (cancelled) return;
+        // create-once guard: `createPlayTable` is idempotent per container, so
+        // the StrictMode double-effect / HMR overlap cannot double-boot. The
+        // async-import race is handled here: a handle created after cleanup
+        // runs is destroyed immediately (Phaser 4's destroy is asynchronous
+        // internally — the handle interface hides that detail).
+        localHandle = createPlayTable(container, { reducedMotion });
+        if (cancelled) {
+          localHandle.destroy();
+          localHandle = null;
+          return;
+        }
+        setHandle(localHandle);
+      } catch (error) {
+        console.error('play table failed to mount — leaving the canvas region inert', error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      localHandle?.destroy();
+      localHandle = null;
+      setHandle(null);
+    };
+  }, []);
+
+  return (
+    <div className="play-table-region">
+      {/* Phaser mounts here — the sized scale parent (aspect-ratio 16:10).
+          `data-table-ready="true"` appears once scene + textures are loaded:
+          the e2e awaitable readiness marker. */}
+      <div className="play-table-canvas" ref={containerRef} />
+      <RoomMirror game={game} />
+      <CardHoverLayer handle={handle} />
+    </div>
   );
 }
 

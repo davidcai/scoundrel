@@ -925,11 +925,231 @@ a {
   top: calc(100% + 8px);
 }
 
+/* ── Phaser overlay (Phase 1) ────────────────────────────────────────────── */
+
+/* Phaser path play-area restructure (docs/phaser-plan.md §4 Phase 1): the
+   canvas region is an explicit-dimension box — `aspect-ratio: 960/600` (16:10,
+   the design resolution) with width constrained by `.screen` — so Phaser's FIT
+   has real dimensions to fit and center against (a zero-height container
+   breaks it). Everything else stays in document flow around the region;
+   LiveAnnouncer remains mounted in App, outside this layout's remit.
+
+   The region is the play screen's centerpiece: capped at its design width,
+   lit from beneath by a soft accent glow, and framed with a 1px ring +
+   vignette-grade drop shadow applied entirely via box-shadow — shadows and
+   rings don't touch layout, so the mirror's %-of-region hit-target geometry
+   stays aligned to the canvas design coordinates at any width. */
+.play-table-region {
+  position: relative; /* positioned ancestor for the room mirror */
+  margin: 0 auto 18px;
+  width: min(100%, 960px);
+}
+
+.play-table-region::before {
+  content: '';
+  position: absolute;
+  inset: -28px -44px;
+  z-index: -1; /* behind the canvas, above the page background */
+  background: radial-gradient(58% 74% at 50% 38%, rgba(217, 164, 74, 0.13), transparent 72%);
+  pointer-events: none;
+}
+
+/* The actual Phaser scale parent: FIT fits the 960×600 backbuffer exactly,
+   since the box itself is 16:10. The game sets `data-table-ready="true"` on
+   this element when the scene + textures are loaded (e2e readiness marker). */
+.play-table-canvas {
+  width: 100%;
+  aspect-ratio: 960 / 600;
+  border-radius: var(--card-radius);
+  /* Fallback felt under the canvas until Phaser paints over it. */
+  background: radial-gradient(120% 140% at 50% 20%, #141a2a 0%, #06080d 70%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px var(--border),
+    0 0 46px -12px rgba(217, 164, 74, 0.16),
+    0 26px 60px -18px rgba(0, 0, 0, 0.8);
+}
+
+.play-table-canvas canvas {
+  display: block;
+  border-radius: var(--card-radius);
+}
+
+/* DOM room mirror: transparent pointer-input proxy + test seam rendered over
+   the canvas. Visually empty (the canvas draws the cards) but hit-testable, so
+   Playwright's `.room [data-card-id]` click/read locators keep working
+   unchanged. Anchors to the nearest positioned ancestor — the integration
+   lane must mount it inside the positioned canvas region. */
+.room-mirror {
+  position: absolute;
+  inset: 0;
+  padding: 18px 8px 6px;
+  pointer-events: none;
+}
+
+.mirror-card {
+  position: relative;
+  width: var(--card-w);
+  height: var(--card-h);
+  border: none;
+  border-radius: var(--card-radius);
+  background: transparent;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.mirror-card[data-selected='true'] {
+  transform: none;
+  filter: none;
+}
+
+/* Phaser path: align the mirror's transparent hit-targets with the canvas
+   design layout (src/game/table-scene.ts) so e2e clicks land on the card the
+   canvas draws. Room grid x 316–592, y 108 (row step 312), cards 120×180 with
+   36/24 gaps — expressed in % of the 960×600 region, which the FIT canvas
+   fills exactly, so mirror and sprite geometry stay 1:1 at every size. */
+.play-table-region .room-mirror {
+  padding: 0;
+}
+
+.play-table-region .mirror-card {
+  position: absolute;
+  width: 12.5%; /* 120 / 960 */
+  height: 30%; /* 180 / 600 */
+}
+
+.play-table-region .mirror-card:nth-child(1) {
+  left: 32.9167%; /* 316 */
+  top: 18%; /* 108 */
+}
+
+.play-table-region .mirror-card:nth-child(2) {
+  left: 49.1667%; /* 472 */
+  top: 18%;
+}
+
+.play-table-region .mirror-card:nth-child(3) {
+  left: 32.9167%;
+  top: 52%; /* 312 */
+}
+
+.play-table-region .mirror-card:nth-child(4) {
+  left: 49.1667%;
+  top: 52%;
+}
+
+/* Keyboard card-selection control for the canvas path: the only focusable
+   element of the play table; the canvas renders the highlight ring. Styled as
+   a deliberate control in the app's zone-panel vocabulary (same panel tone as
+   `.scorecard > div`), not a naked focusable div: it brightens its frame while
+   a card is selected, and the global focus ring does the affordance on focus. */
+.card-selection {
+  max-width: 640px;
+  margin: 0 auto 16px;
+  padding: 12px 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(10, 13, 19, 0.55);
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+  cursor: default;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.card-selection:focus-visible {
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 0 3px rgba(240, 193, 105, 0.22);
+}
+
+/* Selected state ties the control to the canvas highlight (gold ring). */
+.card-selection[data-selected-card-id] {
+  border-color: rgba(217, 164, 74, 0.45);
+  background: rgba(217, 164, 74, 0.07);
+}
+
+/* Idle state: nearly invisible quiet strip — it must exist in the DOM for
+   focus/tests, but shouldn't read as a broken empty panel between
+   Enter-next-room and the table. */
+.card-selection:not([data-selected-card-id]) {
+  padding: 6px 14px;
+  background: transparent;
+  box-shadow: none;
+  opacity: 0.75;
+}
+
+.selection-hint {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* Kill-count line in the DOM weapon-zone readout. */
+.kill-count {
+  margin-top: 2px;
+}
+
+/* Cursor-anchored tooltip for canvas sprite hover — reuses `.tooltip` styling
+   but anchors to a fixed cursor point instead of a DOM trigger. */
+.cursor-tooltip {
+  position: fixed;
+  bottom: auto;
+  z-index: 80;
+  transform: translate(calc(-50% + var(--tooltip-shift, 0px)), -100%);
+}
+
+.cursor-tooltip.tooltip-below {
+  transform: translate(calc(-50% + var(--tooltip-shift, 0px)), 0);
+}
+
+/* Compact weapon-zone READOUT on the Phaser path: the canvas already owns the
+   big weapon + kill-stack visuals, so the DOM readout keeps the same zone
+   vocabulary (`.weapon-zone` panel, `.kill-card` steps, `.last-kill-badge`)
+   but scales its cards down via a local `--card-w` override — both the
+   stepped kill-stack container (inline calc on `--card-w`) and the card sizes
+   shrink together, keeping the fan offsets proportional. All scoping lives
+   under `.weapon-readout` so the DOM path's `.weapon-zone` is untouched. */
+.weapon-readout {
+  --card-w: clamp(96px, 13.5vw, 124px);
+  --card-h: calc(var(--card-w) * 1.4);
+  gap: 18px;
+  min-height: 0;
+  max-width: 640px;
+  padding: 12px 18px;
+  margin: 0 auto 18px;
+}
+
+.weapon-readout .weapon-threshold {
+  font-size: 0.8rem;
+  margin: 0.5em 0 0;
+}
+
+.weapon-readout .zone-title {
+  margin: 0 0 6px;
+}
+
+/* Phaser-path rhythm: tighter document flow around the canvas centerpiece. */
+.play-phaser .controls {
+  margin-bottom: 16px;
+}
+
+.play-phaser .room-progress {
+  margin: 2px 0 14px;
+}
+
 /* ── Mobile ──────────────────────────────────────────────────────────────── */
 
 @media (max-width: 640px) {
   .screen {
     padding: 12px 12px 40px;
+  }
+
+  /* Reel the play-table glow in on small screens so it doesn't spill over. */
+  .play-table-region::before {
+    inset: -14px -10px;
   }
 
   .hud {

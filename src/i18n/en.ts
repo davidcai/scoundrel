@@ -90,6 +90,15 @@ const en = {
   noKillsFresh: 'No kills yet — {weapon} is fresh.',
   noKillsNoWeapon: 'No kills yet — no weapon.',
 
+  // Phaser overlay (Phase 1 — DOM mirror, weapon readout, keyboard selection)
+  killCount: 'Kills: {count}',
+  cardNavLabel:
+    'Keyboard card selection: arrow keys cycle through the room, Home/End jump to the first/last card, Escape cancels the selection.',
+  rendererLabel: 'Table renderer',
+  rendererDesc: 'Dev setting: draw the play table with the DOM fallback or the Phaser canvas.',
+  rendererDom: 'DOM',
+  rendererPhaser: 'Phaser',
+
   // Card view
   carriedBadge: 'Carried',
   carriedAria: ', carried from the previous room',

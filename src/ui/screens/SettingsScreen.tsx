@@ -8,6 +8,7 @@ import {
   type LanguageSetting,
 } from '../../store/settings';
 import { navigate } from '../router';
+import { RendererToggle } from './RendererToggle';
 
 interface ToggleProps {
   id: string;
@@ -86,6 +87,9 @@ export function SettingsScreen() {
         </div>
 
         <p className="muted">{t('settingsIntro')}</p>
+
+        {/* Phase 1: dev-gated — renders nothing outside dev builds (§4 Phase 1). */}
+        <RendererToggle />
 
         <Toggle
           id="toggle-run-away"

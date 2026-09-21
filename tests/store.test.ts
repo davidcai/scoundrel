@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_CONFIG, createInitialState } from '../src/engine';
-import { STORAGE_KEYS, load, migrateVersion, save } from '../src/store/persistence';
+import { SCHEMA_VERSION, STORAGE_KEYS, load, migrateVersion, save } from '../src/store/persistence';
+import { loadRunSave, useGameStore } from '../src/store/game-store';
 import { emptyStats, loadStats, recordRun, saveStats, type RunRecord } from '../src/store/stats';
 import {
   loadLanguage,
@@ -66,7 +67,11 @@ describe('persistence wrappers', () => {
 
 describe('settings', () => {
   it('defaults to the canonical rule set with auto language', () => {
-    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'auto' });
+    expect(loadSettings()).toEqual({
+      config: DEFAULT_CONFIG,
+      language: 'auto',
+      tableRenderer: 'dom',
+    });
   });
 
   it('resolves auto through browser detection', () => {
@@ -104,7 +109,11 @@ describe('settings', () => {
 
   it('falls back to defaults on corrupt data', () => {
     localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify({ version: 1, data: 'garbage' }));
-    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'auto' });
+    expect(loadSettings()).toEqual({
+      config: DEFAULT_CONFIG,
+      language: 'auto',
+      tableRenderer: 'dom',
+    });
   });
 
   it('persists the language independently of the rule config', () => {
@@ -112,7 +121,7 @@ describe('settings', () => {
     expect(loadLanguageSetting()).toBe('zh');
     const custom = { ...DEFAULT_CONFIG, weaponDegradation: false };
     saveSettings(custom);
-    expect(loadSettings()).toEqual({ config: custom, language: 'zh' });
+    expect(loadSettings()).toEqual({ config: custom, language: 'zh', tableRenderer: 'dom' });
     saveLanguage('auto');
     expect(loadLanguageSetting()).toBe('auto');
     expect(loadLanguage()).toBe('en');
@@ -123,7 +132,82 @@ describe('settings', () => {
       STORAGE_KEYS.settings,
       JSON.stringify({ version: 1, data: { config: DEFAULT_CONFIG } }),
     );
-    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'auto' });
+    expect(loadSettings()).toEqual({
+      config: DEFAULT_CONFIG,
+      language: 'auto',
+      tableRenderer: 'dom',
+    });
+  });
+});
+
+describe('tableRenderer setting (Phaser integration)', () => {
+  it('round-trips the renderer preference', () => {
+    saveSettings(DEFAULT_CONFIG, 'en', 'phaser');
+    expect(loadSettings()).toEqual({
+      config: DEFAULT_CONFIG,
+      language: 'en',
+      tableRenderer: 'phaser',
+    });
+  });
+
+  it('defaults to dom when never set', () => {
+    saveSettings(DEFAULT_CONFIG);
+    expect(loadSettings().tableRenderer).toBe('dom');
+  });
+
+  it('is preserved by saveLanguage', () => {
+    saveSettings(DEFAULT_CONFIG, 'en', 'phaser');
+    saveLanguage('zh');
+    expect(loadSettings()).toEqual({
+      config: DEFAULT_CONFIG,
+      language: 'zh',
+      tableRenderer: 'phaser',
+    });
+  });
+
+  it('migrates v1 settings shards (no tableRenderer field) to the dom default', () => {
+    localStorage.setItem(
+      STORAGE_KEYS.settings,
+      JSON.stringify({ version: 1, data: { config: DEFAULT_CONFIG, language: 'zh' } }),
+    );
+    expect(loadSettings()).toEqual({
+      config: DEFAULT_CONFIG,
+      language: 'zh',
+      tableRenderer: 'dom',
+    });
+  });
+
+  it('falls back to dom on an invalid renderer value', () => {
+    localStorage.setItem(
+      STORAGE_KEYS.settings,
+      JSON.stringify({
+        version: 1,
+        data: { config: DEFAULT_CONFIG, language: 'auto', tableRenderer: 'canvas2d' },
+      }),
+    );
+    expect(loadSettings().tableRenderer).toBe('dom');
+  });
+});
+
+describe('run shard survives the settings-version bump', () => {
+  it('a run saved after the settings bump still loads (loadRunSave is not null)', () => {
+    // Post-bump settings shard on disk, with the new field set.
+    saveSettings(DEFAULT_CONFIG, 'en', 'phaser');
+    useGameStore.getState().startRun('bump-regression', DEFAULT_CONFIG);
+    const saved = loadRunSave();
+    expect(saved).not.toBeNull();
+    expect(saved!.state.room).toHaveLength(4);
+    // The run shard must still be stamped with the global SCHEMA_VERSION (1):
+    // bumping only the settings call-site must never re-stamp run/stats shards.
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.run)!).version).toBe(SCHEMA_VERSION);
+  });
+
+  it('a run saved with tableRenderer settings present hydrates into the store', () => {
+    saveSettings(DEFAULT_CONFIG, 'en', 'phaser');
+    useGameStore.getState().startRun('hydrate-bump', DEFAULT_CONFIG);
+    useGameStore.getState().reset();
+    useGameStore.getState().hydrate();
+    expect(useGameStore.getState().game?.seed).toBe('hydrate-bump');
   });
 });
 
