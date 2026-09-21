@@ -18,7 +18,9 @@ import { decodeConfig } from '../store/share';
 import { CardView } from './CardView';
 import { GameOverScreen } from './GameOverScreen';
 import { Hud } from './Hud';
+import { PhaserBoard } from './PhaserBoard';
 import { Tooltip } from './Tooltip';
+import { useMotionDirector } from './use-motion-director';
 import { WeaponStack } from './WeaponStack';
 import { navigate, useHashRoute } from './router';
 
@@ -55,6 +57,9 @@ export function PlayScreen() {
   }, [seedParam, configParam, game, startRun]);
 
   const roomRef = useRef<HTMLDivElement>(null);
+  // Motion director anchor: the `.screen.play` root scopes every FX query.
+  const screenRef = useRef<HTMLElement>(null);
+  useMotionDirector(screenRef);
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (
@@ -106,7 +111,7 @@ export function PlayScreen() {
   const runStatus = runAwayStatus(game);
 
   return (
-    <main className="screen play">
+    <main className="screen play" ref={screenRef}>
       <Hud game={game} onAbandon={abandon} />
 
       <div className="controls">
@@ -169,6 +174,8 @@ export function PlayScreen() {
         aria-label={t('currentRoom')}
         onKeyDown={onKeyDown}
       >
+        {/* Phase 1 spike: hidden canvas underlay (see .phaser-board in styles.css). */}
+        <PhaserBoard />
         {game.room.map((cardId) => (
           <Tooltip key={cardId} text={cardHint(cardId)}>
             <CardView
