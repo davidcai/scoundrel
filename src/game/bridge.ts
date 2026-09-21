@@ -7,6 +7,8 @@ import type { CardId, GameResult, GameState } from '../engine';
  *
  * Data flow (one direction of truth, per phaser-adoption-plan):
  *   store subscribe → emitSync → scene reconciles
+ *   DOM hover (PlayScreen) → emitCardHover → scene tints the sprite
+ *   scene first reconcile → emitSceneReady → wrapper promotes the canvas live
  *   scene pointer events → emitIntent → PhaserBoard → store.selectCard
  */
 
@@ -23,10 +25,22 @@ export interface BoardSyncPayload {
   lastResult: GameResult | null;
 }
 
+/**
+ * store → scene, transient (no replay): the DOM hit-layer's hover state for a
+ * room card. The scene applies a non-animated tint to the matching sprite
+ * (Phase 2 hover bridging — the canvas itself never receives pointer events).
+ */
+export interface CardHoverPayload {
+  cardId: CardId;
+  over: boolean;
+}
+
 /** scene → store. Phaser never mutates game state; it only emits intents. */
 export type BoardIntent = { type: 'cardClick'; cardId: CardId };
 
 export type SyncListener = (payload: BoardSyncPayload) => void;
+export type HoverListener = (payload: CardHoverPayload) => void;
+export type SceneReadyListener = () => void;
 export type IntentListener = (intent: BoardIntent) => void;
 export type Unsubscribe = () => void;
 
@@ -38,9 +52,22 @@ export interface BoardBridge {
    * Returns an unsubscribe function.
    */
   onSync(listener: SyncListener): Unsubscribe;
+  /**
+   * Subscribe to store→scene hover payloads. Transient state — NO replay.
+   * Returns an unsubscribe function.
+   */
+  onCardHover(listener: HoverListener): Unsubscribe;
+  /**
+   * Subscribe to the scene's one-shot "first reconcile completed" signal
+   * (PhaserBoard flips the canvas live on it). Emitted at most once per
+   * scene instance; no replay. Returns an unsubscribe function.
+   */
+  onSceneReady(listener: SceneReadyListener): Unsubscribe;
   /** Subscribe to scene→store intents. Returns an unsubscribe function. */
   onIntent(listener: IntentListener): Unsubscribe;
   emitSync(payload: BoardSyncPayload): void;
+  emitCardHover(payload: CardHoverPayload): void;
+  emitSceneReady(): void;
   emitIntent(intent: BoardIntent): void;
   /** Remove all listeners and stop delivery. Idempotent. */
   destroy(): void;
@@ -48,6 +75,8 @@ export interface BoardBridge {
 
 export function createBoardBridge(): BoardBridge {
   const syncListeners = new Set<SyncListener>();
+  const hoverListeners = new Set<HoverListener>();
+  const readyListeners = new Set<SceneReadyListener>();
   const intentListeners = new Set<IntentListener>();
   let latestSync: BoardSyncPayload | null = null;
   let destroyed = false;
@@ -61,6 +90,22 @@ export function createBoardBridge(): BoardBridge {
       if (latestSync !== null) listener(latestSync);
       return () => {
         syncListeners.delete(listener);
+      };
+    },
+
+    onCardHover(listener) {
+      if (destroyed) return () => undefined;
+      hoverListeners.add(listener);
+      return () => {
+        hoverListeners.delete(listener);
+      };
+    },
+
+    onSceneReady(listener) {
+      if (destroyed) return () => undefined;
+      readyListeners.add(listener);
+      return () => {
+        readyListeners.delete(listener);
       };
     },
 
@@ -79,6 +124,16 @@ export function createBoardBridge(): BoardBridge {
       for (const listener of [...syncListeners]) listener(payload);
     },
 
+    emitCardHover(payload) {
+      if (destroyed) return;
+      for (const listener of [...hoverListeners]) listener(payload);
+    },
+
+    emitSceneReady() {
+      if (destroyed) return;
+      for (const listener of [...readyListeners]) listener();
+    },
+
     emitIntent(intent) {
       if (destroyed) return;
       for (const listener of [...intentListeners]) listener(intent);
@@ -88,6 +143,8 @@ export function createBoardBridge(): BoardBridge {
       destroyed = true;
       latestSync = null;
       syncListeners.clear();
+      hoverListeners.clear();
+      readyListeners.clear();
       intentListeners.clear();
     },
   };

@@ -25,6 +25,8 @@ export const PLACEHOLDER_RADIUS = 12;
 const TEXTURE_PREFIX = 'card-';
 const FILE_COMPLETE_EVENT = 'filecomplete-image-';
 const LOAD_ERROR_EVENT = 'loaderror';
+/** Sprite alpha while the DOM hit-layer reports hover (non-animated). */
+const HOVER_ALPHA = 0.82;
 
 /**
  * Load keys queued per scene (phaser 4.2.1 does not type LoaderPlugin.exists,
@@ -54,6 +56,11 @@ export interface CardSpriteHandle {
   readonly container: Phaser.GameObjects.Container;
   /** Reposition/resize after a board re-layout (e.g. Scale.RESIZE). */
   setRect(rect: Rect): void;
+  /**
+   * Non-animated hover state, bridged from the DOM hit-layer (Phase 2).
+   * Alpha only — no tweens, no angle changes (phaserjs/phaser#7341).
+   */
+  setHovered(hovered: boolean): void;
   destroy(): void;
 }
 
@@ -126,6 +133,11 @@ export function createCardSprite(
       } else {
         drawPlaceholder(placeholder, next.width, next.height);
       }
+    },
+    setHovered(hovered: boolean): void {
+      // Multiplicative tint can only darken, so a slight alpha dip stands in
+      // for the DOM's brightness(1.08). Deliberately NOT a tween.
+      container.setAlpha(hovered ? HOVER_ALPHA : 1);
     },
     destroy(): void {
       if (destroyed) return;

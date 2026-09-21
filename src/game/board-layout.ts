@@ -10,9 +10,13 @@
  * The `vw` ratios are interpreted against the container width, which is the
  * deterministic approximation of the viewport the canvas box lives in.
  *
- * Wrap rule (fixed by the plan): one row of up to 4 cards when the container
- * fits 4 cards + gaps, otherwise a 2×2 grid. Fewer cards than slots are
- * centered per row, mirroring `.room`'s `justify-content: center`.
+ * Phase 2 parity: BOTH consumers (the Phaser scene and the DOM hit-layer hook)
+ * pass explicit {@link BoardMetrics} resolved from the `.room` computed style
+ * (see src/game/board-metrics.ts), so the two can never drift — the fallback
+ * viewport math below only serves the legacy no-metrics signature. With
+ * padding metrics the layout mirrors the DOM flexbox model exactly: rows are
+ * top-aligned at `padTop` (not vertically centered) and each row is centered
+ * inside the content box (mirrors `justify-content: center`).
  */
 
 /** --card-h = --card-w * 1.4. */
@@ -59,8 +63,33 @@ export interface BoardLayout {
   cardWidth: number;
   cardHeight: number;
   gap: number;
+  /**
+   * Full board height including padding (DOM model) — the height the `.room`
+   * element needs so every row is fully visible (mobile 2×2 wrap). Without
+   * padding metrics this is just the grid height.
+   */
+  totalHeight: number;
   /** Fan step magnitudes per older-kill index — see KILL_STEP_X/Y. */
   killFanStep: Point;
+}
+
+/**
+ * Explicit metrics resolved from the `.room` computed style (shared by the
+ * scene and the DOM hook via src/game/board-metrics.ts). Every field is
+ * optional; absent fields fall back to the viewport-relative clamp math.
+ * Providing any padding switches the vertical model to the DOM flexbox one
+ * (rows top-aligned at `padTop`).
+ */
+export interface BoardMetrics {
+  /** Resolved `--card-w` in px (overrides the cardWidthFor clamp math). */
+  cardW?: number;
+  /** Resolved `.room` column gap in px (overrides the roomGapFor math). */
+  gap?: number;
+  /** `.room` padding edges in px — define the content box the flex grid lives in. */
+  padTop?: number;
+  padLeft?: number;
+  padRight?: number;
+  padBottom?: number;
 }
 
 /** Card width mirroring `clamp(132px, 19.5vw, 192px)` against the container. */
@@ -90,37 +119,53 @@ export function killFanOffsets(count: number): Point[] {
 /**
  * Compute the room-card layout for a container of the given size.
  *
- * @param containerW container (canvas box) width in px
- * @param containerH container (canvas box) height in px
+ * @param containerW container (canvas box / `.room`) width in px
+ * @param containerH container (canvas box / `.room`) height in px
  * @param roomCardCount number of room cards to lay out (0–4); defaults to a
  *   full 4-card board. Rows with fewer cards than the wrap column count are
  *   centered horizontally, mirroring `.room`'s `justify-content: center`.
+ * @param metrics explicit DOM-resolved metrics (see {@link BoardMetrics});
+ *   with padding the layout mirrors the DOM room exactly (top-aligned rows
+ *   inside the padded content box); without it, the legacy canvas model
+ *   (viewport-ratio clamps, vertically centered grid) applies.
  */
 export function computeBoardLayout(
   containerW: number,
   containerH: number,
   roomCardCount: number = MAX_ROOM_CARDS,
+  metrics: BoardMetrics = {},
 ): BoardLayout {
-  const cardWidth = cardWidthFor(containerW);
+  const cardWidth = Math.max(1, metrics.cardW ?? cardWidthFor(containerW));
   const cardHeight = cardWidth * CARD_ASPECT;
-  const gap = roomGapFor(containerW);
+  const gap = Math.max(0, metrics.gap ?? roomGapFor(containerW));
+  const padTop = Math.max(0, metrics.padTop ?? 0);
+  const padLeft = Math.max(0, metrics.padLeft ?? 0);
+  const padRight = Math.max(0, metrics.padRight ?? 0);
+  const padBottom = Math.max(0, metrics.padBottom ?? 0);
   const count = Math.min(MAX_ROOM_CARDS, Math.max(0, Math.floor(roomCardCount)));
 
-  // Fixed wrap rule: does a full 4-card row fit?
-  const fitsOneRow = MAX_ROOM_CARDS * cardWidth + (MAX_ROOM_CARDS - 1) * gap <= containerW;
+  // The content box the flex grid actually lives in (zero when no padding is
+  // modeled — identical to the legacy container-only behavior).
+  const contentW = Math.max(0, containerW - padLeft - padRight);
+
+  // Fixed wrap rule: does a full 4-card row fit in the content box?
+  const fitsOneRow = MAX_ROOM_CARDS * cardWidth + (MAX_ROOM_CARDS - 1) * gap <= contentW;
   const columns = fitsOneRow ? Math.max(1, count) : 2;
   const rows = Math.ceil(count / columns);
 
-  // Grid block is centered vertically (canvas-specific choice; the DOM .room is
-  // top-padded). Each row is centered horizontally (mirrors justify-content).
   const gridH = rows > 0 ? rows * cardHeight + (rows - 1) * gap : 0;
-  const originY = Math.max(0, (containerH - gridH) / 2);
+  // Vertical model: with padding metrics, mirror the DOM — flex rows start at
+  // the top padding edge. Without padding (legacy canvas-only signature) the
+  // grid block is centered vertically in the container.
+  const domModel = metrics.padTop !== undefined || metrics.padBottom !== undefined;
+  const originY = domModel ? padTop : Math.max(0, (containerH - gridH) / 2);
+  const totalHeight = domModel ? padTop + gridH + padBottom : gridH;
 
   const roomRects: Rect[] = [];
   for (let row = 0; row < rows; row++) {
     const inRow = Math.min(count - row * columns, columns);
     const rowW = inRow * cardWidth + (inRow - 1) * gap;
-    const originX = Math.max(0, (containerW - rowW) / 2);
+    const originX = padLeft + Math.max(0, (contentW - rowW) / 2);
     for (let col = 0; col < inRow; col++) {
       roomRects.push({
         x: originX + col * (cardWidth + gap),
@@ -138,6 +183,7 @@ export function computeBoardLayout(
     cardWidth,
     cardHeight,
     gap,
+    totalHeight,
     killFanStep: { x: KILL_STEP_X, y: KILL_STEP_Y },
   };
 }
