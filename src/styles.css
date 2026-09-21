@@ -692,10 +692,6 @@ body {
 }
 
 /* ── Game over ───────────────────────────────────────────────────────────── */
-/* The scorecard is the end-of-run moment: it arrives with a short staggered
-   rise (overlay → card → heading → score → stats → actions), the card frame
-   and title take their tint from the outcome (gold for a win, muted ember red
-   for a loss), and the score sits as a hero tile above the run stats. */
 
 .gameover-overlay {
   position: fixed;
@@ -707,80 +703,16 @@ body {
   backdrop-filter: blur(4px);
   padding: 20px;
   overflow: auto;
-  animation: gameover-fade 260ms ease both;
-}
-
-/* Outcome-tinted halo behind the card: a warm bloom on a win, a cold ember
-   glow on a loss — atmosphere only, no layout impact. */
-.gameover-overlay::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(640px 420px at 50% 42%, var(--gameover-halo), transparent 70%);
-  pointer-events: none;
-}
-
-@keyframes gameover-fade {
-  from {
-    background: rgba(3, 5, 9, 0);
-  }
-  to {
-    background: rgba(3, 5, 9, 0.82);
-  }
 }
 
 .gameover-card {
   width: min(560px, 94vw);
-  padding: 32px 34px 28px;
+  padding: 30px 34px;
   border-radius: 18px;
   border: 1px solid var(--border);
   background: linear-gradient(180deg, var(--panel-2), var(--bg-deep));
   box-shadow: var(--shadow);
   text-align: center;
-  animation: gameover-rise 340ms cubic-bezier(0.22, 0.9, 0.3, 1.2) both;
-  position: relative;
-}
-
-.gameover-card[data-outcome='won'] {
-  --gameover-halo: rgba(217, 164, 74, 0.16);
-  --gameover-title: var(--accent-bright);
-  --gameover-title-glow: rgba(240, 193, 105, 0.45);
-  --gameover-frame: rgba(217, 164, 74, 0.35);
-  --gameover-rule: rgba(217, 164, 74, 0.45);
-  border-color: rgba(217, 164, 74, 0.35);
-  box-shadow:
-    0 0 0 1px rgba(217, 164, 74, 0.16),
-    var(--shadow);
-}
-
-.gameover-card[data-outcome='lost'] {
-  --gameover-halo: rgba(224, 86, 79, 0.1);
-  --gameover-title: var(--danger);
-  --gameover-title-glow: rgba(224, 86, 79, 0.35);
-  --gameover-frame: rgba(224, 86, 79, 0.28);
-  --gameover-rule: rgba(224, 86, 79, 0.4);
-  border-color: rgba(224, 86, 79, 0.26);
-}
-
-/* Hairline frame echo just inside the card — a quiet "seal" on the run. */
-.gameover-card::before {
-  content: '';
-  position: absolute;
-  inset: 7px;
-  border: 1px solid var(--gameover-frame, var(--border));
-  border-radius: 12px;
-  pointer-events: none;
-}
-
-@keyframes gameover-rise {
-  from {
-    opacity: 0;
-    transform: translateY(18px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 .gameover-title {
@@ -789,43 +721,28 @@ body {
   font-size: 2.6rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--gameover-title, var(--text));
-  text-shadow: 0 0 30px var(--gameover-title-glow, transparent);
-  animation: gameover-rise 420ms 80ms cubic-bezier(0.22, 0.9, 0.3, 1.2) both;
+}
+
+.gameover-card[data-outcome='won'] .gameover-title {
+  color: var(--accent-bright);
+  text-shadow: 0 0 30px rgba(240, 193, 105, 0.45);
+}
+
+.gameover-card[data-outcome='lost'] .gameover-title {
+  color: var(--danger);
+  text-shadow: 0 0 30px rgba(224, 86, 79, 0.4);
 }
 
 .gameover-subtitle {
-  margin: 6px 0 0;
+  margin: 4px 0 18px;
   color: var(--muted);
   font-style: italic;
-  animation: gameover-fade-in 500ms 160ms ease both;
 }
 
-/* Hairline divider under the heading, tinted by outcome. */
-.gameover-subtitle::after {
-  content: '';
-  display: block;
-  width: 64px;
-  height: 1px;
-  margin: 14px auto 0;
-  background: linear-gradient(90deg, transparent, var(--gameover-rule, var(--border)), transparent);
-}
-
-@keyframes gameover-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Scorecard rhythm: the hero score tile reads first, run highlights sit in a
-   shared row of stat tiles, and the seed/toggles meta quiet down at the end. */
 .scorecard {
-  margin: 18px 0 22px;
+  margin: 0 0 20px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 10px;
   text-align: left;
 }
@@ -835,26 +752,6 @@ body {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: rgba(10, 13, 19, 0.55);
-  animation: gameover-fade-in 460ms ease both;
-  animation-delay: 200ms;
-}
-
-.scorecard > .scorecard-hero {
-  grid-column: 1 / -1;
-  padding: 14px 18px;
-  border-color: var(--gameover-frame, var(--border));
-  background: linear-gradient(180deg, rgba(217, 164, 74, 0.08), rgba(10, 13, 19, 0.55));
-  text-align: center;
-  animation-delay: 160ms;
-}
-
-.gameover-card[data-outcome='lost'] .scorecard > .scorecard-hero {
-  background: linear-gradient(180deg, rgba(224, 86, 79, 0.07), rgba(10, 13, 19, 0.55));
-}
-
-.scorecard > .scorecard-meta {
-  border-style: dashed;
-  background: transparent;
 }
 
 .scorecard dt {
@@ -870,25 +767,9 @@ body {
   font-size: 1rem;
 }
 
-.scorecard .scorecard-meta dd {
-  font-weight: 500;
-  font-size: 0.85rem;
-  color: var(--muted);
-  margin-top: 4px;
-}
-
-.scorecard .scorecard-hero dt {
-  color: var(--gameover-rule, var(--muted));
-}
-
 .score-big {
-  display: block;
-  font-size: 2.6rem;
-  font-weight: 800;
-  line-height: 1.15;
-  color: var(--gameover-title, var(--accent-bright));
-  text-shadow: 0 0 26px var(--gameover-title-glow, transparent);
-  font-variant-numeric: tabular-nums;
+  font-size: 1.6rem;
+  color: var(--accent-bright);
 }
 
 .gameover-actions {
@@ -896,31 +777,6 @@ body {
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
-  animation: gameover-fade-in 500ms 260ms ease both;
-}
-
-/* Replay affordance: gold-outline step between the filled primary and the
-   quiet default buttons, so "play again" reads as a real invitation. */
-.btn.primary-outline {
-  background: rgba(217, 164, 74, 0.08);
-  border-color: var(--accent);
-  color: var(--accent-bright);
-}
-
-.btn.primary-outline:hover:not([aria-disabled='true']) {
-  background: rgba(217, 164, 74, 0.16);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .gameover-overlay,
-  .gameover-card,
-  .gameover-title,
-  .gameover-subtitle,
-  .scorecard > div,
-  .gameover-actions {
-    animation-duration: 1ms;
-    animation-delay: 0ms;
-  }
 }
 
 /* ── Stats screen ────────────────────────────────────────────────────────── */
