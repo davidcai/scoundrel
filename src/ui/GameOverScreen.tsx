@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { finalScore, randomSeed, type GameState } from '../engine';
 import { useT, type TFunc } from '../i18n';
 import { useGameStore } from '../store/game-store';
@@ -14,6 +14,15 @@ export function GameOverScreen({ game }: { game: GameState }) {
   const finishRun = useGameStore((s) => s.finishRun);
   const t = useT();
   const [copied, setCopied] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // Phase 3: the scorecard overlays the frozen play UI — move focus onto the
+  // dialog itself so keyboard/AT users land in the scorecard, not behind it.
+  // (The overlaid play UI is `inert`, so this dialog is the only tabbable
+  // content; no focus trap needed.)
+  useEffect(() => {
+    dialogRef.current?.focus();
+  }, []);
 
   const link = `${window.location.origin}${window.location.pathname}${runUrl(game.seed, game.config)}`;
 
@@ -40,7 +49,13 @@ export function GameOverScreen({ game }: { game: GameState }) {
   };
 
   return (
-    <div className="gameover-overlay" role="dialog" aria-label={won ? t('victory') : t('defeat')}>
+    <div
+      ref={dialogRef}
+      className="gameover-overlay"
+      role="dialog"
+      aria-label={won ? t('victory') : t('defeat')}
+      tabIndex={-1}
+    >
       <div className="gameover-card" data-outcome={won ? 'won' : 'lost'}>
         <h2 className="gameover-title">{won ? t('victory') : t('defeat')}</h2>
         <p className="gameover-subtitle">{won ? t('victorySub') : t('defeatSub')}</p>

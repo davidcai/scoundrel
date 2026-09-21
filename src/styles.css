@@ -868,16 +868,26 @@ body {
 
 /* ── Game over ───────────────────────────────────────────────────────────── */
 
+/* Phase 3: overlays the LIVE play UI (board stays mounted beneath it), so it
+   must sit above the fx-layer (40, on <body>) and the frozen UI's tooltips
+   (60); the abandon dialog (70) cannot coexist with a finished run. */
 .gameover-overlay {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 75;
   display: grid;
   place-items: center;
   background: rgba(3, 5, 9, 0.82);
   backdrop-filter: blur(4px);
   padding: 20px;
   overflow: auto;
+}
+
+/* The dialog container itself receives the programmatic focus (tabindex="-1");
+   the focus indicator belongs to the controls inside, not the full-viewport
+   backdrop. */
+.gameover-overlay:focus {
+  outline: none;
 }
 
 .gameover-card {
