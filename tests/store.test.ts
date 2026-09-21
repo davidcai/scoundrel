@@ -66,7 +66,11 @@ describe('persistence wrappers', () => {
 
 describe('settings', () => {
   it('defaults to the canonical rule set with auto language', () => {
-    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'auto' });
+    expect(loadSettings()).toEqual({
+      config: DEFAULT_CONFIG,
+      language: 'auto',
+      reducedMotion: false,
+    });
   });
 
   it('resolves auto through browser detection', () => {
@@ -104,7 +108,11 @@ describe('settings', () => {
 
   it('falls back to defaults on corrupt data', () => {
     localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify({ version: 1, data: 'garbage' }));
-    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'auto' });
+    expect(loadSettings()).toEqual({
+      config: DEFAULT_CONFIG,
+      language: 'auto',
+      reducedMotion: false,
+    });
   });
 
   it('persists the language independently of the rule config', () => {
@@ -112,7 +120,7 @@ describe('settings', () => {
     expect(loadLanguageSetting()).toBe('zh');
     const custom = { ...DEFAULT_CONFIG, weaponDegradation: false };
     saveSettings(custom);
-    expect(loadSettings()).toEqual({ config: custom, language: 'zh' });
+    expect(loadSettings()).toEqual({ config: custom, language: 'zh', reducedMotion: false });
     saveLanguage('auto');
     expect(loadLanguageSetting()).toBe('auto');
     expect(loadLanguage()).toBe('en');
@@ -123,7 +131,37 @@ describe('settings', () => {
       STORAGE_KEYS.settings,
       JSON.stringify({ version: 1, data: { config: DEFAULT_CONFIG } }),
     );
-    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'auto' });
+    expect(loadSettings()).toEqual({
+      config: DEFAULT_CONFIG,
+      language: 'auto',
+      reducedMotion: false,
+    });
+  });
+
+  it('treats shards persisted before reducedMotion as reducedMotion=false', () => {
+    localStorage.setItem(
+      STORAGE_KEYS.settings,
+      JSON.stringify({
+        version: 1,
+        data: { config: DEFAULT_CONFIG, language: 'en' },
+      }),
+    );
+    expect(loadSettings()).toEqual({
+      config: DEFAULT_CONFIG,
+      language: 'en',
+      reducedMotion: false,
+    });
+  });
+
+  it('keeps reducedMotion=true when saveLanguage rewrites the shard', () => {
+    saveSettings(DEFAULT_CONFIG, 'en', true);
+    expect(loadSettings().reducedMotion).toBe(true);
+    saveLanguage('zh');
+    expect(loadSettings()).toEqual({
+      config: DEFAULT_CONFIG,
+      language: 'zh',
+      reducedMotion: true,
+    });
   });
 });
 

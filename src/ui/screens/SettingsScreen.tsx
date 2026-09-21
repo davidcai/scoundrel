@@ -49,11 +49,17 @@ export function SettingsScreen() {
   const setting = useLanguage((s) => s.setting);
   const setLang = useLanguage((s) => s.setLang);
   const [config, setConfig] = useState<GameConfig>(() => loadSettings().config);
+  const [reducedMotion, setReducedMotion] = useState<boolean>(() => loadSettings().reducedMotion);
 
   const update = (patch: Partial<GameConfig>) => {
     const next = { ...config, ...patch };
     setConfig(next);
     saveSettings(next);
+  };
+
+  const updateReducedMotion = (checked: boolean) => {
+    setReducedMotion(checked);
+    saveSettings(config, undefined, checked);
   };
 
   return (
@@ -107,6 +113,13 @@ export function SettingsScreen() {
           description={t('toggleDegDesc')}
           checked={config.weaponDegradation}
           onChange={(checked) => update({ weaponDegradation: checked })}
+        />
+        <Toggle
+          id="toggle-reduced-motion"
+          label={t('toggleReducedMotionLabel')}
+          description={t('toggleReducedMotionDesc')}
+          checked={reducedMotion}
+          onChange={updateReducedMotion}
         />
       </div>
     </main>
