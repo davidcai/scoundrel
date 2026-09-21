@@ -30,21 +30,26 @@ export function TitleScreen() {
     <main className="screen title">
       <div className="title-art" aria-hidden="true" />
       <div className="title-inner">
+        <div className="title-suits" aria-hidden="true" />
         <h1 className="title-word">Scoundrel</h1>
         <p className="title-tagline">{t('tagline')}</p>
 
         <nav className="title-menu" aria-label={t('mainMenu')}>
           {game !== null && game.phase === 'playing' && (
-            <button type="button" className="btn primary title-continue" onClick={continueRun}>
+            <button
+              type="button"
+              className="btn primary-outline title-continue"
+              onClick={continueRun}
+            >
               {t('continueRun', { seed: game.seed })}
             </button>
           )}
-          <button type="button" className="btn primary" onClick={newRun}>
+          <button type="button" className="btn primary title-new" onClick={newRun}>
             {t('newRun')}
           </button>
           <button
             type="button"
-            className="btn"
+            className="btn title-seed"
             aria-expanded={showSeedEntry}
             onClick={() => setShowSeedEntry((v) => !v)}
           >
@@ -75,15 +80,21 @@ export function TitleScreen() {
               </button>
             </form>
           )}
-          <button type="button" className="btn" onClick={() => navigate('#/stats')}>
-            {t('stats')}
-          </button>
-          <button type="button" className="btn" onClick={() => navigate('#/settings')}>
-            {t('settings')}
-          </button>
-          <button type="button" className="btn" onClick={() => navigate('#/about')}>
-            {t('about')}
-          </button>
+          <div className="title-menu-secondary">
+            <button type="button" className="btn ghost small" onClick={() => navigate('#/stats')}>
+              {t('stats')}
+            </button>
+            <button
+              type="button"
+              className="btn ghost small"
+              onClick={() => navigate('#/settings')}
+            >
+              {t('settings')}
+            </button>
+            <button type="button" className="btn ghost small" onClick={() => navigate('#/about')}>
+              {t('about')}
+            </button>
+          </div>
         </nav>
       </div>
     </main>
