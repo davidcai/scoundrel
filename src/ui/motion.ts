@@ -337,6 +337,31 @@ export function flipPlay(
 
 // ── DOM queries ───────────────────────────────────────────────────────────
 
+/**
+ * Canvas-mode contract (Phaser adoption, Phase 2): when the canvas is the
+ * room's primary renderer, its container inside `.room` carries the class
+ * `canvas-live` (added by PhaserBoard). Room-card pixels then come from the
+ * canvas, so DOM choreography on elements living inside `.room` would fight
+ * the canvas's own static sprites — such beats are classified `room` and
+ * dropped, while shared chrome (HP bar, weapon zone, kill stack) keeps
+ * animating. The room container itself is chrome: a nudge moves the canvas
+ * and the DOM together, so nothing fights.
+ */
+export type FxZone = 'room' | 'chrome';
+
+/** True when `el` lives strictly inside the room's pixel territory. */
+export function isCanvasTerritory(el: Element | null): boolean {
+  if (el === null) return false;
+  const room = el.closest('.room');
+  return room !== null && room !== el;
+}
+
+/** One planned unit of choreography, tagged by the surface it draws on. */
+interface FxBeat {
+  zone: FxZone;
+  run: () => void;
+}
+
 function roomButton(root: ParentNode, id: CardId): HTMLElement | null {
   return root.querySelector<HTMLElement>(`.room [data-card-id="${id}"]`);
 }
@@ -399,6 +424,8 @@ export interface FxSnapshot {
   game: GameState | null;
   lastResult: GameResult | null;
   fxSeq: number;
+  /** The live run was restored from storage — its mount reconciles silently. */
+  runResumed: boolean;
 }
 
 interface PendingPlan {
@@ -440,12 +467,16 @@ export class MotionDirector {
     const root = this.getRoot();
     cancelAll(root);
     if (root === null || state.game === null) return;
-    const game = state.game;
-    if (game.phase !== 'playing') return; // terminal: the board unmounts
+    // Resume-from-save: hydrate() flags restored runs so their null → game
+    // transition reconciles silently. runResumed stays true for the run's
+    // lifetime — only the transition itself is skipped, never later actions.
+    const nullToGame = prev.game === null || swappedRun;
+    if (nullToGame && state.runResumed) return;
+    const mountDeal = nullToGame && !state.runResumed;
+    if (state.game.phase !== 'playing') return; // terminal: the board unmounts
     if (!canAnimate()) return;
 
-    const mountDeal = prev.game === null || swappedRun;
-    this.planChoreography(root, game, prev.game, state.lastResult, mountDeal);
+    this.planChoreography(root, state.game, prev.game, state.lastResult, mountDeal);
   }
 
   /** Called after every React commit (layout effect) — runs a pending plan. */
@@ -517,7 +548,13 @@ export class MotionDirector {
     const arrived = nextRoom.filter((id) => !prevRoom.includes(id));
     const survivors = nextRoom.filter((id) => prevRoom.includes(id));
 
+    // Canvas-mode contract (see `isCanvasTerritory`): when the canvas owns
+    // the room visuals, beats tagged `room` are dropped at plan level so
+    // DOM choreography never fights the canvas's sprites.
+    const canvasOwnsRoom = root.querySelector('.phaser-board.canvas-live') !== null;
+
     if (prefersReducedMotion()) {
+      if (canvasOwnsRoom) return; // arrivals are the canvas's pixels now
       // Reduced motion: one ≤120ms opacity fade for arrivals, nothing else.
       const ids = mountDeal ? nextRoom : arrived;
       if (ids.length === 0) return;
@@ -539,7 +576,10 @@ export class MotionDirector {
     const capture = (el: Element | null): void => {
       if (el !== null && !firsts.has(el)) firsts.set(el, el.getBoundingClientRect());
     };
-    for (const id of survivors) capture(roomWrapper(root, id));
+    if (!canvasOwnsRoom) {
+      // Survivor FLIPs re-center room cards — canvas territory in canvas mode.
+      for (const id of survivors) capture(roomWrapper(root, id));
+    }
     const prevKills = new Set<CardId>(prevGame?.killStack ?? []);
     for (const id of game.killStack) {
       if (prevKills.has(id)) capture(killWrapper(root, id));
@@ -550,6 +590,9 @@ export class MotionDirector {
       from: DOMRect;
     }
     const spawnRoomGhost = (id: CardId): Flight | null => {
+      // No DOM ghost for canvas-owned pixels: a spawned-but-never-animated
+      // ghost would linger in the fx layer until the next sweep.
+      if (canvasOwnsRoom) return null;
       const btn = roomButton(root, id);
       if (btn === null) return null;
       const from = btn.getBoundingClientRect();
@@ -557,18 +600,21 @@ export class MotionDirector {
       return ghost === null ? null : { ghost, from };
     };
 
-    const steps: Array<() => void> = [];
+    const steps: FxBeat[] = [];
+    const push = (zone: FxZone, run: () => void): void => {
+      steps.push({ zone, run });
+    };
 
     if (mountDeal) {
-      this.pushDealStep(steps, root, nextRoom, game.carriedCardId, 0);
+      this.pushDealStep(push, root, nextRoom, game.carriedCardId, 0);
     } else {
       switch (result?.type) {
         case 'RoomDealt': {
-          this.pushDealStep(steps, root, arrived, null, 0);
+          this.pushDealStep(push, root, arrived, null, 0);
           const carried = result.carriedFrom;
           if (carried !== null && survivors.includes(carried)) {
             // The carried card stayed mounted — travel it (FLIP) and pulse.
-            steps.push(() => {
+            push('room', () => {
               roomWrapper(root, carried)?.animate(
                 [
                   { boxShadow: '0 0 0 0 rgba(240, 193, 105, 0)' },
@@ -588,7 +634,7 @@ export class MotionDirector {
               const flight = spawnRoomGhost(id);
               return flight === null ? [] : [flight];
             });
-          steps.push(() => {
+          push('room', () => {
             const room = root.querySelector('.room');
             const roomRight =
               room !== null ? room.getBoundingClientRect().right : window.innerWidth;
@@ -604,13 +650,13 @@ export class MotionDirector {
               );
             });
           });
-          this.pushDealStep(steps, root, arrived, null, 140);
+          this.pushDealStep(push, root, arrived, null, 140);
           break;
         }
         case 'MonsterDefeated': {
           const cardId = result.cardId;
           const flight = spawnRoomGhost(cardId);
-          steps.push(() => {
+          push('room', () => {
             if (flight === null) return;
             const target = killButton(root, cardId);
             if (target === null) {
@@ -657,12 +703,12 @@ export class MotionDirector {
               { duration: DUR.flight, easing: 'ease-out' },
             );
           });
-          if (result.damage > 0) steps.push(() => flashHpBar(root));
+          if (result.damage > 0) push('chrome', () => flashHpBar(root));
           break;
         }
         case 'PotionQuaffed': {
           const dissolve = spawnRoomGhost(result.cardId);
-          steps.push(() => {
+          push('room', () => {
             dissolve?.ghost.animate(
               dissolve.ghost.el,
               [
@@ -672,7 +718,7 @@ export class MotionDirector {
               { duration: DUR.dissolve, easing: EASE.exit },
             );
           });
-          steps.push(() => {
+          push('chrome', () => {
             spawnHpFloat(
               root,
               result.wasted ? '0' : `+${result.healed}`,
@@ -702,7 +748,7 @@ export class MotionDirector {
             const ghost = spawnFaceGhost(btn, from);
             return ghost === null ? [] : [{ ghost, from }];
           });
-          steps.push(() => {
+          push('chrome', () => {
             const weaponBtn = root.querySelector<HTMLElement>(
               `.weapon-side [data-card-id="${result.cardId}"]`,
             );
@@ -761,7 +807,9 @@ export class MotionDirector {
         case 'UndoDone': {
           // Quiet rewind: cards slide back in from their origin zone's
           // direction; reverted kill-stack nodes FLIP back via `firsts`.
-          steps.push(() => {
+          // Split by zone: the card returns are room pixels, the weapon-side
+          // fades are shared chrome and survive canvas mode.
+          push('room', () => {
             arrived.forEach((id, i) => {
               const btn = roomButton(root, id);
               if (btn === null) return;
@@ -774,6 +822,8 @@ export class MotionDirector {
                 { duration: DUR.rewind, delay: i * 40, easing: EASE.travel, fill: 'backwards' },
               );
             });
+          });
+          push('chrome', () => {
             const prevWeapon = prevGame?.weapon ?? null;
             if (prevWeapon !== game.weapon) {
               if (prevWeapon === null) {
@@ -801,7 +851,7 @@ export class MotionDirector {
             if (btn !== null) {
               const from = btn.getBoundingClientRect();
               const ghost = spawnFaceGhost(btn, from);
-              steps.push(() => {
+              push('chrome', () => {
                 ghost?.animate(ghost.el, [{ opacity: 1 }, { opacity: 0 }], {
                   duration: DUR.quietFade,
                   easing: 'ease-out',
@@ -813,7 +863,9 @@ export class MotionDirector {
         }
         case 'RunAwayBlocked':
         case 'InvalidAction': {
-          steps.push(() => {
+          // Container-level nudge, not per-card pixels: in canvas mode the
+          // canvas shakes along with the room, so nothing fights. Chrome.
+          push('chrome', () => {
             root
               .querySelector('.room')
               ?.animate(
@@ -838,19 +890,26 @@ export class MotionDirector {
 
     // Shared: FLIP everything that persisted across the reconciliation
     // (surviving room cards re-centering, kill-stack cards making room).
+    // In canvas mode `firsts` only holds kill-stack wrappers — chrome.
     if (firsts.size > 0) {
-      steps.push(() => {
+      push('chrome', () => {
         for (const [el, first] of firsts) {
           if (el.isConnected) flipPlay({ el, first });
         }
       });
     }
 
-    if (steps.length === 0) return;
-    const ready = (): boolean => nextRoom.every((id) => roomButton(root, id) !== null);
+    // Plan-level filter (canvas-mode contract): room-pixel beats are dropped
+    // wholesale so the DOM never choreographs over live canvas sprites.
+    const live = canvasOwnsRoom ? steps.filter((beat) => beat.zone === 'chrome') : steps;
+    if (live.length === 0) return;
+    // Room buttons may not exist when the canvas owns the room — chrome
+    // beats must not be gated on DOM cards that are no longer rendered.
+    const ready = (): boolean =>
+      canvasOwnsRoom || nextRoom.every((id) => roomButton(root, id) !== null);
     this.schedule(() => {
       if (!ready()) return false;
-      for (const step of steps) step();
+      for (const beat of live) beat.run();
       return true;
     });
   }
@@ -861,14 +920,14 @@ export class MotionDirector {
    * carried card re-enters last, with a brightness emphasis.
    */
   private pushDealStep(
-    steps: Array<() => void>,
+    push: (zone: FxZone, run: () => void) => void,
     root: HTMLElement,
     ids: readonly CardId[],
     carriedId: CardId | null,
     baseDelay: number,
   ): void {
     if (ids.length === 0) return;
-    steps.push(() => {
+    push('room', () => {
       const room = root.querySelector('.room');
       if (room === null) return;
       const roomRight = room.getBoundingClientRect().right;

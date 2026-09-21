@@ -28,7 +28,11 @@ export function useMotionDirector(rootRef: RefObject<HTMLElement | null>): void 
     const mountGame = pendingMountRef.current;
     if (mountGame !== null) {
       pendingMountRef.current = null;
-      director.onMounted(mountGame);
+      // Resume-from-save: a run restored by hydrate() reconciles silently —
+      // only fresh runs deal with animation (Phase 2 plan).
+      if (!useGameStore.getState().runResumed) {
+        director.onMounted(mountGame);
+      }
     }
     director.onCommit();
   });
@@ -38,8 +42,18 @@ export function useMotionDirector(rootRef: RefObject<HTMLElement | null>): void 
     if (director === null) return;
     const unsubscribe = useGameStore.subscribe((state, prevState) => {
       director.onStoreChange(
-        { game: state.game, lastResult: state.lastResult, fxSeq: state.fxSeq },
-        { game: prevState.game, lastResult: prevState.lastResult, fxSeq: prevState.fxSeq },
+        {
+          game: state.game,
+          lastResult: state.lastResult,
+          fxSeq: state.fxSeq,
+          runResumed: state.runResumed,
+        },
+        {
+          game: prevState.game,
+          lastResult: prevState.lastResult,
+          fxSeq: prevState.fxSeq,
+          runResumed: prevState.runResumed,
+        },
       );
     });
     return () => {
