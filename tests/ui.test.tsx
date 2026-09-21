@@ -17,12 +17,52 @@ import { useGameStore } from '../src/store/game-store';
 import { useLanguage } from '../src/i18n';
 import { loadStats } from '../src/store/stats';
 import { loadSettings } from '../src/store/settings';
+import { createPlayTable } from '../src/game';
+
+// ---------------------------------------------------------------------------
+// Game-layer mock
+// ---------------------------------------------------------------------------
+
+type RunEndedCb = (info: { outcome: 'won' | 'lost' }) => void;
+
+/** Every handle the stubbed createPlayTable produced, in creation order. */
+const handleRegistry = vi.hoisted(() => {
+  return [] as Array<{ runEndedCbs: Set<RunEndedCb> }>;
+});
+
+// PlayScreen mounts the play table unconditionally (Phase 4): stubbing the
+// `src/game` entry keeps Phaser out of the jsdom import chain (no
+// canvas/WebGL there) and lets the terminal-screen tests open the handoff
+// gate deterministically by firing the run-ended channel.
+vi.mock('../src/game', () => ({
+  DESIGN_WIDTH: 960,
+  DESIGN_HEIGHT: 600,
+  createPlayTable: vi.fn(() => {
+    const runEndedCbs = new Set<RunEndedCb>();
+    handleRegistry.push({ runEndedCbs });
+    return {
+      destroy: vi.fn(),
+      whenReady: () => Promise.resolve(),
+      onHover: vi.fn(() => () => undefined),
+      snapshot: () => Promise.resolve(''),
+      onRunEnded: vi.fn((cb: RunEndedCb) => {
+        runEndedCbs.add(cb);
+        return () => {
+          runEndedCbs.delete(cb);
+        };
+      }),
+      setReducedMotion: vi.fn(),
+    };
+  }),
+}));
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 beforeEach(() => {
+  handleRegistry.length = 0;
+  vi.mocked(createPlayTable).mockClear();
   localStorage.clear();
   // The app defaults to Chinese; these tests assert the English UI.
   act(() => useLanguage.setState({ lang: 'en', setting: 'en' }));
@@ -34,32 +74,25 @@ const isMonster = (c: CardId) => cardKind(c) === 'monster';
 const isWeapon = (c: CardId) => cardKind(c) === 'weapon';
 const isPotion = (c: CardId) => cardKind(c) === 'potion';
 
-function seedFor(predicate: (room: CardId[]) => boolean): { seed: string; room: CardId[] } {
-  for (let i = 0; i < 500; i++) {
-    const seed = `t${i}`;
-    const room = createInitialState(seed, DEFAULT_CONFIG).dungeon.slice(0, 4);
-    if (predicate(room)) return { seed, room };
-  }
-  throw new Error('no seed matched');
-}
-
 function currentGame(): GameState {
   const game = useGameStore.getState().game;
   if (game === null) throw new Error('no active game');
   return game;
 }
 
-function cardButton(cardId: CardId): HTMLElement {
-  const button = screen
-    .getAllByRole('button')
-    .find((b) => (b as HTMLElement).dataset.cardId === cardId);
-  if (button === undefined) throw new Error(`card ${cardId} not rendered`);
-  return button;
-}
-
 async function renderAt(hash: string) {
   window.location.hash = hash;
   return render(<App />);
+}
+
+/** Opens the handoff gate via the stubbed handle's run-ended channel. */
+function fireRunEnded(): void {
+  const entry = handleRegistry.at(-1);
+  if (entry === undefined) throw new Error('no play table handle was created');
+  const outcome: 'won' | 'lost' = useGameStore.getState().game?.phase === 'won' ? 'won' : 'lost';
+  for (const cb of entry.runEndedCbs) {
+    cb({ outcome });
+  }
 }
 
 /** Greedy strategy via the store's act(): finishes any seeded run. */
@@ -123,10 +156,11 @@ describe('title screen', () => {
     await renderAt('#/');
     await user.click(screen.getByRole('button', { name: 'New run' }));
     await waitFor(() => expect(window.location.hash).toBe('#/play'));
-    const cards = await screen.findAllByRole('button', {
-      name: /, (monster|weapon|potion), value \d+/i,
-    });
-    expect(cards).toHaveLength(4);
+    // The room is mirrored over the canvas (data-card-id nodes; card buttons
+    // no longer exist — the canvas draws the cards).
+    await waitFor(() =>
+      expect(document.querySelectorAll('.room-mirror [data-card-id]')).toHaveLength(4),
+    );
     expect(useGameStore.getState().game?.room).toHaveLength(4);
     // The run is persisted so a reload can resume it.
     expect(localStorage.getItem('scoundrel:run')).not.toBeNull();
@@ -149,100 +183,26 @@ describe('title screen', () => {
 // ---------------------------------------------------------------------------
 // Room interaction
 // ---------------------------------------------------------------------------
+// The DOM room table (CardView buttons, WeaponStack, roving-focus nav) was
+// deleted in Phase 4 — the canvas owns the table. Card selection/resolve
+// flows are covered renderer-side by tests/phaser-play.test.tsx through the
+// CardSelectionControl + ActionPanel; this suite keeps the renderer-independent
+// overlay behavior.
 
 describe('play screen', () => {
-  it('labels every card for screen readers and shows the HUD', async () => {
+  it('labels every card for screen readers via the mirror and shows the HUD', async () => {
     act(() => useGameStore.getState().startRun('hudseed', DEFAULT_CONFIG));
     await renderAt('#/play');
-    const room = currentGame().room;
-    for (const card of room) {
-      const label = cardButton(card).getAttribute('aria-label');
-      expect(label).toMatch(/(monster|weapon|potion), value \d+/);
-    }
+    await waitFor(() => expect(createPlayTable).toHaveBeenCalledTimes(1));
+
+    // The mirror carries the exact engine room composition (the a11y seam;
+    // per-card SR labels live in the keyboard control's live region).
+    const ids = Array.from(document.querySelectorAll<HTMLElement>('.room-mirror [data-card-id]')).map(
+      (el) => el.dataset.cardId,
+    );
+    expect(ids).toEqual(currentGame().room);
     expect(screen.getByText('20/20')).toBeInTheDocument();
     expect(screen.getByText(`${currentGame().dungeon.length} cards`)).toBeInTheDocument();
-  });
-
-  it('selects a monster, previews damage, and commits the fight', async () => {
-    const user = userEvent.setup();
-    const { seed, room } = seedFor((r) => r.filter(isMonster).length === 1);
-    act(() => useGameStore.getState().startRun(seed, DEFAULT_CONFIG));
-    await renderAt('#/play');
-
-    const monster = room.find(isMonster)!;
-    await user.click(cardButton(monster));
-
-    // Preview appears before committing; selection lives in the store, not the engine.
-    expect(useGameStore.getState().selectedCardId).toBe(monster);
-    expect(screen.getByText(/fight barehanded — take \d+ damage/i)).toBeInTheDocument();
-
-    const hpBefore = currentGame().hp;
-    await user.click(screen.getByRole('button', { name: /fight barehanded/i }));
-    expect(currentGame().hp).toBe(hpBefore - cardValue(monster));
-    expect(useGameStore.getState().selectedCardId).toBeNull();
-    expect(screen.getByRole('status')).toHaveTextContent(/slay/i);
-  });
-
-  it('resolves 3 of 4, enters the next room, and badges the carried card', async () => {
-    const user = userEvent.setup();
-    const { seed, room } = seedFor(
-      (r) => r.filter(isMonster).length === 1 && r.some(isWeapon) && r.some(isPotion),
-    );
-    act(() => useGameStore.getState().startRun(seed, DEFAULT_CONFIG));
-    await renderAt('#/play');
-
-    const weapon = room.find(isWeapon)!;
-    const potion = room.find(isPotion)!;
-    const monster = room.find(isMonster)!;
-    const carried = room.find((c) => c !== weapon && c !== potion && c !== monster)!;
-
-    // Enter Next Room is gated until 3 are resolved.
-    expect(screen.getByRole('button', { name: /enter next room/i })).toHaveAttribute(
-      'aria-disabled',
-      'true',
-    );
-
-    await user.click(cardButton(weapon));
-    await user.click(screen.getByRole('button', { name: /^Equip/ }));
-    await user.click(cardButton(potion));
-    await user.click(screen.getByRole('button', { name: /drink potion/i }));
-    await user.click(cardButton(monster));
-    await user.click(screen.getByRole('button', { name: /fight with/i }));
-
-    const enter = screen.getByRole('button', { name: /enter next room/i });
-    expect(enter).toHaveAttribute('aria-disabled', 'false');
-
-    // Selecting the carry card explains WHY it cannot be resolved — the other
-    // 3 cards of the room are already resolved (no fight/equip/drink buttons).
-    await user.click(cardButton(carried));
-    expect(screen.getByText(/the other 3 cards of this room are resolved/i)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /fight|equip|drink/i })).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Cancel' }));
-
-    await user.click(enter);
-
-    // The carried card is visually distinguished in the next room.
-    await waitFor(() => expect(screen.getByText('Carried')).toBeInTheDocument());
-    expect(currentGame().carriedCardId).toBe(carried);
-    expect(currentGame().room[0]).toBe(carried);
-  });
-
-  it('rewinds the room with Undo', async () => {
-    const user = userEvent.setup();
-    act(() => useGameStore.getState().startRun('undoseed', DEFAULT_CONFIG));
-    await renderAt('#/play');
-
-    const roomStart = currentGame().room;
-    const target = roomStart.find(isPotion) ?? roomStart.find(isWeapon) ?? roomStart[0]!;
-    await user.click(cardButton(target));
-    const confirmName = isPotion(target) ? /drink potion/i : isWeapon(target) ? /^Equip/ : /fight/i;
-    await user.click(screen.getByRole('button', { name: confirmName }));
-    expect(currentGame().room).toHaveLength(3);
-    expect(currentGame().resolvedCount).toBe(1);
-
-    await user.click(screen.getByRole('button', { name: /^undo$/i }));
-    expect(currentGame().room).toEqual(roomStart);
-    expect(currentGame().resolvedCount).toBe(0);
   });
 
   it('blocks running away twice in a row with a visible reason', async () => {
@@ -270,10 +230,15 @@ describe('win/lose screen', () => {
   it('renders the scorecard, writes stats exactly once, and survives reload', async () => {
     act(() => useGameStore.getState().startRun('terminalseed', DEFAULT_CONFIG));
     const { unmount } = await renderAt('#/play');
+    await waitFor(() => expect(createPlayTable).toHaveBeenCalledTimes(1));
 
     playOutGreedy();
     const game = currentGame();
     expect(['won', 'lost']).toContain(game.phase);
+    // The handoff gate holds the scorecard until the flourish completes;
+    // the stubbed handle's run-ended channel opens it (fail-open bounds it
+    // at 1 s when the flourish never signals — see tests/phaser-play).
+    act(() => fireRunEnded());
     if (game.phase === 'lost') {
       expect(screen.getByRole('heading', { name: /defeat/i })).toBeInTheDocument();
     } else {
@@ -294,11 +259,14 @@ describe('win/lose screen', () => {
     expect(stats.runs[0]?.outcome).toBe(game.phase === 'won' ? 'won' : 'lost');
 
     // Reload: the terminal screen survives and stats are NOT double-counted.
+    // (The run ended before this mount, so the gate opens via the fail-open.)
     unmount();
     act(() => useGameStore.getState().reset());
     await renderAt('#/play');
-    await waitFor(() =>
-      expect(screen.getByRole('heading', { name: /victory|defeat/i })).toBeInTheDocument(),
+    await waitFor(
+      () =>
+        expect(screen.getByRole('heading', { name: /victory|defeat/i })).toBeInTheDocument(),
+      { timeout: 2000 },
     );
     stats = loadStats();
     expect(stats.gamesPlayed).toBe(1);
@@ -316,7 +284,9 @@ describe('win/lose screen', () => {
 
     act(() => useGameStore.getState().startRun('shareseed', DEFAULT_CONFIG));
     await renderAt('#/play');
+    await waitFor(() => expect(createPlayTable).toHaveBeenCalledTimes(1));
     playOutGreedy();
+    act(() => fireRunEnded());
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /copy replay link/i })).toBeInTheDocument(),
     );
@@ -352,9 +322,12 @@ describe('stats screen', () => {
     const user = userEvent.setup();
     act(() => useGameStore.getState().startRun('statseed', DEFAULT_CONFIG));
     const first = await renderAt('#/play');
+    await waitFor(() => expect(createPlayTable).toHaveBeenCalledTimes(1));
     playOutGreedy();
-    await waitFor(() =>
-      expect(screen.getByRole('heading', { name: /victory|defeat/i })).toBeInTheDocument(),
+    act(() => fireRunEnded());
+    await waitFor(
+      () => expect(screen.getByRole('heading', { name: /victory|defeat/i })).toBeInTheDocument(),
+      { timeout: 2000 },
     );
     act(() => useGameStore.getState().finishRun());
     first.unmount();

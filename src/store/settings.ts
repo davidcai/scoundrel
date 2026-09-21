@@ -12,6 +12,18 @@ export const LANGUAGES: readonly Language[] = ['en', 'zh'] as const;
 export const DEFAULT_LANGUAGE: Language = 'zh';
 
 /**
+ * Settings-shard schema version — bumped at THIS call site only. The global
+ * `SCHEMA_VERSION` in persistence.ts stays at 1 and stamps every shard on
+ * save(); bumping it globally would re-stamp newly saved run/stats shards and
+ * make `loadRunSave()` silently return null (destroying "resume saved run").
+ *
+ * Still 2 after Phase 4: the v2 era also carried the now-removed
+ * `tableRenderer` field; the reader below ignores unknown extra fields, so
+ * already-stamped v2 shards (with or without the field) keep loading.
+ */
+const SETTINGS_SCHEMA_VERSION = 2;
+
+/**
  * First-visit default: browsers configured for any Chinese locale start in
  * Chinese; everything else starts in English. The choice is persisted on
  * first switch, after which detection never runs again.
@@ -49,7 +61,15 @@ function isValidLanguage(value: unknown): value is LanguageSetting {
   );
 }
 
-function read(raw: unknown): SettingsData | null {
+/**
+ * Settings validator (distinct from `isValidConfig`, which validates GameConfig):
+ * the rule config is mandatory — corrupt it and the shard is unrecoverable —
+ * while language is a preference that falls back to its default. Unknown extra
+ * fields (e.g. the removed Phase 1–3 `tableRenderer` flag, stamped on shards
+ * saved by earlier builds) are tolerated by omission: the object is rebuilt
+ * from known fields only, so a flag-era shard keeps loading.
+ */
+function readSettings(raw: unknown): SettingsData | null {
   if (typeof raw !== 'object' || raw === null) return null;
   const v = raw as Record<string, unknown>;
   if (!isValidConfig(v.config)) return null;
@@ -61,7 +81,10 @@ function read(raw: unknown): SettingsData | null {
 
 export function loadSettings(): SettingsData {
   return (
-    load<SettingsData>(STORAGE_KEYS.settings, migrateVersion(1, read)) ?? {
+    load<SettingsData>(
+      STORAGE_KEYS.settings,
+      migrateVersion(SETTINGS_SCHEMA_VERSION, readSettings),
+    ) ?? {
       config: { ...DEFAULT_CONFIG },
       language: 'auto',
     }
@@ -69,7 +92,10 @@ export function loadSettings(): SettingsData {
 }
 
 export function saveSettings(config: GameConfig, language?: LanguageSetting): void {
-  const stored = load<SettingsData>(STORAGE_KEYS.settings, migrateVersion(1, read));
+  const stored = load<SettingsData>(
+    STORAGE_KEYS.settings,
+    migrateVersion(SETTINGS_SCHEMA_VERSION, readSettings),
+  );
   save<SettingsData>(STORAGE_KEYS.settings, {
     config,
     language: language ?? stored?.language ?? 'auto',
@@ -77,7 +103,10 @@ export function saveSettings(config: GameConfig, language?: LanguageSetting): vo
 }
 
 export function saveLanguage(language: LanguageSetting): void {
-  const stored = load<SettingsData>(STORAGE_KEYS.settings, migrateVersion(1, read));
+  const stored = load<SettingsData>(
+    STORAGE_KEYS.settings,
+    migrateVersion(SETTINGS_SCHEMA_VERSION, readSettings),
+  );
   save<SettingsData>(STORAGE_KEYS.settings, {
     config: stored?.config ?? { ...DEFAULT_CONFIG },
     language,
