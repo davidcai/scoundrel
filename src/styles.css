@@ -925,9 +925,9 @@ a {
   top: calc(100% + 8px);
 }
 
-/* ── Phaser overlay (Phase 1) ────────────────────────────────────────────── */
+/* ── Play table overlay (Phaser) ────────────────────────────────────────────── */
 
-/* Phaser path play-area restructure (docs/phaser-plan.md §4 Phase 1): the
+/* Play-area restructure (docs/phaser-plan.md §4): the
    canvas region is an explicit-dimension box — `aspect-ratio: 960/600` (16:10,
    the design resolution) with width constrained by `.screen` — so Phaser's FIT
    has real dimensions to fit and center against (a zero-height container
@@ -978,19 +978,17 @@ a {
 /* DOM room mirror: transparent pointer-input proxy + test seam rendered over
    the canvas. Visually empty (the canvas draws the cards) but hit-testable, so
    Playwright's `.room [data-card-id]` click/read locators keep working
-   unchanged. Anchors to the nearest positioned ancestor — the integration
-   lane must mount it inside the positioned canvas region. */
+   unchanged. Anchors to the positioned canvas region (PlayTableRegion). */
 .room-mirror {
   position: absolute;
   inset: 0;
-  padding: 18px 8px 6px;
   pointer-events: none;
 }
 
 .mirror-card {
-  position: relative;
-  width: var(--card-w);
-  height: var(--card-h);
+  position: absolute;
+  width: 12.5%; /* 120 / 960 */
+  height: 30%; /* 180 / 600 */
   border: none;
   border-radius: var(--card-radius);
   background: transparent;
@@ -1003,42 +1001,33 @@ a {
   filter: none;
 }
 
-/* Phaser path: align the mirror's transparent hit-targets with the canvas
-   design layout (src/game/table-scene.ts) so e2e clicks land on the card the
-   canvas draws. Room grid x 316–592, y 108 (row step 312), cards 120×180 with
-   36/24 gaps — expressed in % of the 960×600 region, which the FIT canvas
-   fills exactly, so mirror and sprite geometry stay 1:1 at every size. */
-.play-table-region .room-mirror {
-  padding: 0;
-}
-
-.play-table-region .mirror-card {
-  position: absolute;
-  width: 12.5%; /* 120 / 960 */
-  height: 30%; /* 180 / 600 */
-}
-
-.play-table-region .mirror-card:nth-child(1) {
+/* Align the mirror's transparent hit-targets with the canvas design layout
+   (src/game/table-scene.ts) so e2e clicks land on the card the canvas draws.
+   Room grid x 316–592, y 108 (row step 312), cards 120×180 with 36/24 gaps —
+   expressed in % of the 960×600 region, which the FIT canvas fills exactly, so
+   mirror and sprite geometry stay 1:1 at every size. Room slot n in row-major
+   order: top-left, top-right, bottom-left, bottom-right. */
+.mirror-card:nth-child(1) {
   left: 32.9167%; /* 316 */
   top: 18%; /* 108 */
 }
 
-.play-table-region .mirror-card:nth-child(2) {
+.mirror-card:nth-child(2) {
   left: 49.1667%; /* 472 */
   top: 18%;
 }
 
-.play-table-region .mirror-card:nth-child(3) {
+.mirror-card:nth-child(3) {
   left: 32.9167%;
   top: 52%; /* 312 */
 }
 
-.play-table-region .mirror-card:nth-child(4) {
+.mirror-card:nth-child(4) {
   left: 49.1667%;
   top: 52%;
 }
 
-/* Keyboard card-selection control for the canvas path: the only focusable
+/* Keyboard card-selection control: the only focusable
    element of the play table; the canvas renders the highlight ring. Styled as
    a deliberate control in the app's zone-panel vocabulary (same panel tone as
    `.scorecard > div`), not a naked focusable div: it brightens its frame while
@@ -1105,13 +1094,12 @@ a {
   transform: translate(calc(-50% + var(--tooltip-shift, 0px)), 0);
 }
 
-/* Compact weapon-zone READOUT on the Phaser path: the canvas already owns the
-   big weapon + kill-stack visuals, so the DOM readout keeps the same zone
-   vocabulary (`.weapon-zone` panel, `.kill-card` steps, `.last-kill-badge`)
-   but scales its cards down via a local `--card-w` override — both the
-   stepped kill-stack container (inline calc on `--card-w`) and the card sizes
-   shrink together, keeping the fan offsets proportional. All scoping lives
-   under `.weapon-readout` so the DOM path's `.weapon-zone` is untouched. */
+/* Compact weapon-zone READOUT: the canvas already owns the big weapon +
+   kill-stack visuals, so the DOM readout keeps the same zone vocabulary
+   (`.weapon-zone` panel, `.kill-card` steps, `.last-kill-badge`) but scales
+   its cards down via a local `--card-w` override — both the stepped
+   kill-stack container (inline calc on `--card-w`) and the card sizes shrink
+   together, keeping the fan offsets proportional. */
 .weapon-readout {
   --card-w: clamp(96px, 13.5vw, 124px);
   --card-h: calc(var(--card-w) * 1.4);
@@ -1131,12 +1119,12 @@ a {
   margin: 0 0 6px;
 }
 
-/* Phaser-path rhythm: tighter document flow around the canvas centerpiece. */
-.play-phaser .controls {
+/* Play-screen rhythm: tighter document flow around the canvas centerpiece. */
+.play .controls {
   margin-bottom: 16px;
 }
 
-.play-phaser .room-progress {
+.play .room-progress {
   margin: 2px 0 14px;
 }
 

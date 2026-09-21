@@ -226,6 +226,9 @@ describe('useCardHover', () => {
         return unsub;
       },
       snapshot: () => Promise.resolve(''),
+      // Phase 2 motion-era members (unused by the hover hook under test here).
+      onRunEnded: () => () => undefined,
+      setReducedMotion: () => undefined,
     };
     return { handle, fire: (cardId) => listener?.(cardId), unsub };
   }

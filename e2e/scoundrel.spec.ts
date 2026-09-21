@@ -3,12 +3,11 @@ import { expect, test, type AwaitTableReady, type Page } from './renderer';
 // Every action is driven through player-visible UI; card ids are only read
 // off stable data attributes for targeting and assertions.
 //
-// The spec runs once per Playwright project (playwright.config.ts): `chromium`
-// against the DOM renderer (app defaults) and `chromium-phaser` against the
-// canvas renderer, seeded via the `scoundrel:settings` shard in e2e/renderer.ts.
-// On the phaser path the DOM room mirror is the pointer-input proxy
-// (`[data-card-id]` click/read locators work unchanged on both paths) and
-// `[data-table-ready="true"]` gates canvas-dependent waits.
+// The spec is single-renderer since Phase 4 (docs/phaser-plan.md): Phaser owns
+// the play table, seeded via the English `scoundrel:settings` shard in
+// e2e/renderer.ts. The DOM room mirror is the pointer-input proxy
+// (`[data-card-id]` click/read locators) and `[data-table-ready="true"]`
+// gates canvas-dependent waits.
 
 const valueOf = (cardId: string): number => {
   const rank = cardId.slice(cardId.indexOf('-') + 1);
@@ -166,7 +165,7 @@ async function playOutGreedy(page: Page, awaitTableReady: AwaitTableReady): Prom
 // ---------------------------------------------------------------------------
 
 test.describe('language detection', () => {
-  // Boot on app defaults (no renderer seeding): this suite tests detection.
+  // Boot on app defaults (no settings seeding): this suite tests detection.
   test.use({ seedSettings: false });
   test.use({ locale: 'zh-CN' });
 
@@ -205,60 +204,40 @@ test('title screen offers the full menu and a new run deals a room', async ({
 test('keyboard navigation reaches every card and arrows move selection', async ({
   page,
   awaitTableReady,
-  tableRenderer,
 }) => {
   await page.goto('/#/play?seed=kbtest');
   await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
   await awaitTableReady();
 
-  if (tableRenderer === 'phaser') {
-    // Canvas path (docs/phaser-plan.md §5): the cards are sprites, not DOM —
-    // keyboard input goes through the overlay CardSelectionControl; the canvas
-    // draws the highlight ring and the DOM mirror reflects it.
-    const control = page.locator('.card-selection');
-    await control.focus();
+  // The cards are canvas sprites, not DOM — keyboard input goes through the
+  // overlay CardSelectionControl; the canvas draws the highlight ring and the
+  // DOM mirror reflects it (docs/phaser-plan.md §5).
+  const control = page.locator('.card-selection');
+  await control.focus();
 
-    // No selection yet: the first arrow selects the first room card.
-    await page.keyboard.press('ArrowRight');
-    const ids = await roomIds(page);
-    await expect(control).toHaveAttribute('data-selected-card-id', ids[0]!);
-    await expect(
-      page.locator(`.room-mirror [data-card-id="${ids[0]}"] .selected-ring`),
-    ).toBeVisible();
+  // No selection yet: the first arrow selects the first room card.
+  await page.keyboard.press('ArrowRight');
+  const ids = await roomIds(page);
+  await expect(control).toHaveAttribute('data-selected-card-id', ids[0]!);
+  await expect(
+    page.locator(`.room-mirror [data-card-id="${ids[0]}"] .selected-ring`),
+  ).toBeVisible();
 
-    // A screen-reader live region announces the newly selected card's name.
-    await expect(page.locator('.card-selection [aria-live="polite"]')).toHaveText(
-      cardName(ids[0]!),
-    );
+  // A screen-reader live region announces the newly selected card's name.
+  await expect(page.locator('.card-selection [aria-live="polite"]')).toHaveText(cardName(ids[0]!));
 
-    // Arrows cycle with wrap; End jumps to the last card.
-    await page.keyboard.press('ArrowRight');
-    await expect(control).toHaveAttribute('data-selected-card-id', ids[1]!);
-    await page.keyboard.press('End');
-    await expect(control).toHaveAttribute('data-selected-card-id', ids[ids.length - 1]!);
-    await expect(page.locator('.card-selection [aria-live="polite"]')).toHaveText(
-      cardName(ids[ids.length - 1]!),
-    );
+  // Arrows cycle with wrap; End jumps to the last card.
+  await page.keyboard.press('ArrowRight');
+  await expect(control).toHaveAttribute('data-selected-card-id', ids[1]!);
+  await page.keyboard.press('End');
+  await expect(control).toHaveAttribute('data-selected-card-id', ids[ids.length - 1]!);
+  await expect(page.locator('.card-selection [aria-live="polite"]')).toHaveText(
+    cardName(ids[ids.length - 1]!),
+  );
 
-    // Escape deselects.
-    await page.keyboard.press('Escape');
-    expect(await control.getAttribute('data-selected-card-id')).toBeNull();
-  } else {
-    await page.locator('.room .card').first().focus();
-    await expect(page.locator('.room .card').first()).toBeFocused();
-    await page.keyboard.press('ArrowRight');
-    const secondId = await page
-      .locator('.room .card')
-      .nth(1)
-      .evaluate((el) => (el as HTMLElement).dataset.cardId);
-    await expect(page.locator(`[data-card-id="${secondId}"]`)).toBeFocused();
-    await page.keyboard.press('ArrowLeft');
-    await expect(page.locator('.room .card').first()).toBeFocused();
-
-    // Enter selects the card — same as a click (selection ring).
-    await page.keyboard.press('Enter');
-    await expect(page.locator('.room .card').first().locator('.selected-ring')).toBeVisible();
-  }
+  // Escape deselects.
+  await page.keyboard.press('Escape');
+  expect(await control.getAttribute('data-selected-card-id')).toBeNull();
 
   // A screen-reader live region announces the dealt room.
   await expect(page.getByRole('status')).toContainText(/room/i);
@@ -396,14 +375,85 @@ test.describe('phaser canvas', () => {
   test('the dealt table renders the room at the seeded layout', async ({
     page,
     awaitTableReady,
-    tableRenderer,
   }) => {
-    test.skip(tableRenderer !== 'phaser', 'the canvas snapshot is a phaser-path check');
     await page.goto('/#/play?seed=tableshot');
     await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
     await awaitTableReady();
     const canvas = page.locator('.play-table-canvas canvas');
     await expect(canvas).toBeVisible();
     await expect(canvas).toHaveScreenshot('table-scene.png');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Win/lose handoff gate (docs/phaser-plan.md §3, §4 Phase 2)
+// ---------------------------------------------------------------------------
+
+test.describe('flourish handoff', () => {
+  // Overrides the project's `reducedMotion: 'reduce'` so the tweens —
+  // including the win/lose flourish — actually run in this suite.
+  test.use({ reducedMotion: 'no-preference' });
+
+  test('the scorecard handoff is gated on the flourish and time-bounded', async ({
+    page,
+    awaitTableReady,
+  }) => {
+    await page.goto('/#/play?seed=e2fterm');
+    await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
+    await awaitTableReady();
+
+    // Play the run to its end via the mirror (canvas-independent input).
+    await playOutGreedy(page, awaitTableReady);
+    const dialog = page.getByRole('dialog');
+
+    // The loop exits on the mirror emptying (the resolve empties the room
+    // synchronously), a few ms after the ending action — the gate must still
+    // be closed: the canvas region is mounted and the scorecard absent. This
+    // assumes a designed flourish outlives that gap; if the gate already
+    // opened (instant flourish), the bounded-handoff check below still holds.
+    const t0 = Date.now();
+    if (!(await dialog.isVisible().catch(() => false))) {
+      await expect(page.locator('.play-table-region')).toBeVisible();
+      await expect(dialog).not.toBeVisible({ timeout: 0 });
+    }
+
+    // Bounded handoff: the gate opens via onRunEnded (post-flourish) or the
+    // 1 s fail-open timer — either way well inside ~2 s of the ending action.
+    // The test deliberately does not depend on the exact flourish duration.
+    await expect(dialog).toBeVisible({ timeout: 2_000 });
+    console.log(`handoff (motion enabled) completed ~${Date.now() - t0}ms after the ending action`);
+    await expect(dialog.getByRole('heading', { name: /victory|defeat/i })).toBeVisible();
+    await expect(dialog.getByTestId('final-score')).toBeVisible();
+
+    // Once the gate opened, the canvas region is gone.
+    await expect(page.locator('.play-table-region')).toHaveCount(0);
+  });
+});
+
+test.describe('escape hatch: motion=off', () => {
+  test('the handoff settles immediately with the URL escape hatch', async ({
+    page,
+    awaitTableReady,
+  }) => {
+    // `motion=off` is parsed by PlayScreen from the hash query (never share.ts):
+    // the deterministic-e2e carrier — the flourish is skipped, so the gate
+    // opens via onRunEnded immediately instead of waiting out the animation.
+    await page.goto('/#/play?seed=e2fterm&motion=off');
+    await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
+    await awaitTableReady();
+
+    await playOutGreedy(page, awaitTableReady);
+    const dialog = page.getByRole('dialog');
+
+    // The end state settles promptly — well under the 1 s fail-open floor,
+    // which proves the handoff came from the (skipped) flourish, not the
+    // fail-open timer. No exact flourish duration is assumed.
+    const t0 = Date.now();
+    await expect(dialog).toBeVisible({ timeout: 750 });
+    console.log(`handoff (motion=off) completed ~${Date.now() - t0}ms after the ending action`);
+
+    await expect(dialog.getByRole('heading', { name: /victory|defeat/i })).toBeVisible();
+    await expect(dialog.getByTestId('final-score')).toBeVisible();
+    await expect(page.locator('.play-table-region')).toHaveCount(0);
   });
 });

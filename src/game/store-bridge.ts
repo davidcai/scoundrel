@@ -1,6 +1,7 @@
 import type { CardId, GameResult, GameState } from '../engine';
+import { previewFight } from '../engine';
 import type { StoreResult } from '../store/game-store';
-import type { BridgeCommand, TableSceneApi } from './scene-api';
+import type { BridgeCommand, RunEndedInfo, TableSceneApi, TerminalPresentation } from './scene-api';
 
 /**
  * Minimal vanilla-Zustand shape the bridge depends on (so unit tests can stub
@@ -17,9 +18,11 @@ export interface StoreView {
 }
 
 /**
- * The scene's currently-rendered state, mirrored for drift detection. Only the
- * fields the table renders (plus identity fields that force a rebuild on a new
- * run); `roomSnapshot`/highlights/turnCount are not visually rendered.
+ * The scene's currently-rendered state, mirrored for drift detection AND for
+ * terminal/Phase-3 re-derivation: `preState` retains the pre-action snapshot of
+ * the most recently rendered state so `GameWon`/`GameLost` (which REPLACE the
+ * base result via `withTerminal`, engine.ts:162) can be reconstructed from the
+ * diff. `roomSnapshot`/highlights/turnCount are not visually rendered.
  */
 export interface TableModel {
   seed: string;
@@ -93,16 +96,79 @@ export function filteredSelection(
     : null;
 }
 
-/** The acted-on card for a result, when one exists. */
-function cardIdOf(result: GameResult): CardId | null {
-  switch (result.type) {
-    case 'MonsterDefeated':
-    case 'WeaponEquipped':
-    case 'PotionQuaffed':
-      return result.cardId;
-    default:
-      return null;
-  }
+/**
+ * Reconstructs the terminal action's presentation from the mirrored pre-action
+ * model vs the post-action state: HP delta (the killing blow), kill-stack
+ * append (weapon kill), room diff. This is the bridge's responsibility because
+ * `withTerminal` substitutes GameWon/GameLost for the base resolve result.
+ */
+export function reconstructTerminalPresentation(
+  pre: TableModel,
+  post: GameState,
+  preActionState: GameState | null = null,
+): TerminalPresentation {
+  const removedFromRoom = pre.room.filter((id) => !post.room.includes(id));
+  const addedToRoom = post.room.filter((id) => !pre.room.includes(id));
+  const killAppendedId =
+    post.killStack.length === pre.killStack.length + 1
+      ? (post.killStack[post.killStack.length - 1] ?? null)
+      : null;
+  return {
+    hpDelta: post.hp - pre.hp,
+    hpBefore: pre.hp,
+    hpAfter: post.hp,
+    killAppendedId,
+    removedFromRoom,
+    addedToRoom,
+    weaponBefore: pre.weapon,
+    weaponAfter: post.weapon,
+    weaponBreak: terminalWeaponBreak(
+      preActionState,
+      killAppendedId,
+      removedFromRoom,
+      post.hp - pre.hp,
+    ),
+  };
+}
+
+/**
+ * Phase 3 WEAPON-BREAK KEYING (plan §4 Phase 3 / §6): `MonsterDefeated.weaponBroke`
+ * is vestigial — no engine code path sets it true — and `WeaponEquipped.discardedWeaponId`
+ * is set on EVERY equip including honest upgrades, so keying a flash to either
+ * would misfire. The break is re-derived from the bridge's retained pre-action
+ * state via `previewFight` (engine.ts:87-121, mirroring the reducer's gating):
+ *
+ * - The kill USED the weapon (`usedWeaponId !== null`) → clean cut, no flash
+ *   (degradation is real, but that is the threshold feedback, not a break).
+ * - Barehanded kill with NO weapon held → nothing to strain, no flash.
+ * - Barehanded kill while holding a weapon whose path `previewFight(pre, cardId,
+ *   false)` rejects with `weapon-too-weak` → the weapon could not cut this
+ *   kill → flash. This is exactly the plan's "MonsterDefeated whose weapon path
+ *   was illegal" — cleanly derivable from previewFight's shape, no faking.
+ * - `WeaponEquipped` → NEVER flashes (honest swap / voluntary upgrade).
+ */
+export function deriveWeaponBreak(
+  preActionState: GameState | null,
+  cardId: CardId,
+  usedWeaponId: CardId | null,
+): boolean {
+  if (usedWeaponId !== null) return false; // the weapon cut it — no break
+  if (preActionState === null || preActionState.weapon === null) return false;
+  const weaponPath = previewFight(preActionState, cardId, false);
+  return !weaponPath.legal && weaponPath.reason === 'weapon-too-weak';
+}
+
+/** Terminal variant: the reconstructed kill was barehanded (no stack append) and lethal. */
+function terminalWeaponBreak(
+  preActionState: GameState | null,
+  killAppendedId: CardId | null,
+  removedFromRoom: readonly CardId[],
+  hpDelta: number,
+): boolean {
+  if (killAppendedId !== null) return false; // weapon cut it cleanly
+  const killId = removedFromRoom[0];
+  if (killId === undefined || hpDelta >= 0) return false; // not a damaging resolve
+  return deriveWeaponBreak(preActionState, killId, null);
 }
 
 /**
@@ -113,43 +179,80 @@ function cardIdOf(result: GameResult): CardId | null {
  *   `never` exhaustiveness check covers the full union — a future engine
  *   variant fails the build here instead of silently doing nothing.
  * - Terminal results (`GameWon`/`GameLost`) replace the base result via
- *   `withTerminal` (engine.ts:162), so Phase 1 just re-renders from state; the
- *   killing-blow/final-resolve presentation is the state diff, and React owns
- *   the screen switch.
+ *   `withTerminal` (engine.ts:162), so their presentation is reconstructed from
+ *   the pre/post state diff before the flourish plays.
+ * - `RunAwayBlocked`/`InvalidAction` are no-op state diffs: they MUST flow
+ *   through this mapping (as error feedback), never through the diff fallback.
  */
-export function mapResultToCommand(result: GameResult, state: GameState | null): BridgeCommand {
+export function mapResultToCommand(
+  result: GameResult,
+  state: GameState | null,
+  pre: TableModel | null,
+  preActionState: GameState | null = null,
+): BridgeCommand {
   switch (result.type) {
     case 'RoomDealt':
+      return state !== null
+        ? { kind: 'deal', cards: result.cards, carriedFrom: result.carriedFrom }
+        : { kind: 'noop' };
+
     case 'MonsterDefeated':
+      return state !== null
+        ? {
+            kind: 'attack',
+            cardId: result.cardId,
+            damage: result.damage,
+            usedWeaponId: result.usedWeaponId,
+            // Weapon kills join the kill stack (engine appends on weapon fights);
+            // the killCardId drives the stackDrop choreography.
+            killCardId: result.usedWeaponId !== null ? result.cardId : null,
+            weaponBreak: deriveWeaponBreak(preActionState, result.cardId, result.usedWeaponId),
+          }
+        : { kind: 'noop' };
+
     case 'WeaponEquipped':
+      return state !== null
+        ? {
+            kind: 'weaponEquip',
+            cardId: result.cardId,
+            discardedWeaponId: result.discardedWeaponId,
+            discardedMonsterIds: result.discardedMonsterIds,
+          }
+        : { kind: 'noop' };
+
     case 'PotionQuaffed':
+      return state !== null
+        ? { kind: 'potion', cardId: result.cardId, healed: result.healed, wasted: result.wasted }
+        : { kind: 'noop' };
+
     case 'RanAway':
+      return state !== null ? { kind: 'runAway', newCards: result.newCards } : { kind: 'noop' };
+
     case 'GameWon':
     case 'GameLost':
-      if (state !== null) {
-        // Phase 1 static parity: instant re-render from the authoritative
-        // post-action state. `cardId` marks the acted-on sprite for Phase 2.
-        return { kind: 'render', cardId: cardIdOf(result) };
-      }
-      return { kind: 'noop' };
+      return state !== null
+        ? {
+            kind: 'terminal',
+            outcome: result.type === 'GameWon' ? 'won' : 'lost',
+            reconstruction:
+              pre !== null ? reconstructTerminalPresentation(pre, state, preActionState) : null,
+          }
+        : { kind: 'noop' };
 
     case 'UndoDone':
       // Restores from roomSnapshot with no payload diff — forward tweens cannot
-      // represent a backward jump; rebuild fully (Phase 2: cross-fade).
-      if (state !== null) return { kind: 'rebuild' };
-      return { kind: 'noop' };
+      // represent a backward jump; rebuild fully with a cross-fade.
+      return state !== null ? { kind: 'rebuild' } : { kind: 'noop' };
 
     case 'RunAwayBlocked':
     case 'InvalidAction':
-      // No-op state diffs: no render (nothing changed) — these must flow
-      // through this mapping, never through the diff fallback, or they would
-      // be invisible. Phase 2: shake/nudge.
-      return { kind: 'noop' };
+      // No-op state diffs: no state motion — subtle shake, driven from
+      // lastResult (the diff fallback cannot see these).
+      return { kind: 'errorFeedback' };
 
     case 'RunStarted':
       // Unreachable via the store; defensively rebuild if a state exists.
-      if (state !== null) return { kind: 'rebuild' };
-      return { kind: 'noop' };
+      return state !== null ? { kind: 'rebuild' } : { kind: 'noop' };
 
     default: {
       const exhaustive: never = result;
@@ -164,6 +267,13 @@ export function mapResultToCommand(result: GameResult, state: GameState | null):
 
 export interface StoreBridge {
   destroy(): void;
+  /**
+   * Post-flourish gate: fires exactly once per run end, AFTER the scene
+   * reports the terminal flourish complete. Never fires on undo/rebuild.
+   * (React delays the GameOverScreen switch on this — time-bounded fail-open
+   * is the React lane's responsibility.)
+   */
+  onRunEnded(cb: (info: RunEndedInfo) => void): () => void;
 }
 
 /**
@@ -172,28 +282,34 @@ export interface StoreBridge {
  *
  * Ordering per notification:
  * 1. **Seq-gated result consumption** — every `lastResult` with
- *    `seq > expectedSeq` is mapped to a command. `expectedSeq` is seeded from
- *    the store's `lastResult?.seq` at attach time, so a result published before
- *    the scene mounted (hydrate/replay/StrictMode remount) is never replayed.
+ *    `seq > expectedSeq` is mapped to a tween command and played. `expectedSeq`
+ *    is seeded from the store's `lastResult?.seq` at attach time, so a result
+ *    published before the scene mounted (hydrate/replay/StrictMode remount) is
+ *    never replayed. The PRE-action mirrored model is what terminal
+ *    reconstruction diffs against.
  * 2. **Selection sync** — the filtered selection is applied idempotently; this
  *    handles the second notification of each resolve (`selectCard(null)`) and
  *    never replays or cancels presentation.
  * 3. **Model compare (diff fallback)** — after every notification the mirrored
  *    model is compared to the store state; any mismatch (undo, hydrate, any
- *    state change that bypassed the result channel) triggers a full rebuild
- *    from state. The fallback supplements `lastResult`, never replaces it —
- *    it cannot detect no-op results.
+ *    state change that bypassed the result channel) triggers a cross-fade
+ *    rebuild from state. The fallback supplements `lastResult`, never replaces
+ *    it — it cannot detect no-op results.
  */
 export function attachStoreBridge(
   scene: TableSceneApi,
   store: StoreView,
   opts?: { reducedMotion?: boolean },
 ): StoreBridge {
-  // `reducedMotion` is carried for Phase 2 tweens; Phase 1 is fully static.
-  void opts?.reducedMotion;
+  // Reduced motion is a live scene concern (create opt + setReducedMotion);
+  // the bridge carries the initial value through to the scene at attach time.
+  if (opts?.reducedMotion === true) scene.setReducedMotion(true);
 
   let expectedSeq = store.getState().lastResult?.seq ?? 0;
   let model: TableModel | null = snapshotModel(store.getState().game);
+  // Full pre-action GameState (not just the visual model) — previewFight reads
+  // config/weapon/killStack, so the break re-derivation needs engine truth.
+  let preActionGame: GameState | null = store.getState().game;
   let appliedSelection: CardId | null = null;
 
   const selection = () => {
@@ -202,7 +318,7 @@ export function attachStoreBridge(
   };
 
   // First sync: render the full current state statically, intro animations
-  // suppressed (Phase 1 is static; `firstSync` marks the snapshot for Phase 2).
+  // suppressed (deal animations only play for results observed after mount).
   const initial = store.getState().game;
   scene.renderState(initial, selection());
   appliedSelection = selection();
@@ -217,14 +333,16 @@ export function attachStoreBridge(
     const { game, lastResult } = store.getState();
     const currentSelection = selection();
 
-    // 1. Cue sheet: never replay a stale result seen before mount.
+    // 1. Cue sheet: never replay a stale result seen before mount. `model` is
+    //    the pre-action snapshot and `preActionGame` the full pre-action state —
+    //    the terminal diff and the weapon-break re-derivation read them BEFORE
+    //    updating.
     if (lastResult !== null && lastResult.seq > expectedSeq) {
       expectedSeq = lastResult.seq;
-      const command = mapResultToCommand(lastResult.result, game);
-      if (command.kind === 'render' || command.kind === 'rebuild') {
-        scene.renderState(game, currentSelection);
-      }
+      const command = mapResultToCommand(lastResult.result, game, model, preActionGame);
+      scene.playCommand(command, game, currentSelection);
       model = snapshotModel(game);
+      preActionGame = game;
     }
 
     // 2. Selection sync — idempotent, never replays presentation.
@@ -233,20 +351,35 @@ export function attachStoreBridge(
       scene.setSelection(currentSelection);
     }
 
-    // 3. Diff fallback: rebuild whenever the scene's model drifted from truth
-    //    (undo, hydrate, a state change with no fresh result). Supplements the
-    //    cue sheet; cannot detect no-op results.
+    // 3. Diff fallback: cross-fade rebuild whenever the scene's model drifted
+    //    from truth (undo, hydrate, a state change with no fresh result).
+    //    Supplements the cue sheet; cannot detect no-op results.
     const nextModel = snapshotModel(game);
     if (!modelEquals(model, nextModel)) {
       model = nextModel;
-      scene.renderState(game, currentSelection);
+      preActionGame = game;
+      scene.playCommand({ kind: 'rebuild' }, game, currentSelection);
     }
+  });
+
+  const runEndedCbs = new Set<(info: RunEndedInfo) => void>();
+  // The scene fires this after the terminal flourish completes (or instantly
+  // under reduced motion). Undo/mismatch rebuilds never reach that path.
+  scene.onFlourishComplete((info) => {
+    runEndedCbs.forEach((cb) => cb(info));
   });
 
   return {
     destroy() {
       unsubscribe();
+      runEndedCbs.clear();
       scene.destroy();
+    },
+    onRunEnded(cb) {
+      runEndedCbs.add(cb);
+      return () => {
+        runEndedCbs.delete(cb);
+      };
     },
   };
 }

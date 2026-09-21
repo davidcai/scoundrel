@@ -12,31 +12,38 @@ import {
   type GameAction,
   type GameState,
 } from '../engine';
-import { cardHint, cardLabel, useT } from '../i18n';
+import { cardLabel, useT } from '../i18n';
 import { useGameStore } from '../store/game-store';
 import { decodeConfig } from '../store/share';
-import { CardView } from './CardView';
 import { GameOverScreen } from './GameOverScreen';
 import { Hud } from './Hud';
 import { Tooltip } from './Tooltip';
-import { WeaponStack } from './WeaponStack';
 import { CardHoverLayer } from './phaser/CardHoverLayer';
 import { CardSelectionControl } from './phaser/CardSelectionControl';
 import { RoomMirror } from './phaser/RoomMirror';
 import { WeaponReadout } from './phaser/WeaponReadout';
-import type { PlayTableHandle } from './phaser/use-card-hover';
+import { applyReducedMotion, subscribeRunEnded, type PlayTableHandle } from './phaser/use-card-hover';
 import { navigate, useHashRoute } from './router';
-import { useTableRenderer } from './table-renderer';
+
+/**
+ * Win/lose handoff gate (docs/phaser-plan.md §3): the canvas plays a win/lose
+ * flourish before the scorecard takes over, so the GameOverScreen swap waits
+ * for the handle's `onRunEnded` (fires after the flourish completes) — or
+ * opens after this fail-open timeout. The flourish is presentation-only:
+ * a11y and e2e must never wait on it, and a missing handle (mount failure, a
+ * run that ended before the canvas mounted) must not strand the player on a
+ * frozen table.
+ */
+const RUN_HANDOFF_TIMEOUT_MS = 1000;
 
 export function PlayScreen() {
   const route = useHashRoute();
   const game = useGameStore((s) => s.game);
   const selectedCardId = useGameStore((s) => s.selectedCardId);
   const act = useGameStore((s) => s.act);
-  const selectCard = useGameStore((s) => s.selectCard);
   const startRun = useGameStore((s) => s.startRun);
   const abandonRun = useGameStore((s) => s.abandonRun);
-  const tableRenderer = useTableRenderer((s) => s.renderer);
+  const [flourishDone, setFlourishDone] = useState(false);
   const t = useT();
 
   const seedParam = route.params.get('seed');
@@ -61,33 +68,26 @@ export function PlayScreen() {
     if (!sameRun) startRun(seed, config);
   }, [seedParam, configParam, game, startRun]);
 
-  const roomRef = useRef<HTMLDivElement>(null);
+  // Reduced-motion escape hatch (docs/phaser-plan.md §4 Phase 2 — decided:
+  // honor BOTH carriers): (a) Playwright's `reducedMotion: 'reduce'`
+  // emulation and OS preference via matchMedia — flows through the live
+  // media-query subscription in PlayTableRegion; (b) the `motion=off` hash
+  // param (e.g. `#/play?seed=...&motion=off`), a non-shareable determinism
+  // escape hatch parsed here — deliberately NOT in `src/store/share.ts`,
+  // which encodes only seed + rule config.
+  const motionOff = route.params.get('motion') === 'off';
 
-  const onKeyDown = (event: React.KeyboardEvent) => {
-    if (
-      event.key !== 'ArrowLeft' &&
-      event.key !== 'ArrowRight' &&
-      event.key !== 'Home' &&
-      event.key !== 'End'
-    ) {
+  // Win/lose handoff gate: the GameOverScreen swap waits for the canvas
+  // flourish. Effect per game identity: a new run re-arms the gate; the
+  // fail-open timer above bounds it.
+  useEffect(() => {
+    if (game === null || game.phase === 'playing') {
+      setFlourishDone(false);
       return;
     }
-    const buttons = Array.from(
-      roomRef.current?.querySelectorAll<HTMLButtonElement>('button.card:not([disabled])') ?? [],
-    );
-    if (buttons.length === 0) return;
-    event.preventDefault();
-    const index = buttons.findIndex((b) => b === document.activeElement);
-    const next =
-      event.key === 'Home'
-        ? 0
-        : event.key === 'End'
-          ? buttons.length - 1
-          : index === -1
-            ? 0
-            : (index + (event.key === 'ArrowRight' ? 1 : -1) + buttons.length) % buttons.length;
-    buttons[next]?.focus();
-  };
+    const timer = window.setTimeout(() => setFlourishDone(true), RUN_HANDOFF_TIMEOUT_MS);
+    return () => window.clearTimeout(timer);
+  }, [game]);
 
   if (game === null) {
     return (
@@ -103,7 +103,9 @@ export function PlayScreen() {
     );
   }
 
-  if (game.phase !== 'playing') {
+  // The GameOverScreen swap happens only once the canvas flourish completed
+  // (or the fail-open timer opened the gate).
+  if (game.phase !== 'playing' && flourishDone) {
     return <GameOverScreen game={game} />;
   }
 
@@ -111,10 +113,9 @@ export function PlayScreen() {
   const selected =
     selectedCardId !== null && game.room.includes(selectedCardId) ? selectedCardId : null;
   const runStatus = runAwayStatus(game);
-  const phaser = tableRenderer === 'phaser';
 
   return (
-    <main className={`screen play${phaser ? ' play-phaser' : ''}`}>
+    <main className="screen play">
       <Hud game={game} onAbandon={abandon} />
 
       <div className="controls">
@@ -164,7 +165,7 @@ export function PlayScreen() {
         )}
       </div>
 
-      {phaser && <CardSelectionControl game={game} />}
+      <CardSelectionControl game={game} />
 
       {final && (
         <p className="final-banner" role="note">
@@ -172,28 +173,7 @@ export function PlayScreen() {
         </p>
       )}
 
-      {phaser ? (
-        <PlayTableRegion game={game} />
-      ) : (
-        <div
-          ref={roomRef}
-          className="room"
-          role="group"
-          aria-label={t('currentRoom')}
-          onKeyDown={onKeyDown}
-        >
-          {game.room.map((cardId) => (
-            <Tooltip key={cardId} text={cardHint(cardId)}>
-              <CardView
-                cardId={cardId}
-                selected={selected === cardId}
-                carried={game.carriedCardId === cardId}
-                onClick={() => selectCard(selected === cardId ? null : cardId)}
-              />
-            </Tooltip>
-          ))}
-        </div>
-      )}
+      <PlayTableRegion game={game} motionOff={motionOff} onRunEnded={() => setFlourishDone(true)} />
 
       <p className="room-progress" aria-hidden="true">
         {!final && game.room.length === 1
@@ -205,7 +185,7 @@ export function PlayScreen() {
 
       {selected !== null && <ActionPanel game={game} cardId={selected} />}
 
-      {phaser ? <WeaponReadout game={game} /> : <WeaponStack game={game} />}
+      <WeaponReadout game={game} />
 
       <p className="seed-note">
         <Tooltip text={t('tooltipSeed')}>
@@ -219,20 +199,41 @@ export function PlayScreen() {
 }
 
 /**
- * The Phaser path's canvas region (docs/phaser-plan.md §4 Phase 1): an
+ * The play screen's canvas region (docs/phaser-plan.md §4 Phase 1): an
  * explicit-dimension box (`aspect-ratio: 960/600`, width-constrained within
  * `.screen`) so FIT has real dimensions — a zero-height container breaks its
  * centering — with the aria-hidden DOM room mirror layered inside for e2e
  * input, and the cursor tooltip layer edge-anchored above.
+ *
+ * Motion wiring (§4 Phase 2): reduced motion reaches the game through BOTH
+ * carriers (see the escape-hatch comment in PlayScreen) — `motion=off` /
+ * matchMedia set the create-time opts, and the live media-query change
+ * subscription pushes `setReducedMotion` afterwards; `onRunEnded` forwards
+ * the post-flourish signal up to the win/lose handoff gate.
  *
  * The game module is reached ONLY through a dynamic import: Phaser and the
  * rest of `src/game` must stay out of the main bundle and off every
  * RTL-tested import chain (jsdom has no canvas/WebGL). Mount failure is
  * non-fatal: the region stays inert and the rest of the screen keeps working.
  */
-function PlayTableRegion({ game }: { game: GameState }) {
+function PlayTableRegion({
+  game,
+  motionOff,
+  onRunEnded,
+}: {
+  game: GameState;
+  motionOff: boolean;
+  onRunEnded: (info: { outcome: 'won' | 'lost' }) => void;
+}) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [handle, setHandle] = useState<PlayTableHandle | null>(null);
+
+  // Latest-callback refs so the (per-handle) subscriptions never re-arm on
+  // the parent's re-renders, and unmount races clear them.
+  const onRunEndedRef = useRef(onRunEnded);
+  onRunEndedRef.current = onRunEnded;
+  const motionOffRef = useRef(motionOff);
+  motionOffRef.current = motionOff;
 
   useLayoutEffect(() => {
     const container = containerRef.current;
@@ -240,9 +241,13 @@ function PlayTableRegion({ game }: { game: GameState }) {
     let cancelled = false;
     let localHandle: PlayTableHandle | null = null;
 
+    // Create-time reduced motion: the OS/Playwright media query combined with
+    // the `motion=off` escape hatch (read via ref so the create-once effect
+    // keeps its `[]` deps — a later flip goes through setReducedMotion).
     const reducedMotion =
-      typeof window.matchMedia === 'function' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      (typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches) ||
+      motionOffRef.current;
 
     void (async () => {
       try {
@@ -272,6 +277,30 @@ function PlayTableRegion({ game }: { game: GameState }) {
       setHandle(null);
     };
   }, []);
+
+  // Post-flourish run-ended signal for the handoff gate. Subscribed once per
+  // handle; the ref forwards the latest callback; unsubscribed before the
+  // handle is destroyed in the cleanup above.
+  useEffect(() => {
+    return subscribeRunEnded(handle, (info) => onRunEndedRef.current(info));
+  }, [handle]);
+
+  // Live reduced motion (docs/phaser-plan.md §4 Phase 2): the handle is
+  // updated whenever the media query flips (OS toggle, Playwright emulation)
+  // or the `motion=off` escape hatch appears/disappears. Create-time opts
+  // carry the initial value; `motion=off` is not a media event, so it is
+  // pushed explicitly on arrival.
+  useEffect(() => {
+    const mq =
+      typeof window.matchMedia === 'function'
+        ? window.matchMedia('(prefers-reduced-motion: reduce)')
+        : null;
+    if (mq === null) return;
+    const sync = () => applyReducedMotion(handle, mq.matches || motionOffRef.current);
+    if (motionOff) sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, [handle, motionOff]);
 
   return (
     <div className="play-table-region">

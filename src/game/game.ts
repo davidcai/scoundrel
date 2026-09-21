@@ -25,6 +25,15 @@ export interface PlayTableHandle {
   onHover(cb: (cardId: CardId | null) => void): () => void;
   /** dataURL via the renderer's snapshot (promise-wrapped). */
   snapshot(): Promise<string>;
+  /**
+   * Post-flourish gate: fires exactly once per run end, AFTER the terminal
+   * flourish completes (instantly under reduced motion). Never fires on
+   * undo/mismatch rebuild. React delays the GameOverScreen switch on this
+   * (time-bounded fail-open is the React lane's responsibility).
+   */
+  onRunEnded(cb: (info: { outcome: 'won' | 'lost' }) => void): () => void;
+  /** Live reduced-motion toggle (also honored at create via opts.reducedMotion). */
+  setReducedMotion(reduced: boolean): void;
 }
 
 const handles = new WeakMap<HTMLElement, PlayTableHandle>();
@@ -93,6 +102,7 @@ export function createPlayTable(
 
   let bridge: StoreBridge | null = null;
   let destroyed = false;
+  const runEndedCbs = new Set<(info: { outcome: 'won' | 'lost' }) => void>();
 
   // Scene-systems boot gate. Phaser defers scene creation until the game's
   // `ready` event (SceneManager.bootQueue runs first within that same emit),
@@ -115,6 +125,10 @@ export function createPlayTable(
       bridge = attachStoreBridge(tableScene, useGameStore, {
         reducedMotion: opts?.reducedMotion === true,
       });
+      // Fan the post-flourish gate signal out to the React lane's subscribers.
+      bridge.onRunEnded((info) => {
+        runEndedCbs.forEach((cb) => cb(info));
+      });
     });
   });
 
@@ -133,6 +147,15 @@ export function createPlayTable(
     },
     onHover(cb) {
       return tableScene.onHoverChange(cb);
+    },
+    onRunEnded(cb) {
+      runEndedCbs.add(cb);
+      return () => {
+        runEndedCbs.delete(cb);
+      };
+    },
+    setReducedMotion(reduced) {
+      tableScene.setReducedMotion(reduced);
     },
     snapshot() {
       return ready.then(

@@ -2,50 +2,43 @@
 import { expect, test as base } from '@playwright/test';
 
 /**
- * Dual-renderer fixtures (docs/phaser-plan.md §4 Phase 1): every test runs
- * once per Playwright project — `chromium` (DOM renderer, app defaults) and
- * `chromium-phaser` (canvas renderer, seeded via the settings shard).
+ * Shared e2e fixtures (Phase 4: single renderer — Phaser owns the play table).
  *
- * The `tableRenderer` flag is per-device appearance and deliberately does NOT
- * round-trip through share URLs (§3), so the phaser path is seeded through
- * `localStorage` (`scoundrel:settings`) before the app boots — a query param
- * would leak the flag into the shareable-URL space.
- *
- * Shard shape (src/store/persistence.ts + src/store/settings.ts): each key
- * holds a versioned wrapper `{ version, data }`; SettingsData is
- * `{ config, language, tableRenderer }` with `config` a full GameConfig (the
- * validator rejects the shard entirely if it is corrupt). Version 2 is the
- * settings schema (`SETTINGS_SCHEMA_VERSION`, bumped at that call site only —
- * the global SCHEMA_VERSION stays 1 and stamps run/stats shards).
+ * The `page` fixture seeds the English settings shard before the app boots
+ * (most tests assert the English UI; the app defaults to Chinese). Shard shape
+ * (src/store/persistence.ts + src/store/settings.ts): each key holds a
+ * versioned wrapper `{ version, data }`; SettingsData is `{ config, language }`
+ * with `config` a full GameConfig (the validator rejects the shard entirely if
+ * it is corrupt, and ignores unknown extra fields). Version 2 is the settings
+ * schema (`SETTINGS_SCHEMA_VERSION`, bumped at that call site only — the
+ * global SCHEMA_VERSION stays 1 and stamps run/stats shards). The removed
+ * `tableRenderer` flag is deliberately NOT seeded: shards from flag-era
+ * builds carry the extra field and must still load (covered in the store
+ * regression tests), but freshly-seeded shards no longer carry it.
  */
 
-export type TableRenderer = 'dom' | 'phaser';
-
-export interface RendererFixtures {
-  tableRenderer: TableRenderer;
+export interface SeedSettingsFixtures {
   /** Set false to boot on app defaults (used by the language-detection tests). */
   seedSettings: boolean;
 }
 
-export function settingsShard(tableRenderer: TableRenderer): string {
+export function settingsShard(): string {
   return JSON.stringify({
     version: 2,
     data: {
       config: { runAwayMode: 'once', potionsPerRoom: 'one', weaponDegradation: true },
       language: 'en',
-      tableRenderer,
     },
   });
 }
 
 export type AwaitTableReady = () => Promise<void>;
 
-export const test = base.extend<RendererFixtures & { awaitTableReady: AwaitTableReady }>({
-  tableRenderer: ['dom', { option: true }],
+export const test = base.extend<SeedSettingsFixtures & { awaitTableReady: AwaitTableReady }>({
   seedSettings: [true, { option: true }],
-  page: async ({ page, tableRenderer, seedSettings }, use) => {
+  page: async ({ page, seedSettings }, use) => {
     if (seedSettings) {
-      const shard = settingsShard(tableRenderer);
+      const shard = settingsShard();
       await page.addInitScript((settings) => {
         try {
           localStorage.setItem('scoundrel:settings', settings);
@@ -58,14 +51,12 @@ export const test = base.extend<RendererFixtures & { awaitTableReady: AwaitTable
     await use(page);
   },
   /**
-   * No-op on the DOM path; on the phaser path waits for the readiness marker
-   * the game stamps on the canvas container (`data-table-ready="true"`, set
-   * when the scene + all card textures are ready) so canvas-dependent
-   * assertions never race the boot.
+   * Waits for the readiness marker the game stamps on the canvas container
+   * (`data-table-ready="true"`, set when the scene + all card textures are
+   * ready) so canvas-dependent assertions never race the boot.
    */
-  awaitTableReady: async ({ page, tableRenderer }, use) => {
+  awaitTableReady: async ({ page }, use) => {
     await use(async () => {
-      if (tableRenderer !== 'phaser') return;
       await expect(page.locator('[data-table-ready="true"]')).toBeVisible({ timeout: 15_000 });
     });
   },

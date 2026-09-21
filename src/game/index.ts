@@ -4,5 +4,6 @@
  * RTL-tested import chain and off title/stats routes).
  */
 export { DESIGN_HEIGHT, DESIGN_WIDTH, createPlayTable, type PlayTableHandle } from './game';
-export type { BridgeCommand, TableSceneApi } from './scene-api';
+export type { BridgeCommand, RunEndedInfo, TableSceneApi, TerminalPresentation } from './scene-api';
 export type { StoreBridge, StoreView, TableModel } from './store-bridge';
+export { TIMING } from './animations';

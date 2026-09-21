@@ -1,40 +1,68 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../src/App';
 import {
   DEFAULT_CONFIG,
   cardKind,
   cardValue,
   createInitialState,
+  previewFight,
   type CardId,
+  type GameAction,
   type GameState,
 } from '../src/engine';
 import { cardAriaLabel, cardHint, cardLabel, useLanguage } from '../src/i18n';
 import { useGameStore } from '../src/store/game-store';
-import { useTableRenderer } from '../src/ui/table-renderer';
 import { createPlayTable } from '../src/game';
 
 type UserEvent = ReturnType<typeof userEvent.setup>;
+type RunEndedCb = (info: { outcome: 'won' | 'lost' }) => void;
 
 // ---------------------------------------------------------------------------
 // Game-layer mock
 // ---------------------------------------------------------------------------
 
+/** Every handle the stubbed createPlayTable produced, in creation order. */
+const handleRegistry = vi.hoisted(() => {
+  return [] as Array<{
+    runEndedCbs: Set<RunEndedCb>;
+    /** Every `setReducedMotion` push, in order. */
+    reducedCalls: boolean[];
+  }>;
+});
+
 // The canvas mount is non-fatal under jsdom (no canvas/WebGL — PlayScreen logs
 // and leaves the region inert), but stubbing the `src/game` entry keeps the
 // suite fast and deterministic: the dynamic import resolves to a stub handle
-// without ever loading Phaser. The stub shape mirrors `PlayTableHandle`.
+// without ever loading Phaser. The stub carries the Phase 2 motion-era
+// members (`onRunEnded`, `setReducedMotion`) so the gate + live
+// reduced-motion wiring are exercisable; each handle registers itself in
+// `handleRegistry` for the tests to drive.
 vi.mock('../src/game', () => ({
   DESIGN_WIDTH: 960,
   DESIGN_HEIGHT: 600,
-  createPlayTable: vi.fn(() => ({
-    destroy: vi.fn(),
-    whenReady: () => Promise.resolve(),
-    onHover: vi.fn(() => () => undefined),
-    snapshot: () => Promise.resolve(''),
-  })),
+  createPlayTable: vi.fn(() => {
+    const runEndedCbs = new Set<RunEndedCb>();
+    const reducedCalls: boolean[] = [];
+    handleRegistry.push({ runEndedCbs, reducedCalls });
+    return {
+      destroy: vi.fn(),
+      whenReady: () => Promise.resolve(),
+      onHover: vi.fn(() => () => undefined),
+      snapshot: () => Promise.resolve(''),
+      onRunEnded: vi.fn((cb: RunEndedCb) => {
+        runEndedCbs.add(cb);
+        return () => {
+          runEndedCbs.delete(cb);
+        };
+      }),
+      setReducedMotion: vi.fn((reduced: boolean) => {
+        reducedCalls.push(reduced);
+      }),
+    };
+  }),
 }));
 
 // ---------------------------------------------------------------------------
@@ -42,14 +70,18 @@ vi.mock('../src/game', () => ({
 // ---------------------------------------------------------------------------
 
 beforeEach(() => {
+  handleRegistry.length = 0;
+  vi.mocked(createPlayTable).mockClear();
   localStorage.clear();
   // The app defaults to Chinese; these tests assert the English UI.
   act(() => useLanguage.setState({ lang: 'en', setting: 'en' }));
   act(() => useGameStore.getState().reset());
-  // Route through the real settings seam (the same one the SettingsScreen
-  // toggle drives): flips the reactive hook AND persists the settings shard.
-  act(() => useTableRenderer.getState().setRenderer('phaser'));
   window.location.hash = '';
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
 });
 
 const isMonster = (c: CardId) => cardKind(c) === 'monster';
@@ -89,9 +121,64 @@ function mirrorIds(): CardId[] {
   );
 }
 
+/** Greedy strategy via the store's act(): finishes any seeded run. */
+function playOutGreedy(): void {
+  let guard = 0;
+  while (useGameStore.getState().game?.phase === 'playing' && guard++ < 1000) {
+    const game = currentGame();
+    if (game.room.length === 0) {
+      act(() => useGameStore.getState().act({ type: 'DealRoom' }));
+      continue;
+    }
+    const ready = game.dungeon.length > 0 && game.room.length === 1;
+    if (ready) {
+      act(() => useGameStore.getState().act({ type: 'EnterNextRoom' }));
+      continue;
+    }
+    act(() => useGameStore.getState().act(pickGreedyAction(game)));
+  }
+}
+
+function pickGreedyAction(state: GameState): GameAction {
+  const room = state.room;
+  const potion = room.find(isPotion);
+  if (potion !== undefined && state.hp <= 12 && state.potionsUsedThisRoom === 0) {
+    return { type: 'DrinkPotion', cardId: potion };
+  }
+  const best = room.filter(isWeapon).sort((a, b) => cardValue(b) - cardValue(a))[0];
+  if (best !== undefined && (state.weapon === null || cardValue(best) > cardValue(state.weapon))) {
+    return { type: 'EquipWeapon', cardId: best };
+  }
+  const monster = room.filter(isMonster).sort((a, b) => cardValue(a) - cardValue(b))[0];
+  if (monster === undefined) {
+    const any = room[0]!;
+    return isWeapon(any)
+      ? { type: 'EquipWeapon', cardId: any }
+      : { type: 'DrinkPotion', cardId: any };
+  }
+  if (state.weapon !== null && previewFight(state, monster, false).legal) {
+    return { type: 'FightMonster', cardId: monster };
+  }
+  return { type: 'FightMonster', cardId: monster, barehanded: true };
+}
+
+/** The latest stubbed handle entry (throws if no canvas was ever mounted). */
+function lastHandleEntry(): { runEndedCbs: Set<RunEndedCb>; reducedCalls: boolean[] } {
+  const entry = handleRegistry.at(-1);
+  if (entry === undefined) throw new Error('no play table handle was created');
+  return entry;
+}
+
+/** Fires the run-ended channel (post-flourish signal from the game lane). */
+function fireRunEnded(outcome: 'won' | 'lost'): void {
+  for (const cb of lastHandleEntry().runEndedCbs) {
+    cb({ outcome });
+  }
+}
+
 /**
  * Card selection through the overlay CardSelectionControl — the phaser path's
- * keyboard seam (the DOM path's `.card` buttons don't exist here): Home jumps
+ * keyboard seam (the canvas cards are not DOM): Home jumps
  * to the first room card, ArrowRight cycles in engine room order.
  */
 async function selectViaKeyboard(user: UserEvent, cardId: CardId): Promise<void> {
@@ -126,7 +213,7 @@ describe('play screen — phaser path', () => {
     expect(mirrorIds()).toEqual(currentGame().room);
     expect(mirrorCard(currentGame().room[0]!).getAttribute('aria-hidden')).toBeNull(); // mirror root is aria-hidden, cards plain divs
 
-    // The weapon readout replaces WeaponStack; HUD unchanged.
+    // The weapon readout carries the weapon-zone information; HUD unchanged.
     expect(document.querySelector('.weapon-readout')).not.toBeNull();
     expect(screen.getByText('20/20')).toBeInTheDocument();
     expect(screen.getByText(`${currentGame().dungeon.length} cards`)).toBeInTheDocument();
@@ -306,5 +393,148 @@ describe('play screen — phaser path', () => {
     expect(items[0]!.getAttribute('aria-label')).toBe(cardAriaLabel(monster));
     expect(items[0]!.querySelector('.last-kill-badge')?.textContent).toBe('Last kill');
     expect(document.querySelector('.weapon-card')?.getAttribute('data-card-id')).toBe(weapon);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Win/lose handoff gate + live reduced motion (docs/phaser-plan.md §3, §4 Phase 2)
+// ---------------------------------------------------------------------------
+
+describe('win/lose handoff gate', () => {
+  function seededRender(): Promise<void> {
+    return (async () => {
+      act(() => useGameStore.getState().startRun('gateseed', DEFAULT_CONFIG));
+      await renderAt('#/play');
+      // Wait for the (stubbed) canvas mount before finishing the run: the
+      // gate's onRunEnded subscription must be live first.
+      await waitFor(() => expect(createPlayTable).toHaveBeenCalledTimes(1));
+    })();
+  }
+
+  it('delays the scorecard until the canvas reports the run ended', async () => {
+    await seededRender();
+    vi.useFakeTimers();
+
+    act(() => playOutGreedy());
+    const game = useGameStore.getState().game;
+    expect(game?.phase).not.toBe('playing');
+    const outcome: 'won' | 'lost' = game!.phase === 'won' ? 'won' : 'lost';
+
+    // Gate closed: the canvas region stays mounted, the scorecard does not
+    // render yet — the flourish owns the screen.
+    expect(screen.queryByRole('heading', { name: /victory|defeat/i })).not.toBeInTheDocument();
+    expect(document.querySelector('.play-table-region')).not.toBeNull();
+    // Subscribed exactly once per handle.
+    expect(lastHandleEntry().runEndedCbs.size).toBe(1);
+
+    // The flourish completes → onRunEnded fires → the gate opens.
+    act(() => fireRunEnded(outcome));
+    expect(
+      screen.getByRole('heading', { name: outcome === 'won' ? /victory/i : /defeat/i }),
+    ).toBeInTheDocument();
+    expect(document.querySelector('.play-table-region')).toBeNull();
+  });
+
+  it('fails open after the handoff timeout', async () => {
+    await seededRender();
+    vi.useFakeTimers();
+
+    act(() => playOutGreedy());
+    expect(useGameStore.getState().game?.phase).not.toBe('playing');
+    expect(screen.queryByRole('heading', { name: /victory|defeat/i })).not.toBeInTheDocument();
+
+    // Just before the fail-open deadline the gate is still holding.
+    act(() => {
+      vi.advanceTimersByTime(999);
+    });
+    expect(screen.queryByRole('heading', { name: /victory|defeat/i })).not.toBeInTheDocument();
+
+    // At the deadline the scorecard takes over — the flourish is
+    // presentation-only and must never strand the player (mount failures and
+    // pre-Phase-2 handles included, since onRunEnded then never fires).
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(screen.getByRole('heading', { name: /victory|defeat/i })).toBeInTheDocument();
+  });
+});
+
+describe('live reduced motion', () => {
+  function stubMatchMedia(initialMatches: boolean): {
+    listeners: Set<(event: MediaQueryListEvent) => void>;
+    setMatches: (matches: boolean) => void;
+  } {
+    const listeners = new Set<(event: MediaQueryListEvent) => void>();
+    let matches = initialMatches;
+    const fakeMq = {
+      get matches() {
+        return matches;
+      },
+      addEventListener: (_type: 'change', cb: (event: MediaQueryListEvent) => void) => {
+        listeners.add(cb);
+      },
+      removeEventListener: (_type: 'change', cb: (event: MediaQueryListEvent) => void) => {
+        listeners.delete(cb);
+      },
+    };
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn(() => fakeMq as unknown as MediaQueryList),
+    );
+    return {
+      listeners,
+      setMatches: (next: boolean) => {
+        matches = next;
+        for (const cb of listeners) {
+          cb({ matches: next } as MediaQueryListEvent);
+        }
+      },
+    };
+  }
+
+  it('carries the media query into the create-time opts and pushes live changes', async () => {
+    const media = stubMatchMedia(false);
+    act(() => useGameStore.getState().startRun('motionseed', DEFAULT_CONFIG));
+    await renderAt('#/play');
+    await waitFor(() => expect(createPlayTable).toHaveBeenCalledTimes(1));
+
+    // Create-time opts carry the initial (un-reduced) value...
+    expect(vi.mocked(createPlayTable).mock.lastCall?.[1]).toEqual({ reducedMotion: false });
+    // ...and the live channel is subscribed but has pushed nothing yet (the
+    // create opts ARE the initial value).
+    expect(lastHandleEntry().reducedCalls).toEqual([]);
+
+    // OS toggle / Playwright reducedMotion emulation flips the query.
+    act(() => {
+      media.setMatches(true);
+    });
+    expect(lastHandleEntry().reducedCalls).toEqual([true]);
+
+    act(() => {
+      media.setMatches(false);
+    });
+    expect(lastHandleEntry().reducedCalls).toEqual([true, false]);
+  });
+
+  it('the motion=off param forces reduced motion at create and live', async () => {
+    const media = stubMatchMedia(false);
+    act(() => useGameStore.getState().startRun('motionoff', DEFAULT_CONFIG));
+    await renderAt('#/play?seed=motionoff&motion=off');
+    await waitFor(() => expect(createPlayTable).toHaveBeenCalledTimes(1));
+
+    // Create-time opts are forced reduced...
+    expect(vi.mocked(createPlayTable).mock.lastCall?.[1]).toEqual({ reducedMotion: true });
+    // ...and the escape hatch is pushed live on arrival.
+    expect(lastHandleEntry().reducedCalls).toEqual([true]);
+
+    // The media query ORs into the escape hatch: un-reducing the query keeps
+    // reduced motion on while the param is present.
+    act(() => {
+      media.setMatches(true);
+    });
+    act(() => {
+      media.setMatches(false);
+    });
+    expect(lastHandleEntry().reducedCalls).toEqual([true, true, true]);
   });
 });

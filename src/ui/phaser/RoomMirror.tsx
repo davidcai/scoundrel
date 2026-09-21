@@ -3,20 +3,20 @@ import { useT } from '../../i18n';
 import { useGameStore } from '../../store/game-store';
 
 /**
- * DOM room mirror for the Phaser path (docs/phaser-plan.md §4 Phase 1).
+ * DOM room mirror — the room-composition a11y/test seam over the Phaser canvas
+ * (docs/phaser-plan.md §4 Phase 1; retained permanently per §7.6).
  *
  * An `aria-hidden`, non-focusable list mirroring the room with `data-card-id`
- * per card, so (a) Playwright keeps driving *input* — the existing spec clicks
- * room cards and reads composition via `.room [data-card-id]` — and (b) room
- * state stays readable outside the canvas. Clicking a mirror node forwards to
- * `selectCard` with PlayScreen's exact toggle semantics
+ * per card, so (a) Playwright keeps driving *input* — the spec clicks room
+ * cards and reads composition via `.room [data-card-id]` — and (b) room state
+ * stays readable outside the canvas. Clicking a mirror node forwards to
+ * `selectCard` with the play screen's toggle semantics
  * (`selectCard(selected === cardId ? null : cardId)`); keyboard/screen-reader
  * input goes through the overlay `CardSelectionControl`, never the mirror.
  *
- * The root carries the `.room` class, so the existing `.room [data-card-id]`
- * locators keep working unchanged wherever the integration lane mounts this.
- * The integration lane should place it inside the (positioned) canvas region:
- * the absolute positioning assumes that ancestor.
+ * The root carries the `.room` class, so the `.room [data-card-id]`
+ * locators keep working unchanged. PlayTableRegion places it inside the
+ * (positioned) canvas region: the absolute geometry assumes that ancestor.
  */
 export function RoomMirror({ game }: { game: GameState }) {
   const t = useT();

@@ -206,7 +206,7 @@ A `mulberry32` PRNG (~10 lines, no dep) seeded by a `uint32`. The seed is shared
 
 ### Persistence
 
-- **Sharded localStorage** with three keys: `scoundrel:settings`, `scoundrel:stats`, `scoundrel:run`. Each holds a single versioned wrapper `{version: 1, data: {...}}` and a `migrate(key, currentVersion)` helper upgrades across schema versions.
+- **Sharded localStorage** with three keys: `scoundrel:settings`, `scoundrel:stats`, `scoundrel:run`. Each holds a single versioned wrapper `{version, data}` and a `migrate(key, currentVersion)` helper upgrades across schema versions. The settings shard is at version 2 (bumped at its call-site only — the global stamp stays 1 so run/stats shards are unaffected); the validator tolerates shards saved by older/removed-field builds, ignoring unknown extra fields.
 - **`run` data** holds `GameState` + current snapshot + seed + config + startedAt + terminal outcome if completed. The terminal outcome is kept inline until the player returns to title so the win/lose screen survives reload. Stats write is idempotent (guarded by a "stats-written" flag) to prevent double-counting on reload.
 - **`stats` data**: aggregates (`gamesPlayed`, `wins`, `losses`, `bestScore`, `currentStreak`, `bestStreak`) + a bounded `runs: RunRecord[]` (cap ~50, newest first). Each `RunRecord = {seed, config, outcome, score, date, roomsCleared}` doubles as the source for the "Replay this run" feature (seed + config).
 
@@ -218,20 +218,20 @@ A `mulberry32` PRNG (~10 lines, no dep) seeded by a `uint32`. The seed is shared
 
 ### UI interaction model
 
-- **Click-to-select + damage preview + confirm**: click a card highlights it and shows a damage/cost preview; choosing "Fight" / "Drink" / "Equip" confirms. Keyboard-navigable and mobile-friendly.
+- **Click-to-select + damage preview + confirm**: activating a card (click on the canvas sprite — the DOM mirror mirrors the same hit-targets — or arrow-key selection through the overlay card-selection control) highlights it and shows a damage/cost preview; choosing "Fight" / "Drink" / "Equip" confirms. Keyboard-navigable and mobile-friendly.
 - **Carryover auto-determined**: the un-resolved 4th card auto-carries to the next room and is visually marked (tint/badge) there.
 - **Explicit "Enter Next Room" button**: creates the clean undo seam. Clicking it clears the current snapshot and snapshots the new room at its start.
-- **Tooltips** (no linear tutorial): hover/tap-and-hold on card types, the weapon stack, and the run-away restriction. Tooltips reuse the damage-preview + ARIA live-region infrastructure.
+- **Tooltips** (no linear tutorial): hover/tap-and-hold on card types, the weapon readout, and the run-away restriction. Tooltips reuse the damage-preview + ARIA live-region infrastructure.
 
 ### Accessibility
 
-- All cards and actions are keyboard-reachable (tab + arrow navigation through the room).
-- ARIA roles/labels describe cards ("8 of Clubs, monster, value 8").
+- All cards and actions are keyboard-reachable (the overlay card-selection control cycles the room with arrows/Home/End; every action button is tabbable).
+- ARIA roles/labels describe cards ("8 of Clubs, monster, value 8") — card names are announced through the selection control's live region; the aria-hidden DOM room mirror keeps the room composition readable outside the canvas.
 - Live regions announce combat results, potion quaffs, run-away blocks, and win/lose — driven directly by the Q25b result payloads.
 
 ### Visual & design
 
-- **Modern RPG** aesthetic: dark dungeon-crawler theme, sharp and modern UI (crisp typography, depth/shadow, high contrast), mysterious and adventurous atmosphere; **hybrid assets**: CSS + modern typography for cards/HUD/UI; raster art only for the title backdrop and key art.
+- **Modern RPG** aesthetic: dark dungeon-crawler theme, sharp and modern UI (crisp typography, depth/shadow, high contrast), mysterious and adventurous atmosphere; **hybrid rendering**: Phaser 4 owns the play screen's game table (card sprites, weapon + kill stack, tween-driven motion), while CSS + modern typography carry the HUD, action panel, and every other screen; raster art for the card artwork and the title backdrop.
 - **Phased designer handoff**: Phase 1 = style guide + play screen + title (highest leverage); Phase 2 = stats, settings, win/lose scorecard. The designer overlaps Phase 2 once the style guide is approved; engineering implements Phase 1 in parallel.
 
 ### Toolchain
@@ -239,6 +239,7 @@ A `mulberry32` PRNG (~10 lines, no dep) seeded by a `uint32`. The seed is shared
 - Scaffold via `pnpm create vite@latest --template react-ts`, then strip `App.tsx` boilerplate and add the `engine/`/`ui/`/`store/`/`assets/` layers.
 - **pnpm** (pinned via the `packageManager` field in `package.json`); CI installs with `pnpm install --frozen-lockfile`, with pnpm set up via `pnpm/action-setup` before `actions/setup-node` (which restores the pnpm store cache).
 - **Strict TS + typescript-eslint (strict) + Prettier**.
+- **Phaser 4** owns the play screen's game table (one prebuilt ESM module — not tree-shakeable — loaded exclusively through a dynamic import so the chunk stays off the title/stats routes; a `manualChunks` entry pins it to its own bundle).
 - **GitHub Pages** deploy with **env-driven base path**: `base: process.env.BASE_URL ?? '/'`; CI sets `BASE_URL=/scoundrel/`. Hash router tolerates any base.
 
 ### CI
@@ -258,9 +259,9 @@ We prefer the **fewest seams possible** — ideally one. This spec uses **three 
 
 1. **Engine reducer seam (pure unit tests)** — the highest-leverage single seam. Tests call `reducer(state, action)` and assert `{ state, result }`. Covers all rule behavior: deck composition (44-card), combat damage (`max(0, m−w)`), barehanded vs weapon, weapon degradation threshold, weapon swap discards stack, potion cap (1 vs toggle), potion counter reset on room, run-away twice-in-a-row block, run-away final-room gate, unresolved-heart carry, final-partial-room shapes (4/3/2/1 remaining), win/lose detection, scoring formulas. Deterministic via mulberry32 seeds; runs in Node with no DOM. _This seam absorbs the vast majority of test surface._
 
-2. **React component seam (integration)** — React Testing Library + Vitest. Renders React components with a Zustand store and asserts on the accessible rendered output (queries like `getByRole`, `getByText`, `findByLiveAnnouncement`). Covers: card-selection state appears in the store (not engine), clicking a card selects it, confirming an action dispatches the engine action and re-renders, damage-preview tooltip reflects the reducer's preview, undo button rewinds, carryover marker appears on the carried card, win/lose screen renders the scorecard, replay-link affordance copies the URL. No mount of internal subcomponent state; no `instance()` access.
+2. **React component seam (integration)** — React Testing Library + Vitest. Renders React components with a Zustand store and asserts on the accessible rendered output (queries like `getByRole`, `getByText`, `findByLiveAnnouncement`). The `src/game` entry is stubbed in jsdom (no canvas/WebGL there — Phaser must never load under RTL). Covers: card-selection state appears in the store (not engine), keyboard selection through the overlay CardSelectionControl, confirming an action dispatches the engine action and re-renders, damage-preview reflects the reducer's preview, undo button rewinds, carryover marker appears on the carried card, win/lose screen renders the scorecard (the handoff gate opens via the stubbed run-ended channel), replay-link affordance copies the URL. No mount of internal subcomponent state; no `instance()` access.
 
-3. **Playwright seam (e2e)** — highest seam for behavior that crosses the whole stack (router, persistence, real browser). Tests drive the title → new run → play → win/lose → stats flow with seeded URLs (`#/play?seed=FIXED&config=...`) for deterministic assertions of exact outcomes (the seedability decision Q16a makes this possible — this is the rare e2e case that can assert _exact_ final scores, not just invariants). Covers: localStorage persistence survives reload, win/lose screen survives reload (Q37b idempotent stats — reloading the win screen does NOT double-count the run), shareable URL round-trip, keyboard navigation through a full room, SR announcements present in the a11y tree. _Chromium-only in CI_ (Q48a); one config line to add Firefox/WebKit later if bugs surface.
+3. **Playwright seam (e2e)** — highest seam for behavior that crosses the whole stack (router, persistence, real browser — including the Phaser canvas). Tests drive the title → new run → play → win/lose → stats flow with seeded URLs (`#/play?seed=FIXED&config=...`) for deterministic assertions of exact outcomes (the seedability decision Q16a makes this possible — this is the rare e2e case that can assert _exact_ final scores, not just invariants). Canvas input goes through the aria-hidden DOM room mirror (the same `[data-card-id]` hit-targets the canvas draws), keyboard selection through the overlay control, and assertions stay on the DOM overlay; the game's `data-table-ready` marker gates canvas-dependent waits, `reducedMotion: 'reduce'` emulation pins tween end-states, and a `motion=off` hash param is the URL escape hatch. Covers: localStorage persistence survives reload, win/lose screen survives reload (Q37b idempotent stats — reloading the win screen does NOT double-count the run), shareable URL round-trip, keyboard card selection via the overlay control, SR announcements present in the a11y tree, and one canvas snapshot covering card layout. _Chromium-only in CI_ (Q48a); one config line to add Firefox/WebKit later if bugs surface.
 
 ### Why three seams and not one
 
@@ -270,8 +271,9 @@ A single seam (e2e only) would force every rule edge case through a full browser
 
 - **Engine**: deck builder, mulberry32 PRNG, reducer, action handlers, result constructors, win/lose detection, scoring. (Seam 1.)
 - **Persistence adapters**: localStorage wrappers, migrator, schema versioning. (Seam 2, via RTL — render the app, reload the JS context, assert state restored.)
-- **UI components**: title, play, stats, settings, about screens; card components; HUD; weapon stack; damage preview; tooltips; win/lose scorecard. (Seam 2.)
-- **Store**: Zustand store wiring actions to the reducer, selection state, undo snapshot management. (Seam 2, via the rendered UI.)
+- **UI components**: title, play, stats, settings, about screens; card components; HUD; weapon-zone readout; damage preview; tooltips; win/lose scorecard. (Seam 2.)
+- **Store**: Zustand store wiring actions to the reducer, selection state, undo snapshot management, the `lastResult` result channel consumed by the renderer. (Seam 2, via the rendered UI.)
+- **Phaser renderer layer** (`src/game/`): table scene layout, store bridge (result → presentation commands, snapshot first-sync, drift fallback), animations, texture loading — unit-tested against a stubbed scene; the canvas itself is covered by the e2e snapshot. (Seams 1/3.)
 - **Cross-stack flows**: full run lifecycle, persistence reload, shareable URL, a11y. (Seam 3.)
 
 ### Prior art

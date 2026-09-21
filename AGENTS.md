@@ -24,11 +24,13 @@ pnpm e2e          # Playwright e2e — run `pnpm build` first (serves dist/)
 ## Architecture
 
 - `src/engine/` — pure TypeScript game engine (deck, seeded RNG, reducer `(state, action) → { state, result }`, all rules, scoring). Zero React, zero DOM; Node-testable.
-- `src/store/` — Zustand store, sharded versioned localStorage persistence (`scoundrel:settings`/`stats`/`run`), stats aggregation, shareable replay URLs.
-- `src/ui/` — React screens and components. Transient card-selection lives in the store, never in engine state.
-- `assets/` — the 44 card artwork JPEGs (bundled via `import.meta.glob` in `src/ui/card-image.ts`).
-- `tests/` — store unit tests + RTL integration tests. Engine tests live next to the code in `src/engine/`.
-- `e2e/` — Playwright black-box tests (seeded URLs make runs deterministic).
+- `src/store/` — Zustand store, sharded versioned localStorage persistence (`scoundrel:settings`/`stats`/`run`), stats aggregation, shareable replay URLs. Every action publishes its reducer result on a `lastResult` channel that the renderer consumes as its animation cue sheet.
+- `src/game/` — Phaser 4 renderer for the play screen's game table (static layout + hand-authored tweens; reacts to the store via `store-bridge`, routes sprite input to `selectCard`). Loaded ONLY through a dynamic import so Phaser stays off the other routes and out of RTL-tested import chains.
+- `src/ui/` — React screens and DOM overlay around the canvas: Hud, ActionPanel, CardSelectionControl (keyboard card selection), WeaponReadout (weapon/kill-stack information), RoomMirror (aria-hidden room seam used by e2e), CardHoverLayer. Transient card-selection lives in the store, never in engine state; the win/lose handoff is gated on the canvas flourish (fail-open timeout in PlayScreen).
+- `assets/` — the 44 card artwork JPEGs (bundled via `import.meta.glob` in `src/ui/card-image.ts`; consumed by both the DOM `CardView` and the Phaser texture loader).
+- `tests/` — store unit tests + RTL integration tests (`tests/phaser-play.test.tsx` covers the play screen by stubbing the `src/game` entry; no Phaser under jsdom). Engine tests live next to the code in `src/engine/`.
+- `e2e/` — Playwright black-box tests (seeded URLs make runs deterministic; input goes through the DOM room mirror, assertions on the DOM overlay).
+- `docs/phaser-plan.md` — the (implemented) integration plan for the Phaser layer.
 
 ## Conventions
 

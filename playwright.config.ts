@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
-import type { RendererFixtures } from './e2e/renderer';
+import type { SeedSettingsFixtures } from './e2e/renderer';
 
-export default defineConfig<RendererFixtures>({
+export default defineConfig<SeedSettingsFixtures>({
   testDir: './e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -25,17 +25,14 @@ export default defineConfig<RendererFixtures>({
   // comparison is meaningful without per-platform variants (fonts in the two
   // tiny canvas Text labels are absorbed by maxDiffPixelRatio).
   snapshotPathTemplate: '{testDir}/snapshots/{arg}{ext}',
+  // Single renderer since Phase 4 (docs/phaser-plan.md): Phaser owns the play
+  // table. `reducedMotion: 'reduce'` is the deterministic-e2e carrier (tweens
+  // jump to end-states); the flourish-gate test overrides it to exercise the
+  // animated path, and `motion=off` is covered on the hash-route carrier.
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      // Dual-path CI until Phase 4 (docs/phaser-plan.md §4 Phase 1): the same
-      // spec against the canvas renderer. `reducedMotion: 'reduce'` is the
-      // Phase 2 hook for animation-disabled e2e; Phase 1 is static.
-      name: 'chromium-phaser',
-      use: { ...devices['Desktop Chrome'], tableRenderer: 'phaser', reducedMotion: 'reduce' },
+      use: { ...devices['Desktop Chrome'], reducedMotion: 'reduce' },
     },
   ],
   webServer: {

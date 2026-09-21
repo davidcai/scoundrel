@@ -4,18 +4,17 @@ import { CardView } from '../CardView';
 import { Tooltip } from '../Tooltip';
 
 /**
- * DOM weapon-zone readout for the Phaser path (docs/phaser-plan.md §4 Phase 1).
- *
- * Full information parity with `WeaponStack` — the canvas owns the weapon and
- * kill-stack *visuals*, this owns the *information*: the weapon element carries
- * `data-card-id` (the e2e bot reads `.weapon-card` + `data-card-id`), the kill
- * stack keeps `role="list"`/`listitem` semantics with a per-kill
- * `cardAriaLabel`, the localized last-kill badge is preserved, and the weapon
- * id/threshold/kill count stay in accessible DOM.
+ * DOM weapon-zone readout (docs/phaser-plan.md §4 Phase 1): the canvas owns
+ * the weapon and kill-stack *visuals*, this owns the *information* — the
+ * weapon element carries `data-card-id` (the e2e bot reads `.weapon-card` +
+ * `data-card-id`), the kill stack keeps `role="list"`/`listitem` semantics
+ * with a per-kill `cardAriaLabel`, the localized last-kill badge is
+ * preserved, and the weapon id/threshold/kill count stay in accessible DOM.
  *
  * CardView instances are `disabled` (non-interactive, non-focusable): the
- * canvas is the visual, this is the readout. The kill stack keeps WeaponStack's
- * stepped offsets (constants duplicated here — WeaponStack stays untouched).
+ * canvas is the visual, this is the readout. The kill stack keeps the
+ * stepped fan offsets (constants 40/16, mirrored from the former DOM
+ * WeaponStack — same geometry the canvas kill stack draws).
  */
 const KILL_STEP_X = 40;
 const KILL_STEP_Y = 16;

@@ -10,6 +10,28 @@ import type { PlayTableHandle } from '../../game';
  */
 export type { PlayTableHandle };
 
+/**
+ * The Phase 2 motion-era members (`onRunEnded`, `setReducedMotion`) are part
+ * of the landed `PlayTableHandle` in `src/game` — the single source of truth,
+ * so no local extension is declared here. These helpers only null-guard the
+ * handle for the pre-mount window.
+ */
+
+/** Subscribes to the run-ended channel (fires once, after the flourish). */
+export function subscribeRunEnded(
+  handle: PlayTableHandle | null,
+  cb: (info: { outcome: 'won' | 'lost' }) => void,
+): () => void {
+  return handle === null ? () => undefined : handle.onRunEnded(cb);
+}
+
+/** Pushes a reduced-motion change to the game's live toggle. */
+export function applyReducedMotion(handle: PlayTableHandle | null, reduced: boolean): void {
+  if (handle !== null) {
+    handle.setReducedMotion(reduced);
+  }
+}
+
 export interface CardHover {
   cardId: CardId;
   /** Cursor position (client coordinates) at the moment hover started. */
