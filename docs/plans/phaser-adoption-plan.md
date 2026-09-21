@@ -1,6 +1,6 @@
 # Scoundrel — Phaser Adoption Plan
 
-Status: implementation started (2026-09-17) — Phase 0 decisions recorded (see Phase 0); Phases 1a, 1, and 2 (through the mid-phase kill checkpoint) implemented; awaiting the Phase 3 gate decision · rev 2 (2026-09-17) — amended after adversarial review with code verification and external fact-checking · Scope: rendering/UX layer. The engine (`src/engine/`) is untouched; the store (`src/store/`) receives **additive** changes (result plumbing, `reducedMotion` setting — see [Store & data plumbing](#store--data-plumbing)); persistence shape, routing, and i18n architecture are otherwise untouched.
+Status: implementation started (2026-09-17) — Phase 0 decisions recorded (see Phase 0); Phases 1a, 1, 2, and 3 implemented (Phase 3 awaiting the Q8a design verdict); Phases 4–5 remaining · rev 2 (2026-09-17) — amended after adversarial review with code verification and external fact-checking · Scope: rendering/UX layer. The engine (`src/engine/`) is untouched; the store (`src/store/`) receives **additive** changes (result plumbing, `reducedMotion` setting — see [Store & data plumbing](#store--data-plumbing)); persistence shape, routing, and i18n architecture are otherwise untouched.
 
 ## TL;DR
 
@@ -171,6 +171,8 @@ Additive changes only (engine untouched):
 - `reducedMotion` shortens/disables tweens (schema task above).
 
 **Gate:** design review against the Q8a "modern RPG" aesthetic; motion respects reduced-motion; rect assertions still green.
+
+**Implemented (2026-09-17).** Canvas-native choreography replaced the Phase 2 suppression: `src/game/fx.ts` (runtime-guarded glow/vignette/wipe/particle presets, zero text, zero new assets), tween beats keyed on the sync diff + result hints (mount deal + scaleX flip, MonsterDefeated fly-to-edge handoff + sparks + shake/vignette, PotionQuaffed dissolve with wasted variant, WeaponEquipped sweep, RanAway departures/arrivals, UndoDone rewind, terminal confetti/embers), and the load-bearing motion policy (kill→snap→reconcile→choreograph on every action sync, cleanup on both complete and stop paths, no angle tweens, PAUSE/RESUME visibility snap, reduced-motion = opacity-only). Bridge sync gained `selectedCardId` + `runResumed`; the canvas renders zero text; every tween lands on `computeBoardLayout` rects. GameOver sequencing: the board stays mounted under the scorecard overlay (`inert` play UI, focus to scorecard, overlay z 75) so terminal FX are visible; room-card DOM beats stay suppressed while weapon-zone/HP beats remain DOM (Phase 4+ can absorb them). One significant bug found by instrumented probes and fixed: the flip reveal tweened face sprites to raw `scaleX: 1` (natural 1152px texture size — 6× oversized, clipped strip) instead of the display-unit rest scale; `card-sprite.ts` now carries display-unit math through every face-scale transition (fix verified via CDP screencast — 12 distinct mid-flight frames, correct settled geometry, 4/4 card centers + 3/3 gaps pixel-checked; screenshot bursts were proven to distort the tween clock and must not be used for tween-timing assertions). Same-size RESIZE events are ignored so boot adoption can't kill a starting deal. Gate: 110/110 unit+integration, 14/14 e2e (rect parity included), lint/typecheck/build clean, Phaser delta ≈ 383 KB gz within budget.
 
 ### Phase 4 — Hardening (2–3 days)
 
