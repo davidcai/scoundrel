@@ -86,10 +86,6 @@ const zh: Translation = {
   noKillsFresh: '还没有击杀——{weapon}状态完好。',
   noKillsNoWeapon: '还没有击杀——也没有武器。',
 
-  // Phaser overlay (DOM mirror, weapon readout, keyboard selection)
-  killCount: '击杀数：{count}',
-  cardNavLabel: '键盘选牌：方向键在房间内循环选择，Home/End 跳到第一/最后一张，Esc 取消选择。',
-
   // Card view
   carriedBadge: '带入',
   carriedAria: '，从上一个房间带入',

@@ -1,13 +1,7 @@
-import { expect, test, type AwaitTableReady, type Page } from './renderer';
+import { expect, test, type Page } from '@playwright/test';
 
 // Every action is driven through player-visible UI; card ids are only read
 // off stable data attributes for targeting and assertions.
-//
-// The spec is single-renderer since Phase 4 (docs/phaser-plan.md): Phaser owns
-// the play table, seeded via the English `scoundrel:settings` shard in
-// e2e/renderer.ts. The DOM room mirror is the pointer-input proxy
-// (`[data-card-id]` click/read locators) and `[data-table-ready="true"]`
-// gates canvas-dependent waits.
 
 const valueOf = (cardId: string): number => {
   const rank = cardId.slice(cardId.indexOf('-') + 1);
@@ -21,20 +15,6 @@ const valueOf = (cardId: string): number => {
 const isMonster = (id: string) => id.startsWith('club-') || id.startsWith('spade-');
 const isWeapon = (id: string) => id.startsWith('diamond-');
 const isPotion = (id: string) => id.startsWith('heart-');
-
-// English card label (src/i18n.ts cardLabel, 'en'): "8 of Clubs" / "Jack of
-// Spades" — used to assert the selection control's aria-live announcement.
-const cardName = (cardId: string): string => {
-  const rank = cardId.slice(cardId.indexOf('-') + 1);
-  const names: Record<string, string> = { j: 'Jack', q: 'Queen', k: 'King', a: 'Ace' };
-  const suits: Record<string, string> = {
-    club: 'Clubs',
-    diamond: 'Diamonds',
-    heart: 'Hearts',
-    spade: 'Spades',
-  };
-  return `${names[rank] ?? rank} of ${suits[cardId.slice(0, cardId.indexOf('-'))]}`;
-};
 
 async function roomIds(page: Page): Promise<string[]> {
   return page
@@ -52,15 +32,9 @@ async function hp(page: Page): Promise<number> {
  * confirm button says it would be wasted (second potion of the room), in which
  * case cancel and leave it to the generic pick below.
  */
-async function drinkUsefulPotion(
-  page: Page,
-  ids: string[],
-  currentHp: number,
-  awaitTableReady: AwaitTableReady,
-): Promise<boolean> {
+async function drinkUsefulPotion(page: Page, ids: string[], currentHp: number): Promise<boolean> {
   const potionId = ids.find(isPotion);
   if (potionId === undefined) return false;
-  await awaitTableReady();
   await page.locator(`[data-card-id="${potionId}"]`).click();
   const drink = page.getByRole('button', { name: /drink potion/i });
   if (!(await drink.isVisible().catch(() => false))) return false;
@@ -77,7 +51,7 @@ async function drinkUsefulPotion(
 }
 
 /** Deterministic greedy strategy, played entirely through the real UI. */
-async function playOutGreedy(page: Page, awaitTableReady: AwaitTableReady): Promise<void> {
+async function playOutGreedy(page: Page): Promise<void> {
   for (let guard = 0; guard < 500; guard++) {
     if (
       await page
@@ -106,8 +80,7 @@ async function playOutGreedy(page: Page, awaitTableReady: AwaitTableReady): Prom
 
     // Pick: healing potion when hurt, weapon upgrade, weakest monster, fallback.
     const currentHp = await hp(page);
-    if (currentHp <= 12 && (await drinkUsefulPotion(page, ids, currentHp, awaitTableReady)))
-      continue;
+    if (currentHp <= 12 && (await drinkUsefulPotion(page, ids, currentHp))) continue;
     let chosen: string | undefined;
     if (chosen === undefined) {
       const bestRoomWeapon = ids.filter(isWeapon).sort((a, b) => valueOf(b) - valueOf(a))[0];
@@ -124,7 +97,6 @@ async function playOutGreedy(page: Page, awaitTableReady: AwaitTableReady): Prom
     chosen ??= ids.filter(isMonster).sort((a, b) => valueOf(a) - valueOf(b))[0] ?? ids[0];
     if (chosen === undefined) return;
 
-    await awaitTableReady();
     await page.locator(`[data-card-id="${chosen}"]`).click();
 
     if (isMonster(chosen)) {
@@ -161,12 +133,31 @@ async function playOutGreedy(page: Page, awaitTableReady: AwaitTableReady): Prom
 }
 
 // ---------------------------------------------------------------------------
+// Language fixtures
+// ---------------------------------------------------------------------------
+
+// The app defaults to Chinese; most e2e tests assert the English UI, so they
+// pin English before the app boots. The Chinese default gets its own test.
+const ENGLISH_SETTINGS = JSON.stringify({
+  version: 1,
+  data: {
+    config: { runAwayMode: 'once', potionsPerRoom: 'one', weaponDegradation: true },
+    language: 'en',
+  },
+});
+
+async function useEnglish(page: Page): Promise<void> {
+  await page.addInitScript(
+    (settings) => localStorage.setItem('scoundrel:settings', settings),
+    ENGLISH_SETTINGS,
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Title & interaction
 // ---------------------------------------------------------------------------
 
 test.describe('language detection', () => {
-  // Boot on app defaults (no settings seeding): this suite tests detection.
-  test.use({ seedSettings: false });
   test.use({ locale: 'zh-CN' });
 
   test('a zh-configured browser opens in Chinese by default', async ({ page }) => {
@@ -186,10 +177,8 @@ test.describe('language detection', () => {
   });
 });
 
-test('title screen offers the full menu and a new run deals a room', async ({
-  page,
-  awaitTableReady,
-}) => {
+test('title screen offers the full menu and a new run deals a room', async ({ page }) => {
+  await useEnglish(page);
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1, name: /scoundrel/i })).toBeVisible();
   await expect(page.getByRole('button', { name: 'New run' })).toBeVisible();
@@ -197,57 +186,38 @@ test('title screen offers the full menu and a new run deals a room', async ({
   await page.getByRole('button', { name: 'New run' }).click();
   await expect(page).toHaveURL(/#\/play/);
   await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
-  await awaitTableReady();
   await expect(page.locator('.hud-group.hp .hud-value')).toHaveText('20/20');
 });
 
-test('keyboard navigation reaches every card and arrows move selection', async ({
-  page,
-  awaitTableReady,
-}) => {
+test('keyboard navigation reaches every card and arrows move focus', async ({ page }) => {
+  await useEnglish(page);
   await page.goto('/#/play?seed=kbtest');
   await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
-  await awaitTableReady();
 
-  // The cards are canvas sprites, not DOM — keyboard input goes through the
-  // overlay CardSelectionControl; the canvas draws the highlight ring and the
-  // DOM mirror reflects it (docs/phaser-plan.md §5).
-  const control = page.locator('.card-selection');
-  await control.focus();
-
-  // No selection yet: the first arrow selects the first room card.
+  await page.locator('.room .card').first().focus();
+  await expect(page.locator('.room .card').first()).toBeFocused();
   await page.keyboard.press('ArrowRight');
-  const ids = await roomIds(page);
-  await expect(control).toHaveAttribute('data-selected-card-id', ids[0]!);
-  await expect(
-    page.locator(`.room-mirror [data-card-id="${ids[0]}"] .selected-ring`),
-  ).toBeVisible();
+  const secondId = await page
+    .locator('.room .card')
+    .nth(1)
+    .evaluate((el) => (el as HTMLElement).dataset.cardId);
+  await expect(page.locator(`[data-card-id="${secondId}"]`)).toBeFocused();
+  await page.keyboard.press('ArrowLeft');
+  await expect(page.locator('.room .card').first()).toBeFocused();
 
-  // A screen-reader live region announces the newly selected card's name.
-  await expect(page.locator('.card-selection [aria-live="polite"]')).toHaveText(cardName(ids[0]!));
-
-  // Arrows cycle with wrap; End jumps to the last card.
-  await page.keyboard.press('ArrowRight');
-  await expect(control).toHaveAttribute('data-selected-card-id', ids[1]!);
-  await page.keyboard.press('End');
-  await expect(control).toHaveAttribute('data-selected-card-id', ids[ids.length - 1]!);
-  await expect(page.locator('.card-selection [aria-live="polite"]')).toHaveText(
-    cardName(ids[ids.length - 1]!),
-  );
-
-  // Escape deselects.
-  await page.keyboard.press('Escape');
-  expect(await control.getAttribute('data-selected-card-id')).toBeNull();
+  // Enter selects the card — same as a click (selection ring).
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.room .card').first().locator('.selected-ring')).toBeVisible();
 
   // A screen-reader live region announces the dealt room.
   await expect(page.getByRole('status')).toContainText(/room/i);
 });
 
-test('carried cards are marked in the next room', async ({ page, awaitTableReady }) => {
+test('carried cards are marked in the next room', async ({ page }) => {
   // s20 opens with [diamond-5, heart-9, spade-8, diamond-9].
+  await useEnglish(page);
   await page.goto('/#/play?seed=s20');
   await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
-  await awaitTableReady();
 
   await page.locator('[data-card-id="diamond-5"]').click();
   await page.getByRole('button', { name: /^Equip/ }).click();
@@ -271,27 +241,25 @@ test('carried cards are marked in the next room', async ({ page, awaitTableReady
 // Seeded determinism & shareable URLs
 // ---------------------------------------------------------------------------
 
-test('the same seed deals the same room every time', async ({ page, awaitTableReady }) => {
+test('the same seed deals the same room every time', async ({ page }) => {
+  await useEnglish(page);
   await page.goto('/#/play?seed=determinism');
   await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
-  await awaitTableReady();
   const first = await roomIds(page);
   await page.evaluate(() => localStorage.clear());
   await page.goto('/#/play?seed=determinism');
   await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
-  await awaitTableReady();
   const second = await roomIds(page);
   expect(second).toEqual(first);
 });
 
 test('a full seeded run ends in a scorecard, records stats once, and survives reload', async ({
   page,
-  awaitTableReady,
 }) => {
+  await useEnglish(page);
   await page.goto('/#/play?seed=e2fterm');
   await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
-  await awaitTableReady();
-  await playOutGreedy(page, awaitTableReady);
+  await playOutGreedy(page);
 
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible({ timeout: 15_000 });
@@ -313,16 +281,17 @@ test('a full seeded run ends in a scorecard, records stats once, and survives re
   await expect(history.locator('.run-row')).toHaveCount(1);
 });
 
-test('the replay link round-trips through the clipboard', async ({ page, awaitTableReady }) => {
-  // Clipboard access needs explicit permissions on the fixture context.
-  await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+test('the replay link round-trips through the clipboard', async ({ browser }) => {
+  const context = await browser.newContext();
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  const page = await context.newPage();
 
+  await useEnglish(page);
   await page.goto('/#/play?seed=sharetest');
   await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
-  await awaitTableReady();
   const firstRoom = await roomIds(page);
 
-  await playOutGreedy(page, awaitTableReady);
+  await playOutGreedy(page);
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible({ timeout: 15_000 });
   await dialog.getByRole('button', { name: /copy replay link/i }).click();
@@ -335,22 +304,19 @@ test('the replay link round-trips through the clipboard', async ({ page, awaitTa
   await page.goto('about:blank');
   await page.goto(link);
   await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
-  await awaitTableReady();
   expect(await roomIds(page)).toEqual(firstRoom);
+  await context.close();
 });
 
 // ---------------------------------------------------------------------------
 // Persistence mid-run
 // ---------------------------------------------------------------------------
 
-test('a mid-run page load without the seed resumes the saved room state', async ({
-  page,
-  awaitTableReady,
-}) => {
+test('a mid-run page load without the seed resumes the saved room state', async ({ page }) => {
   // s0 opens with [club-q, diamond-6, diamond-5, diamond-8].
+  await useEnglish(page);
   await page.goto('/#/play?seed=s0');
   await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
-  await awaitTableReady();
   const hpBefore = await hp(page);
 
   await page.locator('[data-card-id="diamond-6"]').click();
@@ -362,98 +328,6 @@ test('a mid-run page load without the seed resumes the saved room state', async 
   await page.goto('/#/play');
   await page.reload();
   await expect(page.locator('.room [data-card-id]')).toHaveCount(3);
-  await awaitTableReady();
   await expect(page.locator('.weapon-card')).toHaveAttribute('data-card-id', 'diamond-6');
   expect(await hp(page)).toBe(hpBefore);
-});
-
-// ---------------------------------------------------------------------------
-// Canvas visual regression (docs/phaser-plan.md §4 Phase 1 exit criterion)
-// ---------------------------------------------------------------------------
-
-test.describe('phaser canvas', () => {
-  test('the dealt table renders the room at the seeded layout', async ({
-    page,
-    awaitTableReady,
-  }) => {
-    await page.goto('/#/play?seed=tableshot');
-    await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
-    await awaitTableReady();
-    const canvas = page.locator('.play-table-canvas canvas');
-    await expect(canvas).toBeVisible();
-    await expect(canvas).toHaveScreenshot('table-scene.png');
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Win/lose handoff gate (docs/phaser-plan.md §3, §4 Phase 2)
-// ---------------------------------------------------------------------------
-
-test.describe('flourish handoff', () => {
-  // Overrides the project's `reducedMotion: 'reduce'` so the tweens —
-  // including the win/lose flourish — actually run in this suite.
-  test.use({ reducedMotion: 'no-preference' });
-
-  test('the scorecard handoff is gated on the flourish and time-bounded', async ({
-    page,
-    awaitTableReady,
-  }) => {
-    await page.goto('/#/play?seed=e2fterm');
-    await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
-    await awaitTableReady();
-
-    // Play the run to its end via the mirror (canvas-independent input).
-    await playOutGreedy(page, awaitTableReady);
-    const dialog = page.getByRole('dialog');
-
-    // The loop exits on the mirror emptying (the resolve empties the room
-    // synchronously), a few ms after the ending action — the gate must still
-    // be closed: the canvas region is mounted and the scorecard absent. This
-    // assumes a designed flourish outlives that gap; if the gate already
-    // opened (instant flourish), the bounded-handoff check below still holds.
-    const t0 = Date.now();
-    if (!(await dialog.isVisible().catch(() => false))) {
-      await expect(page.locator('.play-table-region')).toBeVisible();
-      await expect(dialog).not.toBeVisible({ timeout: 0 });
-    }
-
-    // Bounded handoff: the gate opens via onRunEnded (post-flourish) or the
-    // 1 s fail-open timer — either way well inside ~2 s of the ending action.
-    // The test deliberately does not depend on the exact flourish duration.
-    await expect(dialog).toBeVisible({ timeout: 2_000 });
-    console.log(`handoff (motion enabled) completed ~${Date.now() - t0}ms after the ending action`);
-    await expect(dialog.getByRole('heading', { name: /victory|defeat/i })).toBeVisible();
-    await expect(dialog.getByTestId('final-score')).toBeVisible();
-
-    // Once the gate opened, the canvas region is gone.
-    await expect(page.locator('.play-table-region')).toHaveCount(0);
-  });
-});
-
-test.describe('escape hatch: motion=off', () => {
-  test('the handoff settles immediately with the URL escape hatch', async ({
-    page,
-    awaitTableReady,
-  }) => {
-    // `motion=off` is parsed by PlayScreen from the hash query (never share.ts):
-    // the deterministic-e2e carrier — the flourish is skipped, so the gate
-    // opens via onRunEnded immediately instead of waiting out the animation.
-    await page.goto('/#/play?seed=e2fterm&motion=off');
-    await expect(page.locator('.room [data-card-id]')).toHaveCount(4);
-    await awaitTableReady();
-
-    await playOutGreedy(page, awaitTableReady);
-    const dialog = page.getByRole('dialog');
-
-    // The end state settles promptly — well under the 1 s fail-open floor,
-    // which proves the handoff came from the (skipped) flourish, not the
-    // fail-open timer. No exact flourish duration is assumed.
-    const t0 = Date.now();
-    await expect(dialog).toBeVisible({ timeout: 750 });
-    console.log(`handoff (motion=off) completed ~${Date.now() - t0}ms after the ending action`);
-
-    await expect(dialog.getByRole('heading', { name: /victory|defeat/i })).toBeVisible();
-    await expect(dialog.getByTestId('final-score')).toBeVisible();
-    await expect(page.locator('.play-table-region')).toHaveCount(0);
-  });
 });

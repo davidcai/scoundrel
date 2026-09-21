@@ -90,11 +90,6 @@ const en = {
   noKillsFresh: 'No kills yet — {weapon} is fresh.',
   noKillsNoWeapon: 'No kills yet — no weapon.',
 
-  // Phaser overlay (DOM mirror, weapon readout, keyboard selection)
-  killCount: 'Kills: {count}',
-  cardNavLabel:
-    'Keyboard card selection: arrow keys cycle through the room, Home/End jump to the first/last card, Escape cancels the selection.',
-
   // Card view
   carriedBadge: 'Carried',
   carriedAria: ', carried from the previous room',

@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_CONFIG, createInitialState } from '../src/engine';
 import { STORAGE_KEYS, load, migrateVersion, save } from '../src/store/persistence';
-import { loadRunSave, useGameStore } from '../src/store/game-store';
 import { emptyStats, loadStats, recordRun, saveStats, type RunRecord } from '../src/store/stats';
 import {
   loadLanguage,
@@ -67,10 +66,7 @@ describe('persistence wrappers', () => {
 
 describe('settings', () => {
   it('defaults to the canonical rule set with auto language', () => {
-    expect(loadSettings()).toEqual({
-      config: DEFAULT_CONFIG,
-      language: 'auto',
-    });
+    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'auto' });
   });
 
   it('resolves auto through browser detection', () => {
@@ -108,10 +104,7 @@ describe('settings', () => {
 
   it('falls back to defaults on corrupt data', () => {
     localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify({ version: 1, data: 'garbage' }));
-    expect(loadSettings()).toEqual({
-      config: DEFAULT_CONFIG,
-      language: 'auto',
-    });
+    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'auto' });
   });
 
   it('persists the language independently of the rule config', () => {
@@ -130,43 +123,7 @@ describe('settings', () => {
       STORAGE_KEYS.settings,
       JSON.stringify({ version: 1, data: { config: DEFAULT_CONFIG } }),
     );
-    expect(loadSettings()).toEqual({
-      config: DEFAULT_CONFIG,
-      language: 'auto',
-    });
-  });
-
-  it('tolerates a v2 shard carrying the removed tableRenderer field (flag-era builds)', () => {
-    // Phase 1–3 stamped a `tableRenderer` flag onto v2 shards; Phase 4 removed
-    // the field. The validator rebuilds from known fields only, so such a
-    // shard still loads (the extra field is ignored, language kept).
-    localStorage.setItem(
-      STORAGE_KEYS.settings,
-      JSON.stringify({
-        version: 2,
-        data: { config: DEFAULT_CONFIG, language: 'zh', tableRenderer: 'phaser' },
-      }),
-    );
-    expect(loadSettings()).toEqual({
-      config: DEFAULT_CONFIG,
-      language: 'zh',
-    });
-  });
-});
-
-describe('removed-flag migration safety', () => {
-  it('a run saved by a flag-era build (tableRenderer stamped) still loads', () => {
-    localStorage.setItem(
-      STORAGE_KEYS.settings,
-      JSON.stringify({
-        version: 2,
-        data: { config: DEFAULT_CONFIG, language: 'en', tableRenderer: 'phaser' },
-      }),
-    );
-    useGameStore.getState().startRun('flag-era-run', DEFAULT_CONFIG);
-    const saved = loadRunSave();
-    expect(saved).not.toBeNull();
-    expect(saved!.state.room).toHaveLength(4);
+    expect(loadSettings()).toEqual({ config: DEFAULT_CONFIG, language: 'auto' });
   });
 });
 
