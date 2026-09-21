@@ -218,6 +218,11 @@ body {
 }
 
 /* ── Title screen ────────────────────────────────────────────────────────── */
+/* The title is the game's face: a lantern-lit vault of a first frame. The
+   wordmark is the hero, the gold "New run" is the single loudest element,
+   seed entry reads as a quiet secondary door, and stats/settings/about tuck
+   into a small-text utility strip. Atmosphere stays softer than the play
+   table's centerpiece glow so the canvas keeps its thunder. */
 
 .title {
   position: relative;
@@ -225,15 +230,20 @@ body {
   display: grid;
   place-items: center;
   overflow: hidden;
+  padding-top: 48px;
+  padding-bottom: 64px;
 }
 
+/* Layered dungeon atmosphere: a torch-warm bloom above center, a cold floor
+   pool far below, drifting soot diagonal, and a vignette that closes in from
+   the edges — depth without competing with the wordmark. */
 .title-art {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(700px 380px at 50% 30%, rgba(217, 164, 74, 0.14), transparent 65%),
-    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.014) 0 2px, transparent 2px 9px),
-    radial-gradient(1000px 700px at 50% 120%, #101627 0%, transparent 60%);
+    radial-gradient(560px 300px at 50% 24%, rgba(217, 164, 74, 0.13), transparent 65%),
+    radial-gradient(1100px 720px at 50% 128%, #101627 0%, transparent 62%),
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.012) 0 2px, transparent 2px 9px);
   pointer-events: none;
 }
 
@@ -241,7 +251,23 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(3, 5, 9, 0.9) 100%);
+  background: radial-gradient(ellipse at 50% 42%, transparent 48%, rgba(3, 5, 9, 0.92) 100%);
+}
+
+/* A single hairline-etched suit chip floating above the wordmark — one
+   quiet mark of what kind of game this is, not a suit parade. */
+.title-suits {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 14px;
+  transform: rotate(45deg);
+  border: 1px solid rgba(217, 164, 74, 0.5);
+  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(217, 164, 74, 0.16), rgba(217, 164, 74, 0.03));
+  box-shadow:
+    0 0 18px rgba(217, 164, 74, 0.18),
+    inset 0 0 10px rgba(217, 164, 74, 0.1);
 }
 
 .title-inner {
@@ -253,47 +279,124 @@ body {
   gap: 8px;
 }
 
+/* Wordmark: engraved gold — bright top bevel falling into a dark under-edge
+   over a warm ground glow, letterpress-spaced Palatino caps. */
 .title-word {
   margin: 0;
   font-family: 'Palatino Linotype', Palatino, Georgia, serif;
   font-size: clamp(3rem, 9vw, 5.5rem);
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  background: linear-gradient(180deg, #f5e7c4, var(--accent) 55%, #8a6420);
+  background: linear-gradient(180deg, #f7ecd0 0%, #ecd39a 38%, var(--accent) 58%, #7a5a1c 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 0 24px 60px rgba(217, 164, 74, 0.25);
+  filter: drop-shadow(0 3px 1px rgba(0, 0, 0, 0.55));
+}
+
+.title-inner > .title-word {
+  position: relative;
+}
+
+/* Warm ground glow pooled under the wordmark (behind the text itself). */
+.title-inner > .title-word::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 10% -14% 0;
+  background: radial-gradient(52% 68% at 50% 62%, rgba(217, 164, 74, 0.16), transparent 70%);
 }
 
 .title-tagline {
-  margin: 0 0 20px;
+  margin: 2px 0 30px;
   color: var(--muted);
   font-style: italic;
+  letter-spacing: 0.04em;
 }
 
 .title-menu {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  width: min(320px, 80vw);
+  gap: 12px;
+  width: min(300px, 82vw);
 }
 
+/* Returning player first: the saved run sits directly under the tagline as a
+   gold-ringed outline step — visible, but the fresh-run button keeps the fill. */
 .title-continue {
   box-shadow:
-    0 0 0 2px rgba(240, 193, 105, 0.5),
-    0 10px 30px -8px rgba(217, 164, 74, 0.6);
+    0 0 0 2px rgba(240, 193, 105, 0.45),
+    0 10px 30px -10px rgba(217, 164, 74, 0.5);
+}
+
+.title-new {
+  padding: 0.75em 1.2em;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+}
+
+/* Seed entry demotes to a hairline "side door" — present for the curious,
+   invisible until looked for. */
+.title-seed {
+  background: transparent;
+  border-color: transparent;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  color: var(--muted);
+  font-weight: 500;
+  padding: 0.55em 1.2em;
+}
+
+.title-seed:hover:not([aria-disabled='true']) {
+  color: var(--text);
+  border-color: var(--accent);
+  transform: none;
 }
 
 .seed-entry {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 12px;
+  gap: 8px;
+  padding: 14px;
   border: 1px dashed var(--border);
   border-radius: 10px;
-  background: rgba(10, 13, 19, 0.6);
+  background: rgba(10, 13, 19, 0.72);
+  animation: title-fade-in 200ms ease both;
+}
+
+/* Stats / settings / about: a low-key utility strip, deliberately small and
+   ghosted so the hierarchy ends where the game begins. */
+.title-menu-secondary {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.title-menu-secondary .btn {
+  flex: 1;
+  font-weight: 500;
+}
+
+@keyframes title-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seed-entry {
+    animation-duration: 1ms;
+  }
 }
 
 .text-input {
