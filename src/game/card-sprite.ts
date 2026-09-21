@@ -65,6 +65,35 @@ export function cardTextureKey(cardId: CardId): string {
   return `${TEXTURE_PREFIX}${cardId}`;
 }
 
+/**
+ * Queue any not-yet-loaded card textures (idempotent with createCardSprite's
+ * queue bookkeeping) and return the texture keys still pending. Phase 4:
+ * lets the scene gate the MOUNT deal on texture load so the flip reveal never
+ * shows a placeholder mid-unfold. The loader cycle fires `complete` even when
+ * individual files error — a pending key that errored simply never swaps.
+ */
+export function queueCardTextures(scene: Phaser.Scene, cardIds: readonly CardId[]): string[] {
+  const pending: string[] = [];
+  let queued = false;
+  for (const cardId of cardIds) {
+    const key = cardTextureKey(cardId);
+    if (scene.textures.exists(key)) continue;
+    const url = cardImageUrl(cardId);
+    if (url === '' || isQueued(scene, key)) {
+      // Unknown card id (never loads) or already queued by an earlier
+      // createCardSprite call — still pending either way.
+      pending.push(key);
+      continue;
+    }
+    markQueued(scene, key);
+    scene.load.image(key, url);
+    pending.push(key);
+    queued = true;
+  }
+  if (queued) scene.load.start();
+  return pending;
+}
+
 /** The face visual — the loaded artwork or, until it arrives, the placeholder. */
 type FaceVisual = Phaser.GameObjects.Image | Phaser.GameObjects.Graphics;
 

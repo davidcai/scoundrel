@@ -3,7 +3,7 @@ import type { CardId } from '../engine';
 import { loadSettings } from '../store/settings';
 import { computeBoardLayout, MAX_ROOM_CARDS, type BoardLayout, type Rect } from './board-layout';
 import { readRoomMetrics } from './board-metrics';
-import { createCardSprite, type CardSpriteHandle } from './card-sprite';
+import { createCardSprite, queueCardTextures, type CardSpriteHandle } from './card-sprite';
 import {
   confettiFall,
   emberFall,
@@ -109,6 +109,10 @@ export class BoardScene extends Phaser.Scene {
   /** True once a sync with a dealt room has been seen (resumed counts). */
   private dealtOnce = false;
   private readyEmitted = false;
+  /** The payload of the last ACTION beat — the mount-deal gate's freshness check. */
+  private lastActionBeat: BoardSyncPayload | null = null;
+  /** Watches the canvas parent for room-box changes that aren't window resizes. */
+  private resizeObserver: ResizeObserver | null = null;
 
   constructor() {
     super(SCENE_KEY);
@@ -128,6 +132,7 @@ export class BoardScene extends Phaser.Scene {
     this.transientFx.clear();
     this.dealtOnce = false;
     this.readyEmitted = false;
+    this.lastActionBeat = null;
   }
 
   create(): void {
@@ -144,9 +149,48 @@ export class BoardScene extends Phaser.Scene {
     this.game.events.on(Phaser.Core.Events.RESUME, this.handleResume, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.teardown, this);
     this.events.once(Phaser.Scenes.Events.DESTROY, this.teardown, this);
+    // Phase 4: Scale.RESIZE re-reads the parent only on window resizes — but
+    // the room box changes WITHOUT one (the canvas-live flip swaps the flex
+    // fallback for absolutely-positioned hit targets, which changes the room
+    // height on wrapped boards). Observe the canvas parent so the scale
+    // re-adopts immediately instead of lagging until the next window event.
+    // refresh() re-reads the bounds and fires RESIZE; handleResize decides
+    // whether the beat must snap.
+    const parent = this.game?.scale?.parent;
+    if (parent instanceof HTMLElement && typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => this.scale.refresh());
+      this.resizeObserver.observe(parent);
+    }
+    // Deferred heals: the parent may settle to its real size AFTER Phaser's
+    // boot measurement (transient layout/fonts), and the observer above only
+    // fires on CHANGES — if it settled before attach, no callback ever fires
+    // and the canvas stays stale (observed: mobile 2×2 board frozen 9.4px
+    // tall). Two checks bracket the settle window.
+    this.time.delayedCall(250, () => this.healCanvasBox());
+    this.time.delayedCall(900, () => this.healCanvasBox());
+  }
+
+  /**
+   * Self-healing invariant: the canvas CSS box must match its parent.
+   * Cheap compare; `scale.refresh()` only on disagreement (which re-reads
+   * the parent bounds and fires RESIZE — handleResize then applies policy).
+   */
+  private healCanvasBox(): void {
+    const canvas = this.game?.canvas;
+    const parent = this.game?.scale?.parent;
+    if (!(canvas instanceof HTMLCanvasElement) || !(parent instanceof HTMLElement)) return;
+    const canvasBox = canvas.getBoundingClientRect();
+    const parentBox = parent.getBoundingClientRect();
+    if (
+      Math.abs(canvasBox.width - parentBox.width) > 1 ||
+      Math.abs(canvasBox.height - parentBox.height) > 1
+    ) {
+      this.scale.refresh();
+    }
   }
 
   private readonly applySync = (payload: BoardSyncPayload): void => {
+    this.healCanvasBox();
     const previous = this.lastSync;
     this.lastSync = payload;
     // Selection changes re-emit the identical state and result object — a
@@ -159,6 +203,7 @@ export class BoardScene extends Phaser.Scene {
       this.applySelection(payload.selectedCardId);
       return;
     }
+    this.lastActionBeat = payload;
     this.killTransientFx();
     this.applySelection(payload.selectedCardId);
     const departed = this.reconcileRoom();
@@ -183,11 +228,44 @@ export class BoardScene extends Phaser.Scene {
     ) {
       return;
     }
-    if (this.lastSync === null) return;
+    if (this.lastSync === null) {
+      this.lastLayoutSize = { w: this.scale.width, h: this.scale.height };
+      return;
+    }
+    // Phase 4: a resize that doesn't move any layout rect (the room's height
+    // changing at the canvas-live flip — rows are TOP-ALIGNED, so height is
+    // never a rect input) must not kill an in-flight beat: every tween target
+    // is still exactly right. Re-measure and adopt the new size silently.
+    const room = this.lastSync.state?.room ?? [];
+    const next = computeBoardLayout(
+      this.scale.width,
+      this.scale.height,
+      Math.min(room.length, MAX_ROOM_CARDS),
+      readRoomMetrics(this.roomElement()),
+    );
+    if (this.layoutRectsEqual(this.lastLayout, next)) {
+      this.lastLayoutSize = { w: this.scale.width, h: this.scale.height };
+      return;
+    }
     // Resize mid-beat is the policy's kill-and-snap path: geometry moves to
     // the fresh layout rects; the next sync re-choreographs from there.
     this.snapReconcile();
   };
+
+  /** True when both layouts position every room slot at the same rect. */
+  private layoutRectsEqual(a: BoardLayout | null, b: BoardLayout): boolean {
+    if (a === null || a.roomRects.length !== b.roomRects.length) return false;
+    return a.roomRects.every((rect, i) => {
+      const other = b.roomRects[i];
+      return (
+        other !== undefined &&
+        Math.abs(rect.x - other.x) < 0.5 &&
+        Math.abs(rect.y - other.y) < 0.5 &&
+        Math.abs(rect.width - other.width) < 0.5 &&
+        Math.abs(rect.height - other.height) < 0.5
+      );
+    });
+  }
 
   private readonly handlePause = (): void => {
     // Tab hidden: RAF throttling makes in-flight tweens untrustworthy — kill
@@ -277,6 +355,32 @@ export class BoardScene extends Phaser.Scene {
     for (const [cardId, sprite] of this.sprites) {
       sprite.setSelected(cardId === selectedCardId);
     }
+  }
+
+  /**
+   * Phase 4 (hardening): resolve once the given room cards' textures are
+   * loaded — or after `timeoutMs`, whichever comes first. Missing artwork
+   * (load error / unknown id) resolves with the deal anyway: placeholder plus
+   * the swap-on-load seam beats a frozen room. Nothing here blocks action
+   * beats — only the mount deal awaits this.
+   */
+  private ensureTexturesLoaded(cardIds: readonly CardId[], timeoutMs = 1500): Promise<void> {
+    const pending = queueCardTextures(this, cardIds);
+    if (pending.length === 0) return Promise.resolve();
+    return new Promise((resolve) => {
+      // Registered in the same task as the queueing, so it cannot miss the
+      // cycle `load.start()` just kicked off.
+      const onComplete = (): void => {
+        this.load.off(Phaser.Loader.Events.COMPLETE, onComplete);
+        window.clearTimeout(timer);
+        resolve();
+      };
+      const timer = window.setTimeout(() => {
+        this.load.off(Phaser.Loader.Events.COMPLETE, onComplete);
+        resolve();
+      }, timeoutMs);
+      this.load.once(Phaser.Loader.Events.COMPLETE, onComplete);
+    });
   }
 
   // ── Motion policy ───────────────────────────────────────────────────────
@@ -398,8 +502,18 @@ export class BoardScene extends Phaser.Scene {
         this.reducedFadeIn([...nextRoom]);
         return;
       }
-      this.dealIn([...nextRoom], state.carriedCardId, 0);
-      this.playWipe();
+      // Phase 4: the mount deal waits (≤1.5s fallback) for the room's
+      // textures so the flip reveal never uncovers a placeholder mid-unfold.
+      // Action beats never wait — they reconcile and choreograph immediately,
+      // and the sprite's swap-on-load seam covers late textures. If a newer
+      // action beat (or teardown) takes the board while we wait, the deal is
+      // dropped: the newer beat already snapped everything to its rects.
+      const mountPayload = payload;
+      void this.ensureTexturesLoaded([...nextRoom]).then(() => {
+        if (this.lastActionBeat !== mountPayload || !this.scene.isActive()) return;
+        this.dealIn([...nextRoom], state.carriedCardId, 0);
+        this.playWipe();
+      });
       return;
     }
 

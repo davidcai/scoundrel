@@ -188,6 +188,10 @@ export function PhaserBoard({ bridge, onLiveChange }: PhaserBoardProps) {
       className={live ? 'phaser-board canvas-live' : 'phaser-board'}
       style={{ width: '100%', height: '100%' }}
       aria-hidden="true" // decorative canvas; the DOM hit-layer owns semantics
+      /* Phase 5 test probe: flipped in the same commit as `canvas-live` — the
+         scene's first reconcile completed. e2e waits on this attribute instead
+         of racing the class flip. */
+      data-canvas-ready={live ? 'true' : 'false'}
     />
   );
 }

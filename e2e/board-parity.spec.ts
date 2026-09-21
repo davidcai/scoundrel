@@ -91,8 +91,9 @@ async function attachRoomScreenshot(page: Page, name: string, testInfo: TestInfo
 async function assertBoardParity(page: Page, testInfo: TestInfo, label: string): Promise<void> {
   await page.goto(SEED_URL);
   await page.waitForSelector('.room button.card');
-  // Canvas promoted: hit-layer positioned, imgs hidden — the state under test.
-  await page.waitForSelector('.room.canvas-live', { timeout: 20_000 });
+  // Phase 5 probe: the scene's first reconcile completed (sceneReady) — set in
+  // the same commit as the canvas-live class, but precise instead of racy.
+  await page.waitForSelector('.phaser-board[data-canvas-ready="true"]', { timeout: 20_000 });
   await page.waitForTimeout(600); // texture paint settle
 
   const snap = await snapshotRoom(page);
@@ -177,7 +178,7 @@ test.describe('resume silence — mid-run reload reconciles without lingering FX
 
   test('mid-run reload renders the saved room with zero fx-ghosts', async ({ page }) => {
     await page.goto(SEED_URL);
-    await page.waitForSelector('.room.canvas-live', { timeout: 20_000 });
+    await page.waitForSelector('.phaser-board[data-canvas-ready="true"]', { timeout: 20_000 });
 
     // A couple of actions: equip the weapon, drink the potion → 2 cards left.
     await page.locator('[data-card-id="diamond-5"]').click();
@@ -190,7 +191,7 @@ test.describe('resume silence — mid-run reload reconciles without lingering FX
     await page.goto('/#/play');
     await page.reload();
     await expect(page.locator('.room [data-card-id]')).toHaveCount(2);
-    await page.waitForSelector('.room.canvas-live', { timeout: 20_000 });
+    await page.waitForSelector('.phaser-board[data-canvas-ready="true"]', { timeout: 20_000 });
     await page.waitForTimeout(1_500); // let any (transient) mount choreography drain
 
     await expect(page.locator('.fx-ghost')).toHaveCount(0);
