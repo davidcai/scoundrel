@@ -1,6 +1,6 @@
 # Scoundrel — Phaser Adoption Plan
 
-Status: proposal · rev 2 (2026-09-17) — amended after adversarial review with code verification and external fact-checking · Scope: rendering/UX layer. The engine (`src/engine/`) is untouched; the store (`src/store/`) receives **additive** changes (result plumbing, `reducedMotion` setting — see [Store & data plumbing](#store--data-plumbing)); persistence shape, routing, and i18n architecture are otherwise untouched.
+Status: implementation started (2026-09-17) — Phase 0 decisions recorded (see Phase 0), Phase 1a baseline + Phase 1 spike implemented; awaiting spike-gate review · rev 2 (2026-09-17) — amended after adversarial review with code verification and external fact-checking · Scope: rendering/UX layer. The engine (`src/engine/`) is untouched; the store (`src/store/`) receives **additive** changes (result plumbing, `reducedMotion` setting — see [Store & data plumbing](#store--data-plumbing)); persistence shape, routing, and i18n architecture are otherwise untouched.
 
 ## TL;DR
 
@@ -113,6 +113,13 @@ Additive changes only (engine untouched):
 
 ### Phase 0 — Decision gate (0.5 day)
 
+**Resolved (2026-09-17, implementation kickoff):**
+
+- Goal confirmed: "juice the board" (visual polish), not capability. **WAAPI-baseline-first signed off** — Phase 1a ships as the default path; Phaser proceeds to the Phase 1 spike, gated on the spike checklist + measured bundle delta (abort → stay on the 1a baseline).
+- Geometry model: **(b) `Scale.RESIZE` + the shared layout function** (`board-layout.ts` consumed by both the scene and the DOM hit-layer).
+- Weapon-zone ownership: **(a) canvas owns the room only** — the weapon zone stays DOM (fan via existing constants until `board-layout.ts` absorbs `KILL_STEP_X/Y`); resolve tweens hand off at the canvas edge.
+- License: Phaser 4 is MIT — no action.
+
 - Confirm the goal is "juice the board" (visual polish), not capability — DOM/CSS already covers all mechanics. Sign off on **WAAPI-baseline-first**: Phase 1a ships as the default path; Phaser is gated on a demonstrated filter/particle payoff the DOM cannot deliver.
 - Decide the **geometry model** (blocking — the current board is fluid: `--card-w: clamp(132px, 19.5vw, 192px)` with 2×2 wrap at the mobile breakpoint):
   - (a) `Scale.FIT` frozen aspect — accepts cards shrinking below today's 132px mobile floor, loss of 2×2 reflow, and letterbox bars;
@@ -134,6 +141,10 @@ Additive changes only (engine untouched):
 - `BoardScene` renders the 4 room cards as static sprites from `cardImageUrl`; wire store notifications → **diff-based reconciliation** (no tweens yet), including the mount/resume `lastResult = null` path.
 - Spike checklist: StrictMode double-mount handled; **rapid route toggling** (destroy defers a frame — watch for WebGL errors on fast unmount/remount); **HiDPI sharpness** at the chosen scale mode (undocumented in v4 — verify); **#7341 avoidance** (no angle tweens on moving sprites); bundle delta **measured with a number** (gate: `#/play` chunk ≤ **+400KB gz** vs today — the original +250KB figure is unreachable with the monolithic 4.2.1 bundle).
 - **Gate:** spike demo + measured bundle delta. Abort → stay on the Phase 1a baseline.
+
+**Implemented (2026-09-17).** Spike landed: `phaser@4.2.1`, `src/game/{board-layout,bridge,card-sprite,board-scene}.ts` (+ 11 layout unit tests), `PhaserBoard.tsx` (test/WebGL guard, dynamic import, deferred-destroy-safe cleanup). Measured `#/play` Phaser delta: **≈ 382 KB gz** (phaser.esm 379.9 + board-scene 1.8) vs the ≤ 400 KB gate — PASS. StrictMode double-mount and 20× rapid route toggling verified in dev (single canvas, zero errors). RTL suite passes unmodified (106/106); e2e 8/8.
+
+**Critical finding (load-bearing for Phase 2):** with Phaser's input system enabled, its input manager registers **window-level capture `mousedown`/`mouseup` listeners**, so every DOM click anywhere on the page was hit-tested against canvas sprites — emitting a spurious `cardClick` that double-toggled DOM selection (select → deselect within one event cascade; no visible ring, no ActionPanel). Fix (already landed): `input: false` on the `Game` config and zero `setInteractive` usage. **Phase 2 must keep canvas input disabled** — the hit-layer emits `cardClick` through the bridge instead (the bridge's intent API is in place). Canvas sits in the `.room` as a hidden reconciling underlay (`opacity: 0`, `pointer-events: none`) until Phase 2 promotes it. HiDPI sharpness at `Scale.RESIZE` remains the known Phase 2 follow-up.
 
 ### Phase 2 — Board parity (3–5 days)
 
