@@ -10,6 +10,11 @@ interface CardViewProps {
   disabled?: boolean;
   onClick?: () => void;
   className?: string;
+  /**
+   * DOM hover bridged to the canvas sprites (Phase 2 hover tint). Purely
+   * additive — the button's attributes and test contract are unchanged.
+   */
+  onHoverChange?: (over: boolean) => void;
 }
 
 /**
@@ -24,6 +29,7 @@ export function CardView({
   disabled,
   onClick,
   className,
+  onHoverChange,
 }: CardViewProps) {
   const kind = cardKind(cardId);
   const t = useT();
@@ -41,6 +47,8 @@ export function CardView({
       aria-label={cardAriaLabel(cardId) + (carried ? t('carriedAria') : '')}
       disabled={disabled}
       onClick={onClick}
+      onMouseEnter={() => onHoverChange?.(true)}
+      onMouseLeave={() => onHoverChange?.(false)}
     >
       {showFallback ? (
         <span className="card-fallback" aria-hidden="true">

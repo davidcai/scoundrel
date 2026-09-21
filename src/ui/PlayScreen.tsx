@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   canEnterNextRoom,
   canResolveMore,
@@ -13,6 +13,7 @@ import {
   type GameState,
 } from '../engine';
 import { cardHint, cardLabel, useT } from '../i18n';
+import { createBoardBridge, type BoardBridge } from '../game/bridge';
 import { useGameStore } from '../store/game-store';
 import { decodeConfig } from '../store/share';
 import { CardView } from './CardView';
@@ -20,6 +21,7 @@ import { GameOverScreen } from './GameOverScreen';
 import { Hud } from './Hud';
 import { PhaserBoard } from './PhaserBoard';
 import { Tooltip } from './Tooltip';
+import { useBoardLayout } from './use-board-layout';
 import { useMotionDirector } from './use-motion-director';
 import { WeaponStack } from './WeaponStack';
 import { navigate, useHashRoute } from './router';
@@ -60,6 +62,30 @@ export function PlayScreen() {
   // Motion director anchor: the `.screen.play` root scopes every FX query.
   const screenRef = useRef<HTMLElement>(null);
   useMotionDirector(screenRef);
+
+  // Store⇄scene channel (Phase 2). Owned here — PhaserBoard boots the scene
+  // on it and the card hover handlers emit on it; destroyed on unmount.
+  const [bridge, setBridge] = useState<BoardBridge | null>(null);
+  useEffect(() => {
+    const created = createBoardBridge();
+    setBridge(created);
+    return () => created.destroy();
+  }, []);
+
+  // Canvas-live: flipped by PhaserBoard when the scene completes its FIRST
+  // reconcile. Until then (and without WebGL/tests) the DOM renders exactly
+  // the pre-canvas UI.
+  const [canvasLive, setCanvasLive] = useState(false);
+
+  // Hit-layer geometry: same layout function + same metrics path as the scene.
+  const board = useBoardLayout(roomRef, game?.room.length ?? 0);
+
+  const emitCardHover = useCallback(
+    (cardId: CardId, over: boolean) => {
+      bridge?.emitCardHover({ cardId, over });
+    },
+    [bridge],
+  );
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (
@@ -169,23 +195,44 @@ export function PlayScreen() {
 
       <div
         ref={roomRef}
-        className="room"
+        className={canvasLive ? 'room canvas-live' : 'room'}
         role="group"
         aria-label={t('currentRoom')}
         onKeyDown={onKeyDown}
+        style={canvasLive ? { height: board.roomHeight } : undefined}
       >
-        {/* Phase 1 spike: hidden canvas underlay (see .phaser-board in styles.css). */}
-        <PhaserBoard />
-        {game.room.map((cardId) => (
-          <Tooltip key={cardId} text={cardHint(cardId)}>
-            <CardView
-              cardId={cardId}
-              selected={selected === cardId}
-              carried={game.carriedCardId === cardId}
-              onClick={() => selectCard(selected === cardId ? null : cardId)}
-            />
-          </Tooltip>
-        ))}
+        {/* Phase 2: the canvas is the room's primary renderer (once the scene's
+            first reconcile flips canvas-live); the buttons become a transparent
+            hit-layer positioned at the shared layout-function rects. */}
+        <PhaserBoard bridge={bridge} onLiveChange={setCanvasLive} />
+        {game.room.map((cardId, index) => {
+          const rect = canvasLive ? board.rects[index] : undefined;
+          return (
+            <Tooltip
+              key={cardId}
+              text={cardHint(cardId)}
+              style={
+                rect !== undefined
+                  ? {
+                      position: 'absolute',
+                      left: rect.x,
+                      top: rect.y,
+                      width: rect.width,
+                      height: rect.height,
+                    }
+                  : undefined
+              }
+            >
+              <CardView
+                cardId={cardId}
+                selected={selected === cardId}
+                carried={game.carriedCardId === cardId}
+                onClick={() => selectCard(selected === cardId ? null : cardId)}
+                onHoverChange={(over) => emitCardHover(cardId, over)}
+              />
+            </Tooltip>
+          );
+        })}
       </div>
 
       <p className="room-progress" aria-hidden="true">

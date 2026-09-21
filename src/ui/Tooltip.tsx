@@ -21,7 +21,16 @@ const EDGE = 8;
  */
 let tooltipSeq = 0;
 
-export function Tooltip({ text, children }: { text: string; children: ReactNode }) {
+export function Tooltip({
+  text,
+  style,
+  children,
+}: {
+  text: string;
+  /** Extra inline style for the wrapper span (e.g. canvas-live hit-layer positioning). */
+  style?: CSSProperties;
+  children: ReactNode;
+}) {
   const id = `tooltip-${++tooltipSeq}`;
   const wrapRef = useRef<HTMLSpanElement>(null);
   const tipRef = useRef<HTMLSpanElement>(null);
@@ -70,6 +79,7 @@ export function Tooltip({ text, children }: { text: string; children: ReactNode 
     <span
       ref={wrapRef}
       className="tooltip-wrap"
+      style={style}
       onMouseEnter={show}
       onMouseLeave={() => setOpen(false)}
       onFocus={show}

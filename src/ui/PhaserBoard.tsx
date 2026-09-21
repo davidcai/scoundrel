@@ -1,19 +1,20 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import type { GameResult, GameState } from '../engine';
-import { createBoardBridge } from '../game/bridge';
+import type { BoardBridge } from '../game/bridge';
 import { useGameStore } from '../store/game-store';
 
 /**
  * React mount wrapper for the Phaser board (official template-react-ts pattern,
  * adapted). Renders a plain container div; the Phaser.Game is created inside a
- * `useLayoutEffect` with an EMPTY dep array and destroyed on cleanup. All data
- * flows through the bridge — the component takes no props, so nothing can go
- * stale in the dep array.
+ * `useLayoutEffect` and destroyed on cleanup. All data flows through the
+ * bridge — passed in by PlayScreen (which also feeds it the DOM hover events),
+ * so nothing can go stale in the dep array.
  *
  * Guarantees:
  * - jsdom/test guard FIRST: under vitest (`MODE === 'test'`) or when WebGL is
  *   unavailable, nothing is rendered/mounted and phaser is NEVER imported
- *   (no WebGL in jsdom — keeps the RTL suite green without mocks).
+ *   (no WebGL in jsdom — keeps the RTL suite green without mocks). The DOM
+ *   fallback in that case renders EXACTLY the pre-canvas UI (no `canvas-live`).
  * - Dynamic `import('phaser')` only — the engine (~355KB gz, no tree-shaking)
  *   stays out of the main chunk and only loads on the play board.
  * - StrictMode / rapid-route-toggle safety: `game.destroy(true)` only COMPLETES
@@ -24,6 +25,13 @@ import { useGameStore } from '../store/game-store';
  *   constructed; each mount owns an independent Phaser.Game, so a
  *   still-destroying old instance can never be touched or double-destroyed,
  *   and StrictMode's mount→cleanup→mount cycle yields exactly one live game.
+ *
+ * Canvas-live contract (Phase 2): the container div gains the `canvas-live`
+ * class when the scene completes its FIRST reconcile (`sceneReady` on the
+ * bridge) — not on boot start — and loses it on teardown/unmount. PlayScreen
+ * is notified via `onLiveChange` in the same commit so the room's promotion
+ * CSS and the transparent hit-layer swap atomically (no blank-room frame).
+ * The bridge itself is owned (and destroyed) by PlayScreen.
  */
 
 /**
@@ -51,8 +59,19 @@ interface DestroyableGame {
   destroy(removeCanvas: boolean): void;
 }
 
-export function PhaserBoard() {
+interface PhaserBoardProps {
+  /** Store⇄scene channel; owned and destroyed by PlayScreen. Null in test mode. */
+  bridge: BoardBridge | null;
+  /** Canvas-live flip: true on the scene's first reconcile, false on teardown. */
+  onLiveChange?: (live: boolean) => void;
+}
+
+export function PhaserBoard({ bridge, onLiveChange }: PhaserBoardProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [live, setLive] = useState(false);
+  // Keep the latest callback without re-running the mount effect.
+  const onLiveChangeRef = useRef(onLiveChange);
+  onLiveChangeRef.current = onLiveChange;
 
   useLayoutEffect(() => {
     const container = containerRef.current;
@@ -60,11 +79,16 @@ export function PhaserBoard() {
 
     // ── Environment guards — before any phaser import ──────────────────────
     if (import.meta.env.MODE === 'test') return; // jsdom/RTL: never import phaser
-    if (!hasWebGL()) return; // WebGL unavailable: render nothing
+    if (!hasWebGL()) return; // WebGL unavailable: render nothing (DOM fallback)
+    if (bridge === null) return; // bridge not created yet (first render frame)
 
-    const bridge = createBoardBridge();
     let disposed = false;
     let game: DestroyableGame | null = null;
+
+    const notifyLive = (value: boolean): void => {
+      setLive(value);
+      onLiveChangeRef.current?.(value);
+    };
 
     // Initial sync (mount/hydrate/resume path: prevState null). The bridge
     // replays the latest payload to late subscribers, so the scene — which
@@ -90,6 +114,8 @@ export function PhaserBoard() {
       // Toggle semantics: clicking the selected card clears the selection.
       selectCard(selectedCardId === intent.cardId ? null : intent.cardId);
     });
+
+    const unsubscribeReady = bridge.onSceneReady(() => notifyLive(true));
 
     void (async () => {
       const [phaserModule, sceneModule] = await Promise.all([
@@ -126,23 +152,25 @@ export function PhaserBoard() {
       disposed = true;
       unsubscribeStore();
       unsubscribeIntent();
-      bridge.destroy();
+      unsubscribeReady();
       // Deferred destroy: completes next frame. `disposed` guarantees nothing
       // touches this instance afterwards and the next mount builds fresh.
       game?.destroy(true);
       game = null;
+      notifyLive(false);
     };
-    // Empty dep array: no props — everything flows through the bridge/store.
-  }, []);
+    // The bridge identity is stable per PlayScreen mount — recreated only if
+    // StrictMode replays PlayScreen's own bridge effect.
+  }, [bridge]);
 
   if (import.meta.env.MODE === 'test') return null; // jsdom: render nothing
 
   return (
     <div
       ref={containerRef}
-      className="phaser-board"
+      className={live ? 'phaser-board canvas-live' : 'phaser-board'}
       style={{ width: '100%', height: '100%' }}
-      aria-hidden="true" // decorative canvas; the DOM hit-layer owns semantics (Phase 2)
+      aria-hidden="true" // decorative canvas; the DOM hit-layer owns semantics
     />
   );
 }

@@ -1,5 +1,17 @@
 /* ── Scoundrel: modern-RPG dark theme ─────────────────────────────────────── */
 
+/* Phase 2 geometry parity: registering --card-w makes its computed value a
+   resolved px length, so the shared metrics path (src/game/board-metrics.ts)
+   reads the EXACT card width the CSS renders at — for the Phaser scene and the
+   DOM hit-layer alike. Without @property support the declaration degrades to a
+   normal custom property and the metrics reader falls back to measuring a card
+   button. */
+@property --card-w {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 132px;
+}
+
 :root {
   --bg: #0a0d13;
   --bg-deep: #05070b;
@@ -431,7 +443,7 @@ body {
   min-height: calc(var(--card-h) + 36px);
 }
 
-/* Phase 1 spike underlay — booted, reconciling, but visually transparent; promoted to the primary board in Phase 2. */
+/* Phase 1 spike underlay — booted, reconciling; promoted to the primary board in Phase 2. */
 /* Opacity (not visibility/display) keeps textures loading + reconciliation running and stays out of the motion fx-layer's way. */
 .room > .phaser-board {
   position: absolute;
@@ -439,6 +451,38 @@ body {
   z-index: 0;
   opacity: 0;
   pointer-events: none;
+}
+
+/* ── Phase 2: canvas as the room's primary renderer ──────────────────────── */
+/* `.room.canvas-live` is set by PlayScreen in the same commit the scene's
+   FIRST reconcile completes (PhaserBoard bridges sceneReady → onLiveChange);
+   before that the underlay above stays hidden, so no pre-promotion state can
+   flash. Promotion and the transparent hit-layer swap recalc atomically —
+   no blank-room frame. Fallback (no WebGL / tests): none of this applies. */
+
+.room.canvas-live > .phaser-board {
+  opacity: 1; /* promote the reconciling underlay */
+}
+
+/* Hit-layer wrappers are positioned inline at exactly the layout-function
+   rects (same numbers the scene's sprites use). z-index 1 keeps them above
+   the canvas (z-index 0); tooltips (60) and the fx-layer (40) stay on top. */
+.room.canvas-live .tooltip-wrap {
+  position: absolute;
+  z-index: 1;
+}
+
+/* The canvas owns the card visuals: strip the button's own painting but keep
+   the layout box, the selection ring, the carried badge, and focus outlines. */
+.room.canvas-live .card {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.room.canvas-live .card img,
+.room.canvas-live .card .card-fallback {
+  visibility: hidden; /* keep the (sized) box; the artwork lives on the canvas */
 }
 
 .card {
