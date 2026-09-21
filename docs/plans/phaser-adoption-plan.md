@@ -1,6 +1,6 @@
 # Scoundrel — Phaser Adoption Plan
 
-Status: implementation started (2026-09-17) — Phase 0 decisions recorded (see Phase 0), Phase 1a baseline + Phase 1 spike implemented; awaiting spike-gate review · rev 2 (2026-09-17) — amended after adversarial review with code verification and external fact-checking · Scope: rendering/UX layer. The engine (`src/engine/`) is untouched; the store (`src/store/`) receives **additive** changes (result plumbing, `reducedMotion` setting — see [Store & data plumbing](#store--data-plumbing)); persistence shape, routing, and i18n architecture are otherwise untouched.
+Status: implementation started (2026-09-17) — Phase 0 decisions recorded (see Phase 0); Phases 1a, 1, and 2 (through the mid-phase kill checkpoint) implemented; awaiting the Phase 3 gate decision · rev 2 (2026-09-17) — amended after adversarial review with code verification and external fact-checking · Scope: rendering/UX layer. The engine (`src/engine/`) is untouched; the store (`src/store/`) receives **additive** changes (result plumbing, `reducedMotion` setting — see [Store & data plumbing](#store--data-plumbing)); persistence shape, routing, and i18n architecture are otherwise untouched.
 
 ## TL;DR
 
@@ -154,6 +154,8 @@ Additive changes only (engine untouched):
 - **Resume-from-save reconcile without animations** (moved up from Phase 4 — required the moment the scene can mount on a mid-run state).
 - **Mid-phase kill checkpoint** (the riskiest unknowns — geometry, a11y, mobile — materialize here, not in Phase 1): axe scan (net-new tooling) zero violations; e2e **rect assertions** green (hit-layer button rects must equal the layout function's output at desktop and mobile widths); keyboard nav unchanged.
 - **Gate:** feature-complete board with zero a11y-tree regressions.
+
+**Implemented (2026-09-17) — kill checkpoint passed.** Canvas promoted to the room's primary renderer behind a transparent DOM hit-layer, both fed by one shared metrics path (`board-metrics.ts` reads the room's computed style — `@property --card-w` resolves the vw clamp to px; consumed identically by scene and DOM hook, drift impossible by construction). Hit-layer buttons absolutely positioned by `computeBoardLayout` via a ResizeObserver hook; `canvas-live` class flips promotion atomically (scene's first reconcile) with the no-WebGL fallback rendering exactly the pre-Phaser UI. Hover bridges DOM → bridge → sprite alpha; resume-from-save reconciles silently (`runResumed` store flag); room-card DOM choreography is suppressed zone-wise when the canvas owns the room (weapon-zone/HP beats kept for Phase 3 to absorb). Kill-checkpoint evidence: rect assertions ≤ 1px at 1280×800 and 390×844 (measured 0.003px; the legacy math drifted 15–21px on mobile before the metrics fix); axe (WCAG 2.1/2.2 A+AA) **zero violations** across base, selected, and both viewports; 110/110 unit+integration, 14/14 e2e; Phaser delta ≈ 383 KB gz within the ≤ 400 gate. Known follow-up: `page-has-heading-one` (pre-existing app-wide, non-WCAG best-practice).
 
 ### Phase 3 — Juice (3–5 days)
 
