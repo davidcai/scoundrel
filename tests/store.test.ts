@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_CONFIG, createInitialState } from '../src/engine';
+import { loadRunSave, useGameStore } from '../src/store/game-store';
 import { STORAGE_KEYS, load, migrateVersion, save } from '../src/store/persistence';
 import { emptyStats, loadStats, recordRun, saveStats, type RunRecord } from '../src/store/stats';
 import {
@@ -239,6 +240,42 @@ describe('share URLs', () => {
   it('decodes unknown tokens to defaults', () => {
     expect(decodeConfig('bogus-token')).toEqual(DEFAULT_CONFIG);
     expect(decodeConfig(null)).toEqual(DEFAULT_CONFIG);
+  });
+});
+
+describe('game store run lifecycle', () => {
+  const savedState = createInitialState('abc', DEFAULT_CONFIG);
+
+  const restoreSavedRun = (): void => {
+    save(STORAGE_KEYS.run, { state: savedState, statsWritten: false });
+    useGameStore.getState().reset();
+    useGameStore.getState().hydrate();
+  };
+
+  it('hydrate flags the run as resumed', () => {
+    restoreSavedRun();
+    expect(useGameStore.getState().game).not.toBeNull();
+    expect(useGameStore.getState().runResumed).toBe(true);
+    useGameStore.getState().reset();
+  });
+
+  it('startRun clears the resumed flag', () => {
+    restoreSavedRun();
+    expect(useGameStore.getState().runResumed).toBe(true);
+    useGameStore.getState().startRun('xyz', DEFAULT_CONFIG);
+    expect(useGameStore.getState().runResumed).toBe(false);
+    useGameStore.getState().reset();
+  });
+
+  it('runResumed never leaks into the persisted run shard', () => {
+    restoreSavedRun();
+    // startRun re-persists while the in-memory flag is still true — the
+    // shard must remain exactly { state, statsWritten }.
+    useGameStore.getState().startRun('xyz', DEFAULT_CONFIG);
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.run)!);
+    expect(Object.keys(raw.data).sort()).toEqual(['state', 'statsWritten']);
+    expect(loadRunSave()).toEqual({ state: expect.any(Object), statsWritten: false });
+    useGameStore.getState().reset();
   });
 });
 

@@ -58,6 +58,11 @@ interface GameStore {
   lastResult: GameResult | null;
   /** Monotonic counter bumped on every act(); never reset. */
   fxSeq: number;
+  /**
+   * Transient: the live run was restored from storage (hydrate) rather than
+   * started fresh — a resumed run reconciles silently, without a mount deal.
+   */
+  runResumed: boolean;
   startRun: (seed: string, config: GameConfig) => void;
   act: (action: GameAction) => void;
   selectCard: (cardId: CardId | null) => void;
@@ -79,6 +84,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   statsWritten: false,
   lastResult: null,
   fxSeq: 0,
+  runResumed: false,
 
   startRun: (seed, config) => {
     const fresh = createInitialState(seed, config, Date.now());
@@ -89,6 +95,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       selectedCardId: null,
       statsWritten: false,
       lastResult: null,
+      runResumed: false,
       announcement: {
         message: `${t('announceRunStarted', { seed: state.seed })} ${announce(result, state)}`,
         id: ++announcementSeq,
@@ -168,6 +175,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         selectedCardId: null,
         announcement: null,
         lastResult: null,
+        runResumed: true,
       });
     }
   },
@@ -179,6 +187,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       announcement: null,
       statsWritten: false,
       lastResult: null,
+      runResumed: false,
     });
   },
 }));
