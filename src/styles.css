@@ -692,10 +692,6 @@ body {
 }
 
 /* ── Game over ───────────────────────────────────────────────────────────── */
-/* The scorecard is the end-of-run moment: it arrives with a short staggered
-   rise (overlay → card → heading → score → stats → actions), the card frame
-   and title take their tint from the outcome (gold for a win, muted ember red
-   for a loss), and the score sits as a hero tile above the run stats. */
 
 .gameover-overlay {
   position: fixed;
@@ -707,80 +703,16 @@ body {
   backdrop-filter: blur(4px);
   padding: 20px;
   overflow: auto;
-  animation: gameover-fade 260ms ease both;
-}
-
-/* Outcome-tinted halo behind the card: a warm bloom on a win, a cold ember
-   glow on a loss — atmosphere only, no layout impact. */
-.gameover-overlay::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(640px 420px at 50% 42%, var(--gameover-halo), transparent 70%);
-  pointer-events: none;
-}
-
-@keyframes gameover-fade {
-  from {
-    background: rgba(3, 5, 9, 0);
-  }
-  to {
-    background: rgba(3, 5, 9, 0.82);
-  }
 }
 
 .gameover-card {
   width: min(560px, 94vw);
-  padding: 32px 34px 28px;
+  padding: 30px 34px;
   border-radius: 18px;
   border: 1px solid var(--border);
   background: linear-gradient(180deg, var(--panel-2), var(--bg-deep));
   box-shadow: var(--shadow);
   text-align: center;
-  animation: gameover-rise 340ms cubic-bezier(0.22, 0.9, 0.3, 1.2) both;
-  position: relative;
-}
-
-.gameover-card[data-outcome='won'] {
-  --gameover-halo: rgba(217, 164, 74, 0.16);
-  --gameover-title: var(--accent-bright);
-  --gameover-title-glow: rgba(240, 193, 105, 0.45);
-  --gameover-frame: rgba(217, 164, 74, 0.35);
-  --gameover-rule: rgba(217, 164, 74, 0.45);
-  border-color: rgba(217, 164, 74, 0.35);
-  box-shadow:
-    0 0 0 1px rgba(217, 164, 74, 0.16),
-    var(--shadow);
-}
-
-.gameover-card[data-outcome='lost'] {
-  --gameover-halo: rgba(224, 86, 79, 0.1);
-  --gameover-title: var(--danger);
-  --gameover-title-glow: rgba(224, 86, 79, 0.35);
-  --gameover-frame: rgba(224, 86, 79, 0.28);
-  --gameover-rule: rgba(224, 86, 79, 0.4);
-  border-color: rgba(224, 86, 79, 0.26);
-}
-
-/* Hairline frame echo just inside the card — a quiet "seal" on the run. */
-.gameover-card::before {
-  content: '';
-  position: absolute;
-  inset: 7px;
-  border: 1px solid var(--gameover-frame, var(--border));
-  border-radius: 12px;
-  pointer-events: none;
-}
-
-@keyframes gameover-rise {
-  from {
-    opacity: 0;
-    transform: translateY(18px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 .gameover-title {
@@ -789,43 +721,28 @@ body {
   font-size: 2.6rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--gameover-title, var(--text));
-  text-shadow: 0 0 30px var(--gameover-title-glow, transparent);
-  animation: gameover-rise 420ms 80ms cubic-bezier(0.22, 0.9, 0.3, 1.2) both;
+}
+
+.gameover-card[data-outcome='won'] .gameover-title {
+  color: var(--accent-bright);
+  text-shadow: 0 0 30px rgba(240, 193, 105, 0.45);
+}
+
+.gameover-card[data-outcome='lost'] .gameover-title {
+  color: var(--danger);
+  text-shadow: 0 0 30px rgba(224, 86, 79, 0.4);
 }
 
 .gameover-subtitle {
-  margin: 6px 0 0;
+  margin: 4px 0 18px;
   color: var(--muted);
   font-style: italic;
-  animation: gameover-fade-in 500ms 160ms ease both;
 }
 
-/* Hairline divider under the heading, tinted by outcome. */
-.gameover-subtitle::after {
-  content: '';
-  display: block;
-  width: 64px;
-  height: 1px;
-  margin: 14px auto 0;
-  background: linear-gradient(90deg, transparent, var(--gameover-rule, var(--border)), transparent);
-}
-
-@keyframes gameover-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Scorecard rhythm: the hero score tile reads first, run highlights sit in a
-   shared row of stat tiles, and the seed/toggles meta quiet down at the end. */
 .scorecard {
-  margin: 18px 0 22px;
+  margin: 0 0 20px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 10px;
   text-align: left;
 }
@@ -835,26 +752,6 @@ body {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: rgba(10, 13, 19, 0.55);
-  animation: gameover-fade-in 460ms ease both;
-  animation-delay: 200ms;
-}
-
-.scorecard > .scorecard-hero {
-  grid-column: 1 / -1;
-  padding: 14px 18px;
-  border-color: var(--gameover-frame, var(--border));
-  background: linear-gradient(180deg, rgba(217, 164, 74, 0.08), rgba(10, 13, 19, 0.55));
-  text-align: center;
-  animation-delay: 160ms;
-}
-
-.gameover-card[data-outcome='lost'] .scorecard > .scorecard-hero {
-  background: linear-gradient(180deg, rgba(224, 86, 79, 0.07), rgba(10, 13, 19, 0.55));
-}
-
-.scorecard > .scorecard-meta {
-  border-style: dashed;
-  background: transparent;
 }
 
 .scorecard dt {
@@ -870,25 +767,9 @@ body {
   font-size: 1rem;
 }
 
-.scorecard .scorecard-meta dd {
-  font-weight: 500;
-  font-size: 0.85rem;
-  color: var(--muted);
-  margin-top: 4px;
-}
-
-.scorecard .scorecard-hero dt {
-  color: var(--gameover-rule, var(--muted));
-}
-
 .score-big {
-  display: block;
-  font-size: 2.6rem;
-  font-weight: 800;
-  line-height: 1.15;
-  color: var(--gameover-title, var(--accent-bright));
-  text-shadow: 0 0 26px var(--gameover-title-glow, transparent);
-  font-variant-numeric: tabular-nums;
+  font-size: 1.6rem;
+  color: var(--accent-bright);
 }
 
 .gameover-actions {
@@ -896,31 +777,6 @@ body {
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
-  animation: gameover-fade-in 500ms 260ms ease both;
-}
-
-/* Replay affordance: gold-outline step between the filled primary and the
-   quiet default buttons, so "play again" reads as a real invitation. */
-.btn.primary-outline {
-  background: rgba(217, 164, 74, 0.08);
-  border-color: var(--accent);
-  color: var(--accent-bright);
-}
-
-.btn.primary-outline:hover:not([aria-disabled='true']) {
-  background: rgba(217, 164, 74, 0.16);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .gameover-overlay,
-  .gameover-card,
-  .gameover-title,
-  .gameover-subtitle,
-  .scorecard > div,
-  .gameover-actions {
-    animation-duration: 1ms;
-    animation-delay: 0ms;
-  }
 }
 
 /* ── Stats screen ────────────────────────────────────────────────────────── */
@@ -1069,219 +925,11 @@ a {
   top: calc(100% + 8px);
 }
 
-/* ── Play table overlay (Phaser) ────────────────────────────────────────────── */
-
-/* Play-area restructure (docs/phaser-plan.md §4): the
-   canvas region is an explicit-dimension box — `aspect-ratio: 960/600` (16:10,
-   the design resolution) with width constrained by `.screen` — so Phaser's FIT
-   has real dimensions to fit and center against (a zero-height container
-   breaks it). Everything else stays in document flow around the region;
-   LiveAnnouncer remains mounted in App, outside this layout's remit.
-
-   The region is the play screen's centerpiece: capped at its design width,
-   lit from beneath by a soft accent glow, and framed with a 1px ring +
-   vignette-grade drop shadow applied entirely via box-shadow — shadows and
-   rings don't touch layout, so the mirror's %-of-region hit-target geometry
-   stays aligned to the canvas design coordinates at any width. */
-.play-table-region {
-  position: relative; /* positioned ancestor for the room mirror */
-  margin: 0 auto 18px;
-  width: min(100%, 960px);
-}
-
-.play-table-region::before {
-  content: '';
-  position: absolute;
-  inset: -28px -44px;
-  z-index: -1; /* behind the canvas, above the page background */
-  background: radial-gradient(58% 74% at 50% 38%, rgba(217, 164, 74, 0.13), transparent 72%);
-  pointer-events: none;
-}
-
-/* The actual Phaser scale parent: FIT fits the 960×600 backbuffer exactly,
-   since the box itself is 16:10. The game sets `data-table-ready="true"` on
-   this element when the scene + textures are loaded (e2e readiness marker). */
-.play-table-canvas {
-  width: 100%;
-  aspect-ratio: 960 / 600;
-  border-radius: var(--card-radius);
-  /* Fallback felt under the canvas until Phaser paints over it. */
-  background: radial-gradient(120% 140% at 50% 20%, #141a2a 0%, #06080d 70%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 0 0 1px var(--border),
-    0 0 46px -12px rgba(217, 164, 74, 0.16),
-    0 26px 60px -18px rgba(0, 0, 0, 0.8);
-}
-
-.play-table-canvas canvas {
-  display: block;
-  border-radius: var(--card-radius);
-}
-
-/* DOM room mirror: transparent pointer-input proxy + test seam rendered over
-   the canvas. Visually empty (the canvas draws the cards) but hit-testable, so
-   Playwright's `.room [data-card-id]` click/read locators keep working
-   unchanged. Anchors to the positioned canvas region (PlayTableRegion). */
-.room-mirror {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.mirror-card {
-  position: absolute;
-  width: 12.5%; /* 120 / 960 */
-  height: 30%; /* 180 / 600 */
-  border: none;
-  border-radius: var(--card-radius);
-  background: transparent;
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-.mirror-card[data-selected='true'] {
-  transform: none;
-  filter: none;
-}
-
-/* Align the mirror's transparent hit-targets with the canvas design layout
-   (src/game/table-scene.ts) so e2e clicks land on the card the canvas draws.
-   Room grid x 316–592, y 108 (row step 312), cards 120×180 with 36/24 gaps —
-   expressed in % of the 960×600 region, which the FIT canvas fills exactly, so
-   mirror and sprite geometry stay 1:1 at every size. Room slot n in row-major
-   order: top-left, top-right, bottom-left, bottom-right. */
-.mirror-card:nth-child(1) {
-  left: 32.9167%; /* 316 */
-  top: 18%; /* 108 */
-}
-
-.mirror-card:nth-child(2) {
-  left: 49.1667%; /* 472 */
-  top: 18%;
-}
-
-.mirror-card:nth-child(3) {
-  left: 32.9167%;
-  top: 52%; /* 312 */
-}
-
-.mirror-card:nth-child(4) {
-  left: 49.1667%;
-  top: 52%;
-}
-
-/* Keyboard card-selection control: the only focusable
-   element of the play table; the canvas renders the highlight ring. Styled as
-   a deliberate control in the app's zone-panel vocabulary (same panel tone as
-   `.scorecard > div`), not a naked focusable div: it brightens its frame while
-   a card is selected, and the global focus ring does the affordance on focus. */
-.card-selection {
-  max-width: 640px;
-  margin: 0 auto 16px;
-  padding: 12px 18px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: rgba(10, 13, 19, 0.55);
-  color: var(--muted);
-  font-size: 0.85rem;
-  text-align: center;
-  cursor: default;
-  transition:
-    border-color 120ms ease,
-    background 120ms ease,
-    box-shadow 120ms ease;
-}
-
-.card-selection:focus-visible {
-  border-color: var(--accent-bright);
-  box-shadow: 0 0 0 3px rgba(240, 193, 105, 0.22);
-}
-
-/* Selected state ties the control to the canvas highlight (gold ring). */
-.card-selection[data-selected-card-id] {
-  border-color: rgba(217, 164, 74, 0.45);
-  background: rgba(217, 164, 74, 0.07);
-}
-
-/* Idle state: nearly invisible quiet strip — it must exist in the DOM for
-   focus/tests, but shouldn't read as a broken empty panel between
-   Enter-next-room and the table. */
-.card-selection:not([data-selected-card-id]) {
-  padding: 6px 14px;
-  background: transparent;
-  box-shadow: none;
-  opacity: 0.75;
-}
-
-.selection-hint {
-  margin: 3px 0 0;
-  color: var(--muted);
-  font-style: italic;
-}
-
-/* Kill-count line in the DOM weapon-zone readout. */
-.kill-count {
-  margin-top: 2px;
-}
-
-/* Cursor-anchored tooltip for canvas sprite hover — reuses `.tooltip` styling
-   but anchors to a fixed cursor point instead of a DOM trigger. */
-.cursor-tooltip {
-  position: fixed;
-  bottom: auto;
-  z-index: 80;
-  transform: translate(calc(-50% + var(--tooltip-shift, 0px)), -100%);
-}
-
-.cursor-tooltip.tooltip-below {
-  transform: translate(calc(-50% + var(--tooltip-shift, 0px)), 0);
-}
-
-/* Compact weapon-zone READOUT: the canvas already owns the big weapon +
-   kill-stack visuals, so the DOM readout keeps the same zone vocabulary
-   (`.weapon-zone` panel, `.kill-card` steps, `.last-kill-badge`) but scales
-   its cards down via a local `--card-w` override — both the stepped
-   kill-stack container (inline calc on `--card-w`) and the card sizes shrink
-   together, keeping the fan offsets proportional. */
-.weapon-readout {
-  --card-w: clamp(96px, 13.5vw, 124px);
-  --card-h: calc(var(--card-w) * 1.4);
-  gap: 18px;
-  min-height: 0;
-  max-width: 640px;
-  padding: 12px 18px;
-  margin: 0 auto 18px;
-}
-
-.weapon-readout .weapon-threshold {
-  font-size: 0.8rem;
-  margin: 0.5em 0 0;
-}
-
-.weapon-readout .zone-title {
-  margin: 0 0 6px;
-}
-
-/* Play-screen rhythm: tighter document flow around the canvas centerpiece. */
-.play .controls {
-  margin-bottom: 16px;
-}
-
-.play .room-progress {
-  margin: 2px 0 14px;
-}
-
 /* ── Mobile ──────────────────────────────────────────────────────────────── */
 
 @media (max-width: 640px) {
   .screen {
     padding: 12px 12px 40px;
-  }
-
-  /* Reel the play-table glow in on small screens so it doesn't spill over. */
-  .play-table-region::before {
-    inset: -14px -10px;
   }
 
   .hud {
