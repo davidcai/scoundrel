@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react';
-import type { GameResult, GameState } from '../engine';
+import type { CardId, GameResult, GameState } from '../engine';
 import type { BoardBridge } from '../game/bridge';
 import { useGameStore } from '../store/game-store';
 
@@ -35,14 +35,27 @@ import { useGameStore } from '../store/game-store';
  */
 
 /**
- * Store snapshots carry `lastResult` after the parallel store-plumbing lane
- * lands; read defensively so this works before and after. (The store is not
- * imported here beyond `useGameStore` itself.)
+ * Store snapshots carry `lastResult` / `selectedCardId` / `runResumed` from
+ * the parallel store-plumbing lane; read defensively so this works before and
+ * after. (The store is not imported here beyond `useGameStore` itself.)
  */
-type FxSource = { game: GameState | null; lastResult?: GameResult | null };
+type FxSource = {
+  game: GameState | null;
+  lastResult?: GameResult | null;
+  selectedCardId?: CardId | null;
+  runResumed?: boolean;
+};
 
 function readLastResult(snapshot: FxSource): GameResult | null {
   return snapshot.lastResult ?? null;
+}
+
+function readSelectedCardId(snapshot: FxSource): CardId | null {
+  return snapshot.selectedCardId ?? null;
+}
+
+function readRunResumed(snapshot: FxSource): boolean {
+  return snapshot.runResumed ?? false;
 }
 
 function hasWebGL(): boolean {
@@ -98,6 +111,8 @@ export function PhaserBoard({ bridge, onLiveChange }: PhaserBoardProps) {
       state: initial.game,
       prevState: null,
       lastResult: readLastResult(initial),
+      selectedCardId: readSelectedCardId(initial),
+      runResumed: readRunResumed(initial),
     });
 
     const unsubscribeStore = useGameStore.subscribe((state, prevState) => {
@@ -105,6 +120,8 @@ export function PhaserBoard({ bridge, onLiveChange }: PhaserBoardProps) {
         state: state.game,
         prevState: prevState.game,
         lastResult: readLastResult(state),
+        selectedCardId: readSelectedCardId(state),
+        runResumed: readRunResumed(state),
       });
     });
 

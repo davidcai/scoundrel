@@ -18,17 +18,27 @@ import type { CardId, GameResult, GameState } from '../engine';
  * `lastResult` is a choreography HINT only; diff-based reconciliation across
  * `(prevState, state)` is the single source of truth, including mount/hydrate
  * where `lastResult` is null.
+ *
+ * `selectedCardId` (Phase 3) rides the same sync: selection changes emit a
+ * payload whose `state`/`prevState` are identical — the scene treats that as
+ * a glow-only beat and never kills in-flight choreography for it.
+ *
+ * `runResumed` (Phase 3) is true for a run restored from storage: the scene's
+ * first reconcile for such a run is static (no mount deal).
  */
 export interface BoardSyncPayload {
   state: GameState | null;
   prevState: GameState | null;
   lastResult: GameResult | null;
+  selectedCardId: CardId | null;
+  runResumed: boolean;
 }
 
 /**
  * store → scene, transient (no replay): the DOM hit-layer's hover state for a
- * room card. The scene applies a non-animated tint to the matching sprite
- * (Phase 2 hover bridging — the canvas itself never receives pointer events).
+ * room card. Phase 3: the scene answers with the glow preset (the alpha dip
+ * remains as the no-WebGL fallback). The canvas itself never receives pointer
+ * events — the DOM hit-layer owns all of them.
  */
 export interface CardHoverPayload {
   cardId: CardId;
