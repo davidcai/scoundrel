@@ -282,6 +282,12 @@ test('a full seeded run ends in a scorecard, records stats once, and survives re
 });
 
 test('the replay link round-trips through the clipboard', async ({ browser }) => {
+  // Heaviest e2e: a full ~27-action seeded run to the scorecard plus the
+  // clipboard round-trip. With the Phaser canvas live, headless CI renders
+  // WebGL via SwiftShader on a 2-vCPU runner, which slows every click's
+  // actionability wait (2-consecutive-frame stability) far past the 30s
+  // default — measured ~35–40s under load vs ~22s solo. Give it headroom.
+  test.setTimeout(90_000);
   const context = await browser.newContext();
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   const page = await context.newPage();
