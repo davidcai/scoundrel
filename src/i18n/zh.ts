@@ -139,6 +139,8 @@ const zh: Translation = {
   togglePotionDesc: '开：每房间只有第一瓶药水有效，其余弃掉。关：每瓶都有效。',
   toggleDegLabel: '武器磨损',
   toggleDegDesc: '开：武器只能对抗比上次击杀更弱的怪物。关：武器永不磨损。',
+  toggleReducedMotionLabel: '减弱动效',
+  toggleReducedMotionDesc: '开：发牌、翻牌、结算时尽量减少动画。关：正常播放动画。',
 
   // About
   aboutTitle: '关于 Scoundrel',

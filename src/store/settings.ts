@@ -30,6 +30,8 @@ export function resolveLanguage(setting: LanguageSetting): Language {
 export interface SettingsData {
   config: GameConfig;
   language: LanguageSetting;
+  /** Prefer minimal animations (dealing, flips, resolution FX). */
+  reducedMotion: boolean;
 }
 
 function isValidConfig(value: unknown): value is GameConfig {
@@ -56,6 +58,7 @@ function read(raw: unknown): SettingsData | null {
   return {
     config: v.config,
     language: isValidLanguage(v.language) ? v.language : 'auto',
+    reducedMotion: v.reducedMotion === true,
   };
 }
 
@@ -64,15 +67,22 @@ export function loadSettings(): SettingsData {
     load<SettingsData>(STORAGE_KEYS.settings, migrateVersion(1, read)) ?? {
       config: { ...DEFAULT_CONFIG },
       language: 'auto',
+      reducedMotion: false,
     }
   );
 }
 
-export function saveSettings(config: GameConfig, language?: LanguageSetting): void {
+export function saveSettings(
+  config: GameConfig,
+  language?: LanguageSetting,
+  reducedMotion?: boolean,
+): void {
   const stored = load<SettingsData>(STORAGE_KEYS.settings, migrateVersion(1, read));
   save<SettingsData>(STORAGE_KEYS.settings, {
     config,
     language: language ?? stored?.language ?? 'auto',
+    // Explicit value wins; otherwise keep what was stored (missing → false).
+    reducedMotion: reducedMotion ?? stored?.reducedMotion ?? false,
   });
 }
 
@@ -81,6 +91,7 @@ export function saveLanguage(language: LanguageSetting): void {
   save<SettingsData>(STORAGE_KEYS.settings, {
     config: stored?.config ?? { ...DEFAULT_CONFIG },
     language,
+    reducedMotion: stored?.reducedMotion ?? false,
   });
 }
 

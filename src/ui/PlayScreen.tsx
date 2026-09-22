@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   canEnterNextRoom,
   canResolveMore,
@@ -13,12 +13,16 @@ import {
   type GameState,
 } from '../engine';
 import { cardHint, cardLabel, useT } from '../i18n';
+import { createBoardBridge, type BoardBridge } from '../game/bridge';
 import { useGameStore } from '../store/game-store';
 import { decodeConfig } from '../store/share';
 import { CardView } from './CardView';
 import { GameOverScreen } from './GameOverScreen';
 import { Hud } from './Hud';
+import { PhaserBoard } from './PhaserBoard';
 import { Tooltip } from './Tooltip';
+import { useBoardLayout } from './use-board-layout';
+import { useMotionDirector } from './use-motion-director';
 import { WeaponStack } from './WeaponStack';
 import { navigate, useHashRoute } from './router';
 
@@ -55,6 +59,33 @@ export function PlayScreen() {
   }, [seedParam, configParam, game, startRun]);
 
   const roomRef = useRef<HTMLDivElement>(null);
+  // Motion director anchor: the `.screen.play` root scopes every FX query.
+  const screenRef = useRef<HTMLElement>(null);
+  useMotionDirector(screenRef);
+
+  // Store⇄scene channel (Phase 2). Owned here — PhaserBoard boots the scene
+  // on it and the card hover handlers emit on it; destroyed on unmount.
+  const [bridge, setBridge] = useState<BoardBridge | null>(null);
+  useEffect(() => {
+    const created = createBoardBridge();
+    setBridge(created);
+    return () => created.destroy();
+  }, []);
+
+  // Canvas-live: flipped by PhaserBoard when the scene completes its FIRST
+  // reconcile. Until then (and without WebGL/tests) the DOM renders exactly
+  // the pre-canvas UI.
+  const [canvasLive, setCanvasLive] = useState(false);
+
+  // Hit-layer geometry: same layout function + same metrics path as the scene.
+  const board = useBoardLayout(roomRef, game?.room.length ?? 0);
+
+  const emitCardHover = useCallback(
+    (cardId: CardId, over: boolean) => {
+      bridge?.emitCardHover({ cardId, over });
+    },
+    [bridge],
+  );
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (
@@ -96,9 +127,12 @@ export function PlayScreen() {
     );
   }
 
-  if (game.phase !== 'playing') {
-    return <GameOverScreen game={game} />;
-  }
+  // Phase 3 GameOver sequencing: the run's final state stays mounted — the
+  // Phaser board (and the whole play UI) must survive into the scorecard so
+  // canvas celebrations can play over it. GameOverScreen overlays the frozen
+  // UI as a full-viewport dialog (z-index above the fx-layer and tooltips);
+  // `inert` freezes the underlying UI out of pointer, keyboard and a11y reach.
+  const finished = game.phase !== 'playing';
 
   const final = isFinalRoom(game);
   const selected =
@@ -106,101 +140,129 @@ export function PlayScreen() {
   const runStatus = runAwayStatus(game);
 
   return (
-    <main className="screen play">
-      <Hud game={game} onAbandon={abandon} />
+    <>
+      <main className="screen play" ref={screenRef} inert={finished}>
+        <Hud game={game} onAbandon={abandon} />
 
-      <div className="controls">
-        <Tooltip text={t('tooltipUndo')}>
-          <button
-            type="button"
-            className="btn"
-            aria-disabled={!canUndo(game)}
-            onClick={() => act({ type: 'UndoToRoomStart' })}
-          >
-            {t('undoToRoomStart')}
-          </button>
-        </Tooltip>
-
-        <Tooltip
-          text={
-            runStatus.legal
-              ? t('tooltipRunLegal')
-              : runStatus.reason === 'twice-in-a-row'
-                ? t('tooltipRunTwice')
-                : runStatus.reason === 'final-room'
-                  ? t('tooltipRunFinal')
-                  : t('tooltipRunEngaged')
-          }
-        >
-          <button
-            type="button"
-            className="btn"
-            aria-disabled={!runStatus.legal}
-            onClick={() => act({ type: 'RunAway' })}
-          >
-            {t('runAway')}
-          </button>
-        </Tooltip>
-
-        {!final && (
-          <Tooltip text={t('tooltipCarry')}>
+        <div className="controls">
+          <Tooltip text={t('tooltipUndo')}>
             <button
               type="button"
-              className="btn primary"
-              aria-disabled={!canEnterNextRoom(game)}
-              onClick={() => act({ type: 'EnterNextRoom' })}
+              className="btn"
+              aria-disabled={!canUndo(game)}
+              onClick={() => act({ type: 'UndoToRoomStart' })}
             >
-              {t('enterNextRoom')}
+              {t('undoToRoomStart')}
             </button>
           </Tooltip>
-        )}
-      </div>
 
-      {final && (
-        <p className="final-banner" role="note">
-          {t('finalBannerStart')} <strong>{t('finalBannerEvery')}</strong> {t('finalBannerEnd')}
-        </p>
-      )}
-
-      <div
-        ref={roomRef}
-        className="room"
-        role="group"
-        aria-label={t('currentRoom')}
-        onKeyDown={onKeyDown}
-      >
-        {game.room.map((cardId) => (
-          <Tooltip key={cardId} text={cardHint(cardId)}>
-            <CardView
-              cardId={cardId}
-              selected={selected === cardId}
-              carried={game.carriedCardId === cardId}
-              onClick={() => selectCard(selected === cardId ? null : cardId)}
-            />
+          <Tooltip
+            text={
+              runStatus.legal
+                ? t('tooltipRunLegal')
+                : runStatus.reason === 'twice-in-a-row'
+                  ? t('tooltipRunTwice')
+                  : runStatus.reason === 'final-room'
+                    ? t('tooltipRunFinal')
+                    : t('tooltipRunEngaged')
+            }
+          >
+            <button
+              type="button"
+              className="btn"
+              aria-disabled={!runStatus.legal}
+              onClick={() => act({ type: 'RunAway' })}
+            >
+              {t('runAway')}
+            </button>
           </Tooltip>
-        ))}
-      </div>
 
-      <p className="room-progress" aria-hidden="true">
-        {!final && game.room.length === 1
-          ? t('carrySingle')
-          : final
-            ? t('carryNone')
-            : t('carryDefault')}
-      </p>
+          {!final && (
+            <Tooltip text={t('tooltipCarry')}>
+              <button
+                type="button"
+                className="btn primary"
+                aria-disabled={!canEnterNextRoom(game)}
+                onClick={() => act({ type: 'EnterNextRoom' })}
+              >
+                {t('enterNextRoom')}
+              </button>
+            </Tooltip>
+          )}
+        </div>
 
-      {selected !== null && <ActionPanel game={game} cardId={selected} />}
+        {final && (
+          <p className="final-banner" role="note">
+            {t('finalBannerStart')} <strong>{t('finalBannerEvery')}</strong> {t('finalBannerEnd')}
+          </p>
+        )}
 
-      <WeaponStack game={game} />
+        <div
+          ref={roomRef}
+          className={canvasLive ? 'room canvas-live' : 'room'}
+          role="group"
+          aria-label={t('currentRoom')}
+          onKeyDown={onKeyDown}
+          style={canvasLive ? { height: board.roomHeight } : undefined}
+        >
+          {/* Phase 2: the canvas is the room's primary renderer (once the scene's
+            first reconcile flips canvas-live); the buttons become a transparent
+            hit-layer positioned at the shared layout-function rects. */}
+          <PhaserBoard bridge={bridge} onLiveChange={setCanvasLive} />
+          {game.room.map((cardId, index) => {
+            const rect = canvasLive ? board.rects[index] : undefined;
+            return (
+              <Tooltip
+                key={cardId}
+                text={cardHint(cardId)}
+                style={
+                  rect !== undefined
+                    ? {
+                        position: 'absolute',
+                        left: rect.x,
+                        top: rect.y,
+                        width: rect.width,
+                        height: rect.height,
+                      }
+                    : undefined
+                }
+              >
+                <CardView
+                  cardId={cardId}
+                  selected={selected === cardId}
+                  carried={game.carriedCardId === cardId}
+                  onClick={() => selectCard(selected === cardId ? null : cardId)}
+                  onHoverChange={(over) => emitCardHover(cardId, over)}
+                />
+              </Tooltip>
+            );
+          })}
+        </div>
 
-      <p className="seed-note">
-        <Tooltip text={t('tooltipSeed')}>
-          <span>
-            {t('seed')}: <span className="mono">{game.seed}</span>
-          </span>
-        </Tooltip>
-      </p>
-    </main>
+        <p className="room-progress" aria-hidden="true">
+          {!final && game.room.length === 1
+            ? t('carrySingle')
+            : final
+              ? t('carryNone')
+              : t('carryDefault')}
+        </p>
+
+        {selected !== null && <ActionPanel game={game} cardId={selected} />}
+
+        <WeaponStack game={game} />
+
+        <p className="seed-note">
+          <Tooltip text={t('tooltipSeed')}>
+            <span>
+              {t('seed')}: <span className="mono">{game.seed}</span>
+            </span>
+          </Tooltip>
+        </p>
+      </main>
+
+      {/* Sibling of the inert main — the dialog itself must stay interactive. */}
+      {finished && <GameOverScreen game={game} />}
+    </>
   );
 }
 

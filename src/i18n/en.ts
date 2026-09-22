@@ -146,6 +146,9 @@ const en = {
   toggleDegLabel: 'Weapon degradation',
   toggleDegDesc:
     'On: a weapon can only fight monsters weaker than the last monster it killed. Off: weapons never degrade.',
+  toggleReducedMotionLabel: 'Reduced motion',
+  toggleReducedMotionDesc:
+    'On: dealing, flipping and resolving cards happen without extra animation. Off: animations play in full.',
 
   // About
   aboutTitle: 'About Scoundrel',

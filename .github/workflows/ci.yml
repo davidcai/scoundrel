@@ -44,6 +44,11 @@ jobs:
       - name: Build (typecheck + bundle)
         run: pnpm build
 
+      # Phase 4/5 gate: `#/play` chunk ≤ +400KB gz over baseline, implemented
+      # as per-chunk ≤ 420KB gz + total JS ≤ 550KB gz (see script header).
+      - name: Bundle size budget
+        run: node scripts/check-bundle-size.mjs
+
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
