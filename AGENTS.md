@@ -18,17 +18,22 @@ pnpm lint         # ESLint
 pnpm format       # Prettier (write); pnpm format:check to verify
 pnpm typecheck    # tsc -b
 pnpm test         # Vitest: engine unit + RTL integration tests
+pnpm test:watch   # Vitest in watch mode
 pnpm e2e          # Playwright e2e — run `pnpm build` first (serves dist/)
 ```
+
+Node 22 is what CI uses (`.github/workflows/ci.yml`); use it locally.
 
 ## Architecture
 
 - `src/engine/` — pure TypeScript game engine (deck, seeded RNG, reducer `(state, action) → { state, result }`, all rules, scoring). Zero React, zero DOM; Node-testable.
 - `src/store/` — Zustand store, sharded versioned localStorage persistence (`scoundrel:settings`/`stats`/`run`), stats aggregation, shareable replay URLs.
+- `src/game/` — Phaser 4 canvas board layer (`phaser` runtime dep) bridged to React via `src/ui/PhaserBoard.tsx` and a bridge module. The canvas renders no text and takes no pointer events; layout is shared with React through the pure functions in `board-layout.ts`/`board-metrics.ts`.
 - `src/ui/` — React screens and components. Transient card-selection lives in the store, never in engine state.
 - `assets/` — the 44 card artwork JPEGs (bundled via `import.meta.glob` in `src/ui/card-image.ts`).
 - `tests/` — store unit tests + RTL integration tests. Engine tests live next to the code in `src/engine/`.
-- `e2e/` — Playwright black-box tests (seeded URLs make runs deterministic).
+- `e2e/` — Playwright black-box tests (seeded URLs make runs deterministic), including axe-core accessibility and board-parity specs.
+- `scripts/` — `check-bundle-size.mjs`, the CI bundle-size gate (per-chunk and total JS budgets).
 
 ## Conventions
 
@@ -38,4 +43,4 @@ pnpm e2e          # Playwright e2e — run `pnpm build` first (serves dist/)
 - Engine code must stay pure and React-free; all randomness is resolved in `createInitialState` so the reducer is deterministic given `(state, action)`.
 - CardId format is `${suit}-${rank}` matching the artwork filenames (`club-8.jpg`).
 - Shareable run URLs: `#/play?seed=...&config=...` (`src/store/share.ts`).
-- CI (`.github/workflows/ci.yml`) runs lint, typecheck, unit+integration, and e2e (build first — `vite preview` serves `dist/`). Deployment is handled by Vercel (previews on PRs, production from `main`); the Vite build reads the base path from `BASE_URL` (`vite.config.ts`, default `/`) and the hash router tolerates any base.
+- CI (`.github/workflows/ci.yml`) runs lint, typecheck, unit+integration, a bundle-size gate (`scripts/check-bundle-size.mjs`), and e2e (build first — `vite preview` serves `dist/`). Deployment is handled by Vercel (previews on PRs, production from `main`); the Vite build reads the base path from `BASE_URL` (`vite.config.ts`, default `/`) and the hash router tolerates any base.
