@@ -4,7 +4,7 @@ Guidance for AI coding agents working in this repo.
 
 ## Project
 
-Scoundrel — a 1-player roguelike dungeon-crawling card game, implemented as a web app. See `README.md` for the project overview. The full rule set lives in `docs/rules.md` and is the source of truth for gameplay behavior; `docs/spec.md` is the implementation spec the app realizes.
+Scoundrel — a 1-player roguelike dungeon-crawling card game, implemented as a web app. See `README.md` for the project overview. The full rule set lives in `docs/rules.md` and is the source of truth for gameplay behavior; `docs/spec.md` is the implementation spec the app realizes. For history, `docs/plans/phaser-adoption-plan.md` records the completed Phaser adoption, `docs/phaser-plan.md` is its superseded proposal (stale), and `docs/design-plan.md` is a historical decision record.
 
 ## Commands
 
@@ -27,8 +27,8 @@ Node 22 is what CI uses (`.github/workflows/ci.yml`); use it locally.
 ## Architecture
 
 - `src/engine/` — pure TypeScript game engine (deck, seeded RNG, reducer `(state, action) → { state, result }`, all rules, scoring). Zero React, zero DOM; Node-testable.
-- `src/store/` — Zustand store, sharded versioned localStorage persistence (`scoundrel:settings`/`stats`/`run`), stats aggregation, shareable replay URLs.
-- `src/game/` — Phaser 4 canvas board layer (`phaser` runtime dep) bridged to React via `src/ui/PhaserBoard.tsx` and a bridge module. The canvas renders no text and takes no pointer events; layout is shared with React through the pure functions in `board-layout.ts`/`board-metrics.ts`.
+- `src/store/` — Zustand store, sharded versioned localStorage persistence (`scoundrel:settings`/`stats`/`run`), stats aggregation, shareable replay URLs. Schema changes bump `SCHEMA_VERSION` in `persistence.ts` and chain a migration, or saved data is discarded.
+- `src/game/` — Phaser 4 canvas board layer (`phaser` runtime dep) bridged to React via `src/ui/PhaserBoard.tsx` and a bridge module. The canvas renders no text and takes no pointer events; layout is shared with React through the pure functions in `board-layout.ts` (DOM-free) and `board-metrics.ts` (reads computed styles from the DOM).
 - `src/ui/` — React screens and components. Transient card-selection lives in the store, never in engine state.
 - `assets/` — the 44 card artwork JPEGs (bundled via `import.meta.glob` in `src/ui/card-image.ts`).
 - `tests/` — store unit tests + RTL integration tests. Engine tests live next to the code in `src/engine/`.
@@ -39,7 +39,7 @@ Node 22 is what CI uses (`.github/workflows/ci.yml`); use it locally.
 
 - When creating a GIT branch and its worktree, create the worktree at `.worktrees/<kebab-cased-branch-name>`.
 - File naming: React component files and their test files use CapitalCamelCase (e.g. `CardView.tsx`); everything else uses kebab-case (lower-dash-case).
-- i18n: powered by typesafe-i18n. Message text lives in the `en`/`zh` dictionaries in `src/i18n/`; `src/i18n.ts` exposes the zustand language store and `useT()`/`t()` helpers. Other files reference messages by `MessageKey`, never inline display strings.
+- i18n: powered by typesafe-i18n. Message text lives in the `en`/`zh` dictionaries in `src/i18n/`; `src/i18n.ts` exposes the zustand language store and `useT()`/`t()` helpers. Other files reference messages by `MessageKey`, never inline display strings. (Note: `typesafe-i18n`'s generated files (`i18n-types.ts`, `i18n-util*.ts`) in `src/i18n/` are maintained by hand — no codegen step exists — so dictionary edits keep them in sync manually.)
 - Engine code must stay pure and React-free; all randomness is resolved in `createInitialState` so the reducer is deterministic given `(state, action)`.
 - CardId format is `${suit}-${rank}` matching the artwork filenames (`club-8.jpg`).
 - Shareable run URLs: `#/play?seed=...&config=...` (`src/store/share.ts`).
