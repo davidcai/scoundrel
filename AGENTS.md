@@ -4,7 +4,7 @@ Guidance for AI coding agents working in this repo.
 
 ## Project
 
-Scoundrel — a 1-player roguelike dungeon-crawling card game, implemented as a web app. See `README.md` for the project overview. The full rule set lives in `docs/rules.md` and is the source of truth for gameplay behavior; `docs/spec.md` is the implementation spec the app realizes. For history, `docs/plans/phaser-adoption-plan.md` records the completed Phaser adoption, `docs/phaser-plan.md` is its superseded proposal (stale), and `docs/design-plan.md` is a historical decision record.
+Scoundrel — a 1-player roguelike dungeon-crawling card game, implemented as a web app. See `README.md` for the project overview. The full rule set lives in `docs/rules.md` and is the source of truth for gameplay behavior; `docs/spec.md` is the implementation spec the app realizes. For history, `docs/plans/phaser-adoption-plan.md` records the completed Phaser adoption, `docs/plans/phaser-plan.md` is its superseded proposal (stale), and `docs/design-plan.md` is a historical decision record.
 
 ## Commands
 

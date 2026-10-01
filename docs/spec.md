@@ -127,7 +127,7 @@ A modern-RPG-styled web app (React + Vite + TypeScript) with a dark dungeon-craw
 
 ### Engine state shape (`GameState`)
 
-A flat, JSON-serializable object (derived from the to-spec prototype sketches in `design-plan.md`):
+A flat, JSON-serializable object (derived from the to-spec prototype sketches in `docs/design-plan.md`):
 
 ```ts
 interface GameState {
@@ -303,7 +303,7 @@ No prior art in this greenfield repo. The codebase conventions do not yet exist;
 
 ### Reused prototypes / decision snippets
 
-- The `GameState` and `GameConfig` interfaces in Implementation Decisions are derived from the grilling prototype sketches in `design-plan.md` (Q45b, Q19a). They encode decisions more precisely than prose; they are NOT a working implementation and will trim further during build (e.g. `runHighlights` field types).
+- The `GameState` and `GameConfig` interfaces in Implementation Decisions are derived from the grilling prototype sketches in `docs/design-plan.md` (Q45b, Q19a). They encode decisions more precisely than prose; they are NOT a working implementation and will trim further during build (e.g. `runHighlights` field types).
 
 ### Key cross-decision synergies
 
