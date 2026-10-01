@@ -8,6 +8,13 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   base: process.env.BASE_URL ?? '/',
   plugins: [react()],
+  server: {
+    watch: {
+      // The Godot frame's import cache and toolchain churn temp files that
+      // crash the watcher on Windows (EBUSY) — none of it is app source.
+      ignored: ['**/godot/.godot/**', '**/.toolchain/**', '**/public/godot/**'],
+    },
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],

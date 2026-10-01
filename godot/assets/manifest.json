@@ -1,0 +1,587 @@
+{
+  "tool": "sharp@0.35.5",
+  "maxDerivativeWidth": 576,
+  "pngOptions": {
+    "compressionLevel": 9
+  },
+  "importOptions": {
+    "compressMode": "lossy(1)",
+    "lossyQuality": 0.8,
+    "mipmaps": false
+  },
+  "expectedCardCount": 44,
+  "entries": {
+    "club-10": {
+      "source": "assets/club-10.jpg",
+      "sourceSha256": "009a5fbaf75864e635c6873a640a0d89ccc97c552ee06b89fb3b1d6282da0294",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/club-10.png",
+      "derivativeSha256": "b71fcdb189991e3993e423a6f0d4fc55b3724f69712c331008724ca7cfdbad10",
+      "derivativeBytes": 1037374,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "club-2": {
+      "source": "assets/club-2.jpg",
+      "sourceSha256": "36a20aa578f590aa103459e996a88050106bb5431d7012a82c6b1e68a5ec7236",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/club-2.png",
+      "derivativeSha256": "f60f583029d718299c9f4cf55ce890405d0b91304bb62bea0143da47331ff50d",
+      "derivativeBytes": 902936,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "club-3": {
+      "source": "assets/club-3.jpg",
+      "sourceSha256": "2084e709f8631f882312412bdccf286e07bd4e628bcce45b8404f2b1d1d8dcf9",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/club-3.png",
+      "derivativeSha256": "017d692eface2f03bcf94194385dc77af0ac3069e7ccd517a2c25f810cdbce1d",
+      "derivativeBytes": 1018007,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "club-4": {
+      "source": "assets/club-4.jpg",
+      "sourceSha256": "4dc1503f3100ad79005f32dbf8d53497760d27b6c9e3fe86ec7d436c09ceefa1",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/club-4.png",
+      "derivativeSha256": "3f6ae58b21dea219fcf61b068b92b8ffe5affcd186d2b37fe937bdc878e54165",
+      "derivativeBytes": 914564,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "club-5": {
+      "source": "assets/club-5.jpg",
+      "sourceSha256": "c10ffcb788f90a831b8df63c064960b496fba863bac245032052fdef2c4018a6",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/club-5.png",
+      "derivativeSha256": "19e2f1488f61c8331dbad0b1775c8f491fa431e01af23ee1a18015a543349c1b",
+      "derivativeBytes": 948485,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "club-6": {
+      "source": "assets/club-6.jpg",
+      "sourceSha256": "bc56e3db4a4aae427c895d273366053bc566b8eeeceb45b7b05b6a2cfffafbd9",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/club-6.png",
+      "derivativeSha256": "d92a8e71e04277c4f3c5c6cdff854d37ffcd273f1f1cef0258a90efe0f4647e5",
+      "derivativeBytes": 1029767,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "club-7": {
+      "source": "assets/club-7.jpg",
+      "sourceSha256": "0b2396d187c40e708ab5ffdce47eaa1d758b4c6f2b248ce3fc0ea6e3bc11ebbe",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/club-7.png",
+      "derivativeSha256": "4565a15f08e99e0bae067ef94df90fbe164b15f1a6d4ea0ef3d51983b9e67299",
+      "derivativeBytes": 950249,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "club-8": {
+      "source": "assets/club-8.jpg",
+      "sourceSha256": "53d2fec7f242de23266ab9bb8834dcdbd4c1a10694da89f7bb67409b72bdf5f5",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/club-8.png",
+      "derivativeSha256": "caf454105dd47dc7254b5bf779c90b8fbda93f00bef3694fba15c341c3971508",
+      "derivativeBytes": 1060599,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "club-9": {
+      "source": "assets/club-9.jpg",
+      "sourceSha256": "b5df53614354389ab700d3eafee64853044bc79e3c17f1583d74c26c462f3a81",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/club-9.png",
+      "derivativeSha256": "4db4610d6b72a025fd185d1eeeacd7844f73275c6c2588520f5ae3215ef79a64",
+      "derivativeBytes": 985903,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "club-a": {
+      "source": "assets/club-a.jpg",
+      "sourceSha256": "04fcccc7cc8d67a1b7c28c0657cd8872df9e70ca1f632b13960aecbdea022c49",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/club-a.png",
+      "derivativeSha256": "6d3cbe282459011699a1fc4f1cfbf3142ce67a5fc2c227db40af0d396a408e16",
+      "derivativeBytes": 1141437,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "club-j": {
+      "source": "assets/club-j.jpg",
+      "sourceSha256": "2cd3afeca63a9cfe03f449f36d742cbc6da158d497e77526adf39b7608b35cd1",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/club-j.png",
+      "derivativeSha256": "5f4e87b714a5c66049dfa501ecd3491b15535cc48bc64d1e3d63b38deefaf71d",
+      "derivativeBytes": 991717,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "club-k": {
+      "source": "assets/club-k.jpg",
+      "sourceSha256": "8e145eac4cd9544bb78416861a047f31f149a44387884db0ce3a8ab335623d5f",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/club-k.png",
+      "derivativeSha256": "01f2b9bbb2ccaf150f9c6e28630aac12a5e07d2421221ac58c50213c2b07b783",
+      "derivativeBytes": 908986,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "club-q": {
+      "source": "assets/club-q.jpg",
+      "sourceSha256": "3b1ae74549727b929ec86efb0d2c0d3e0a0fbb8f4e4391c76bbffd5e7ce3c90b",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/club-q.png",
+      "derivativeSha256": "b103cae068af99c0d2c1f15f2df14ec921ae7ff405f80331223990363c842d19",
+      "derivativeBytes": 953856,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "diamond-10": {
+      "source": "assets/diamond-10.jpg",
+      "sourceSha256": "aa98af6dafa9c717343bb5f16e38c1c17737439b05448f1ce8a1614cc960664b",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/diamond-10.png",
+      "derivativeSha256": "4058cf2915050990d035c0f80bd9111d5d583f598d1cb2bb41f530d5e6c28ada",
+      "derivativeBytes": 811735,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "diamond-2": {
+      "source": "assets/diamond-2.jpg",
+      "sourceSha256": "293370fe5b27ee43f4009d047e9e605e8924f2eba595dd7c17a6d6475f279d06",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/diamond-2.png",
+      "derivativeSha256": "1ac6d25d35e9f2f6af3bcd8791b9da1f08a4641fea2839a96bdb2d6fab16dcd4",
+      "derivativeBytes": 709889,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "diamond-3": {
+      "source": "assets/diamond-3.jpg",
+      "sourceSha256": "44b72c90f2661bfde70f2bf23129e3c021f390cfbc9dd711f13f40e8532f4e35",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/diamond-3.png",
+      "derivativeSha256": "9fa814d865a30ca7315ce1a60110bec9a16930ee95dafa88c214864e17db739d",
+      "derivativeBytes": 930463,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "diamond-4": {
+      "source": "assets/diamond-4.jpg",
+      "sourceSha256": "903f7b57a380c7eb629a9fd16a7cf0e9a9721e4ae84f34339254ab7323ba4c44",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/diamond-4.png",
+      "derivativeSha256": "fa594b153d2dbc70b2c563753a12bf2009b3c055a2779806c4a112326e4fcb4e",
+      "derivativeBytes": 939381,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "diamond-5": {
+      "source": "assets/diamond-5.jpg",
+      "sourceSha256": "a0ff474cdc7f88796ea97b6c4c06a3dd285fc3829bd179cf07ddf8ac4fcf11ef",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/diamond-5.png",
+      "derivativeSha256": "1e53c5920a3c3eb39fa83053d61db8f03b0e707db8bdd878ecc34cd0bc0368cf",
+      "derivativeBytes": 817533,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "diamond-6": {
+      "source": "assets/diamond-6.jpg",
+      "sourceSha256": "2f0886d4e47424f336f9bef1993f970fdb60d0ee4704128510e2b3e223c6965b",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/diamond-6.png",
+      "derivativeSha256": "0c0e087efa8d8515960f647a2ddefca1111a050c31bc490c0a71af615614ec06",
+      "derivativeBytes": 847270,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "diamond-7": {
+      "source": "assets/diamond-7.jpg",
+      "sourceSha256": "4b5a5e87042ce50444a91f1bfe185cc5928ca74d6beb79ccc30e4e94145ac71b",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/diamond-7.png",
+      "derivativeSha256": "ed3977746fb533f964f14eb7dad18a919c507c3687dd592ef8537365bd01d59e",
+      "derivativeBytes": 831305,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "diamond-8": {
+      "source": "assets/diamond-8.jpg",
+      "sourceSha256": "0461fbc906070503e9bdbdf6929019c92528f3c81f57488a3b46d5725fd7570a",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/diamond-8.png",
+      "derivativeSha256": "d6e838f0647cd9fd2c478e1dc7a94badd24d6c9f79bd1696784c20ae5189875c",
+      "derivativeBytes": 991200,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "diamond-9": {
+      "source": "assets/diamond-9.jpg",
+      "sourceSha256": "eb8bcd2806417559df59af1f3642bf789df77d394f2362347244c73046e7a756",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/diamond-9.png",
+      "derivativeSha256": "f5537c32b1efb64be275fc9fd8b4ceab86bd322a3b9c9932a7cbbfdb43ef3719",
+      "derivativeBytes": 897565,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "heart-10": {
+      "source": "assets/heart-10.jpg",
+      "sourceSha256": "8b7a67ec147201025d30b72c8b4d22bf0b275ef28cf67b14568a03f0e45c5386",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/heart-10.png",
+      "derivativeSha256": "d1b8b544c4a6f71270ba856bde0285aee3aa9f8d52fd23ce28433e1fb4d63890",
+      "derivativeBytes": 901014,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "heart-2": {
+      "source": "assets/heart-2.jpg",
+      "sourceSha256": "29e78d116612922554db6211f5bc837532e2b37c74b858246c48c6e17727c574",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/heart-2.png",
+      "derivativeSha256": "e50bb71cc13fcad01466b518ab8eadc81489fc6baad86d4ede88a65a4b65ae3c",
+      "derivativeBytes": 882049,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "heart-3": {
+      "source": "assets/heart-3.jpg",
+      "sourceSha256": "a93b88e6df320276d881804677e9d5ff712abd2f678e6cf2cb02036b6f4ca453",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/heart-3.png",
+      "derivativeSha256": "4c0a854d2cd740e08d4672ee5c19ccf27f9c7a1e00f9591bb798a8c6f15ebdc0",
+      "derivativeBytes": 962926,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "heart-4": {
+      "source": "assets/heart-4.jpg",
+      "sourceSha256": "1ce60719996704dd1f2a1b7193ada392728a3ac4174863cbd7f5165863d8c5d1",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/heart-4.png",
+      "derivativeSha256": "3365853ef38a0ced1732d0cb762c9acb0f4699715009f54d1b76ecd46431c973",
+      "derivativeBytes": 880963,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "heart-5": {
+      "source": "assets/heart-5.jpg",
+      "sourceSha256": "11c4791013ba36fa5b30019cacb2226a1d537cdd9d3dffce26190b48f7feb884",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/heart-5.png",
+      "derivativeSha256": "01719c841f69603316a75b70ee40eacc0fd261d89f62a67f164d8c1c1f4c7cc8",
+      "derivativeBytes": 746125,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "heart-6": {
+      "source": "assets/heart-6.jpg",
+      "sourceSha256": "e1b1c5a0a40a452f31b200d957bffbe9657f8fb8e628e9ff8d86d293298f54e2",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/heart-6.png",
+      "derivativeSha256": "6ed4cbe8524b3dd9c23a166849b26c319423404944b55af1c3e1f47d6db37db5",
+      "derivativeBytes": 963941,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "heart-7": {
+      "source": "assets/heart-7.jpg",
+      "sourceSha256": "9f131c34cb20d83e5087f24e3ba30ef416714ad43bce23fe4ed33d71257a8812",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/heart-7.png",
+      "derivativeSha256": "1463b850e2535efea9cde73e0174e08aecae30a2410a11e904c3128685ae6570",
+      "derivativeBytes": 888804,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "heart-8": {
+      "source": "assets/heart-8.jpg",
+      "sourceSha256": "611bf2ac5735d14fe6acef45a2adb62c1f6bb5dff722e7555e74428acdffae10",
+      "sourceSize": {
+        "width": 832,
+        "height": 1248
+      },
+      "derivative": "godot/assets/cards/heart-8.png",
+      "derivativeSha256": "d1d7c52995426d674caee2242a8fd31fe44a4e882141cf694c617426055dae36",
+      "derivativeBytes": 1038822,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "heart-9": {
+      "source": "assets/heart-9.jpg",
+      "sourceSha256": "a8362f1a29bfcc0de1c390da1e172bd09ff4175c534deea3278894dd977baffb",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/heart-9.png",
+      "derivativeSha256": "d4898e24d271e67b92f738facccaf80022e7853964c0aebe7408ce62399eb08a",
+      "derivativeBytes": 1024414,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "spade-10": {
+      "source": "assets/spade-10.jpg",
+      "sourceSha256": "1ba6cc80c4e1fa4a8ba4caab1762796b0d4800007d291bc57fe43d8fd8f01af2",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/spade-10.png",
+      "derivativeSha256": "a35c4d060d2e47de8fcddf5b889078002365152733c8f4635444daf4063b9f6f",
+      "derivativeBytes": 1036412,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "spade-2": {
+      "source": "assets/spade-2.jpg",
+      "sourceSha256": "7ac737adbb0fda76ae0fa2acb87dff38070cd237ee404bebb8daf1f193149c25",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/spade-2.png",
+      "derivativeSha256": "94b6dddddeb77ddbead3c398e6aa6483cb86b3f0c811e821c32405fd448cfd13",
+      "derivativeBytes": 1078568,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "spade-3": {
+      "source": "assets/spade-3.jpg",
+      "sourceSha256": "173ff66c4c52150e9b3207be39302d014583947e2fa978fa4aafdbbc01bc7112",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/spade-3.png",
+      "derivativeSha256": "246233db9cf88a82795f01a5480b1fb88651eafdb1c64d69e66506d5a8ed00a7",
+      "derivativeBytes": 993662,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "spade-4": {
+      "source": "assets/spade-4.jpg",
+      "sourceSha256": "41ad3580ee6c23311f839ad81bd2df5266d7e46b333747d38842b9a06a6adf4c",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/spade-4.png",
+      "derivativeSha256": "bcaf480bebe203570e04abe8d7ddc3f4a8cdc587e060bd3b8b6f03fda2cfe631",
+      "derivativeBytes": 837656,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "spade-5": {
+      "source": "assets/spade-5.jpg",
+      "sourceSha256": "e9d1774b9239a522f269fa0514d4e25ff060008efe412b8c9ef1955b6f76d0a5",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/spade-5.png",
+      "derivativeSha256": "2a9b81fb2bd7ed25bc39136e11f27373d2fae0408216f3ca93d1cdb689876d16",
+      "derivativeBytes": 1029278,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "spade-6": {
+      "source": "assets/spade-6.jpg",
+      "sourceSha256": "b7239c7a1a5ef57a0519a7bdf7f1b50db1cd8bff366ec4b0ecce2052a0f329bd",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/spade-6.png",
+      "derivativeSha256": "e52a5c25fc6943e9f48d11c4e5b4b0861f561299db78f3faf38e197753ac1e87",
+      "derivativeBytes": 1000292,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "spade-7": {
+      "source": "assets/spade-7.jpg",
+      "sourceSha256": "8c653be00407afd70674c1f4a7a13878e874cdfa1fd2b4e1912d576c8adcc3bb",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/spade-7.png",
+      "derivativeSha256": "9b046c5ee2b9a59c4fc12219876fa05c1ba38c439c87105ec7bd42f41b90a119",
+      "derivativeBytes": 1033503,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "spade-8": {
+      "source": "assets/spade-8.jpg",
+      "sourceSha256": "c9adcaf0180a7137143d861c170068a78517d79c347afcd8760fb68009d325ed",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/spade-8.png",
+      "derivativeSha256": "4b4fff76e671c96143262baafc11112728ae371875c478c6e092a7d0452693f3",
+      "derivativeBytes": 939946,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "spade-9": {
+      "source": "assets/spade-9.jpg",
+      "sourceSha256": "691550a5aa0647f9e29c0e9f5c1a38139828e731373472ea8151a1796b97a06b",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/spade-9.png",
+      "derivativeSha256": "fbabb387b8f1781cbb733c718215532e4e3359048d7dd674f2874ccd999b767f",
+      "derivativeBytes": 868711,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "spade-a": {
+      "source": "assets/spade-a.jpg",
+      "sourceSha256": "3fe9813511ba61cd96682e269240b3ff9467b392e6867a42ddd9396b5b92dc10",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/spade-a.png",
+      "derivativeSha256": "98c4ec5f7108d5687cfca58effe7d80b154710f2fba9327b5d11178599e1bc4b",
+      "derivativeBytes": 1143286,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "spade-j": {
+      "source": "assets/spade-j.jpg",
+      "sourceSha256": "6e9654e4c6edb595667527d491ebc38ddcc2b575b756eeb7cdc5431f6c2e45a0",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/spade-j.png",
+      "derivativeSha256": "ebd14fd92e612aa5243bc6ec5bec29d87fd3bdce53df5fbf36f9b1df7faf14df",
+      "derivativeBytes": 967755,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "spade-k": {
+      "source": "assets/spade-k.jpg",
+      "sourceSha256": "f22f05640d90ac0b804d24436a8108e8146193da9d8ce2f7ad6a0e1cee203ff7",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/spade-k.png",
+      "derivativeSha256": "8103110b3f30de0feb6f827272666d93abc2315f4d5a46a617214994965d2f82",
+      "derivativeBytes": 949921,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    },
+    "spade-q": {
+      "source": "assets/spade-q.jpg",
+      "sourceSha256": "8e93d901d01514b45898463dcb7af566a6d274ac8261f7653a4d912f4a97979e",
+      "sourceSize": {
+        "width": 1152,
+        "height": 1728
+      },
+      "derivative": "godot/assets/cards/spade-q.png",
+      "derivativeSha256": "201e31ff0ce28c42cd12eeb7858de15782ef670b831951004177373efa872d81",
+      "derivativeBytes": 1058706,
+      "derivativeWidth": 576,
+      "derivativeHeight": 864
+    }
+  }
+}

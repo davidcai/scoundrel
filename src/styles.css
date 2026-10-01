@@ -453,6 +453,28 @@ body {
   pointer-events: none;
 }
 
+/* ── Godot board frame (godot-plan.md Phase 1 spike) ─────────────────────── */
+/* Same contract as .phaser-board: the iframe box IS the `.room` border box —
+   the coordinate space the projection rects are transmitted in. Hidden (opacity)
+   until the frame's first rendered acknowledgement flips canvas-live; never
+   focusable, never pointer-interactive (the DOM hit-layer owns all input).
+   An iframe is a REPLACED element: inset: 0 alone keeps its intrinsic
+   300×150, so the explicit 100% box is load-bearing. */
+.room > .godot-board {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.room.canvas-live > .godot-board {
+  opacity: 1; /* promote the frame — same commit as the Phaser promotion */
+}
+
 /* ── Phase 2: canvas as the room's primary renderer ──────────────────────── */
 /* `.room.canvas-live` is set by PlayScreen in the same commit the scene's
    FIRST reconcile completes (PhaserBoard bridges sceneReady → onLiveChange);

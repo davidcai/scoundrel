@@ -1,0 +1,48 @@
+; Engine configuration file — Scoundrel board frame (Phase 1 spike).
+; See docs/plans/godot-plan.md. The frame is a decorative room renderer: it
+; owns NO gameplay input, NO text, NO storage, NO clock authority.
+
+config_version=5
+
+[application]
+
+config/name="ScoundrelBoard"
+run/main_scene="res://scenes/board.tscn"
+config/features=PackedStringArray("4.7")
+; The frame loads synchronously into the room box; no splash, room-colored clear.
+boot_splash/show_image=false
+boot_splash/bg_color=Color(0.0509804, 0.0666667, 0.0980392, 1)
+config/icon="res://icon.svg"
+
+[autoload]
+
+; Frame-side bridge (web-only): registers the JS sink, validates envelopes,
+; re-emits parsed messages. Board connects to its signals in _ready.
+WebBridge="*res://scripts/web-bridge.gd"
+
+[display]
+
+; Logical units must be CSS pixels: stretch disabled + adaptive canvas resize
+; (export option html/canvas_resize_policy=2) keep 1 Godot unit = 1 CSS px —
+; the geometry contract the projection rects rely on. Phase 1 verifies this
+; equality on real exports before Phase 2 sprite-parity work.
+window/size/viewport_width=800
+window/size/viewport_height=480
+window/stretch/mode="disabled"
+window/stretch/aspect="ignore"
+window/hidpi=true
+
+[input_devices]
+
+; The canvas receives no pointer events and owns no actions; emulate nothing.
+pointing/emulate_touch_from_mouse=false
+pointing/emulate_mouse_from_touch=false
+
+[rendering]
+
+; Compatibility renderer per plan (WebGL 2, single-threaded web export).
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+; Opaque room background: web canvas transparency is not officially supported,
+; so the frame draws the room background itself (plan decision).
+environment/defaults/default_clear_color=Color(0.0509804, 0.0666667, 0.0980392, 1)

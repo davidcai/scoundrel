@@ -14,10 +14,12 @@ import {
 } from '../engine';
 import { cardHint, cardLabel, useT } from '../i18n';
 import { createBoardBridge, type BoardBridge } from '../game/bridge';
+import { boardRenderer } from '../game/renderer-selection';
 import { useGameStore } from '../store/game-store';
 import { decodeConfig } from '../store/share';
 import { CardView } from './CardView';
 import { GameOverScreen } from './GameOverScreen';
+import { GodotBoard } from './GodotBoard';
 import { Hud } from './Hud';
 import { PhaserBoard } from './PhaserBoard';
 import { Tooltip } from './Tooltip';
@@ -207,8 +209,16 @@ export function PlayScreen() {
         >
           {/* Phase 2: the canvas is the room's primary renderer (once the scene's
             first reconcile flips canvas-live); the buttons become a transparent
-            hit-layer positioned at the shared layout-function rects. */}
-          <PhaserBoard bridge={bridge} onLiveChange={setCanvasLive} />
+            hit-layer positioned at the shared layout-function rects.
+            Renderer switch (development/build selection): exactly ONE graphics
+            runtime mounts; production defaults to Phaser until the Godot
+            plan's Phase 4 exit gate passes. GodotBoard consumes the SAME
+            authoritative layout (single calculation, transmitted as rects). */}
+          {boardRenderer === 'godot' ? (
+            <GodotBoard layout={board} onLiveChange={setCanvasLive} />
+          ) : (
+            <PhaserBoard bridge={bridge} onLiveChange={setCanvasLive} />
+          )}
           {game.room.map((cardId, index) => {
             const rect = canvasLive ? board.rects[index] : undefined;
             return (
