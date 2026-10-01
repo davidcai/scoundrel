@@ -22,7 +22,7 @@ All files and commands proposed below are future implementation work. This plann
 
 ## What exists today
 
-Use [rules.md](rules.md) for game rules and [spec.md](spec.md) for product requirements. The [completed Phaser adoption plan](plans/phaser-adoption-plan.md) explains prior decisions, but some of its opening descriptions describe the pre-implementation app. [phaser-plan.md](phaser-plan.md) is superseded. The following inventory reflects the current code rather than those historical descriptions.
+Use [rules.md](../rules.md) for game rules and [spec.md](../spec.md) for product requirements. The [completed Phaser adoption plan](phaser-adoption-plan.md) explains prior decisions, but some of its opening descriptions describe the pre-implementation app. [phaser-plan.md](phaser-plan.md) is superseded. The following inventory reflects the current code rather than those historical descriptions.
 
 | Area                       | Current implementation                                                                                 | Godot trial disposition                            |
 | -------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------- |
