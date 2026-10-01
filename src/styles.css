@@ -502,6 +502,17 @@ body {
   box-shadow: none;
 }
 
+/* Canvas-live: the hover/selected lift (translateY) is a pre-canvas
+   affordance — with the canvas drawing the card pixels, a transformed
+   hit-layer button drags the selection ring, focus outline, and carried
+   badge off the card (the canvas sprite never moves). Keep the hit-layer
+   glued to the sprite; the frame mirrors the lift in Phase 3's motion
+   language (the projection already carries selection). */
+.room.canvas-live .card:hover:not(:disabled),
+.room.canvas-live .card[data-selected='true'] {
+  transform: none;
+}
+
 .room.canvas-live .card img,
 .room.canvas-live .card .card-fallback {
   visibility: hidden; /* keep the (sized) box; the artwork lives on the canvas */

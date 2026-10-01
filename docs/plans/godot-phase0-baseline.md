@@ -121,6 +121,8 @@ Symptom: after "Enter next room", the canvas kept showing the old room (the carr
 
 Verified by scripted browser traces (equip → drink → equip → enter) on both the dev server and the redeployed production site: the canvas now reconciles the full new room (markers show both revisions rendered, sprites=4, carried card badge intact). Also fixed in passing: Godot's importer churns `.tmp` files inside `godot/assets/cards/` (not just `.godot/`), which crashed Vite's watcher on Windows — the staging dir is now watcher-excluded too.
 
+Second owner-reported alignment bug, same session: the selected card's gold ring floated ~6px off the canvas card. Root cause: `.card[data-selected='true'] { transform: translateY(-6px) }` (and the −4px hover lift) — a pre-canvas DOM affordance that moves the hit-layer button (ring, focus outline, carried badge ride it) while the canvas sprite stays put. Measured on the deployed site: host and frame agreed on the rect exactly (wrapper inline left/top == frame's applied marker); only the button was displaced by exactly the lift. Fix (styles.css): in `.room.canvas-live`, hover/selected transforms are disabled so every DOM artifact stays glued to the sprite; Phase 3 mirrors the lift in the frame's motion language (the projection already carries selection). Verified by measurement (`transform: none`, button/wrapper delta 0.00) and screenshot on dev + deployment. This is now a canvas-live contract rule: DOM hit-layer transforms require a mirrored canvas beat or must be disabled.
+
 ### Not yet done in Phase 1 (per plan slices)
 
 - Stripped export template spike → payload re-measurement against the 5 MiB budget.
