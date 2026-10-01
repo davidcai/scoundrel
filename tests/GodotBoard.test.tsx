@@ -116,10 +116,13 @@ describe('GodotBoard (transport mocked)', () => {
     expect(onLiveChange).toHaveBeenCalledWith(true);
   });
 
-  it('rejects a stale acknowledgement and promotes on the current one', () => {
+  it('rejects a stale acknowledgement and promotes on the current one', async () => {
     const { container, onLiveChange } = renderBoard();
-    // A selection change bumps the revision (latest-wins syncs).
-    act(() => useGameStore.getState().selectCard(useGameStore.getState().game?.room[0] ?? null));
+    // A selection change bumps the revision (latest-wins syncs); the send is
+    // microtask-deferred so React's layout commit lands first.
+    await act(async () => {
+      useGameStore.getState().selectCard(useGameStore.getState().game?.room[0] ?? null);
+    });
     expect(h.state.revision).toBe(2);
 
     act(() => h.callbacks.current?.onApplied(1)); // stale — not the latest sync

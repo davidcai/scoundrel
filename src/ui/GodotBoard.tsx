@@ -156,7 +156,13 @@ export function GodotBoard({ layout, onLiveChange }: GodotBoardProps) {
     const unsubscribeStore = useGameStore.subscribe((state) => {
       latestState = state.game;
       latestSelected = state.selectedCardId;
-      sendLatest();
+      // Defer one microtask: React's discrete-event commit — which recomputes
+      // useBoardLayout when the room size changed — runs before microtasks, so
+      // this send goes out with the corrected geometry instead of the stale
+      // one (the layout effect below sends in that same commit; the duplicate
+      // is harmless, latest-wins). Sending synchronously raced EnterNextRoom:
+      // the frame got a stale 1-rect projection and stranded on the old room.
+      queueMicrotask(sendLatest);
     });
 
     // The frame's shell registers its message listener during parse; messages

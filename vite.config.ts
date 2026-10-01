@@ -10,9 +10,16 @@ export default defineConfig({
   plugins: [react()],
   server: {
     watch: {
-      // The Godot frame's import cache and toolchain churn temp files that
-      // crash the watcher on Windows (EBUSY) — none of it is app source.
-      ignored: ['**/godot/.godot/**', '**/.toolchain/**', '**/public/godot/**'],
+      // The Godot frame's import cache, toolchain, and import staging churn
+      // temp files that crash the watcher on Windows (EBUSY — including the
+      // importer's .tmp rewrites inside godot/assets/cards/) — none of it is
+      // app source.
+      ignored: [
+        '**/godot/.godot/**',
+        '**/godot/assets/cards/**',
+        '**/.toolchain/**',
+        '**/public/godot/**',
+      ],
     },
   },
   test: {

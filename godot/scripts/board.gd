@@ -17,12 +17,16 @@ const CARD_SPRITE_SCENE := preload("res://scenes/card-sprite.tscn")
 
 var _sprites: Dictionary = {} # cardId (String) -> CardSprite
 var _session_id := ""
-## Newest unacknowledged sync (revision, projection); host sends are
-## latest-wins, so only the newest entry ever matters.
+## Newest received sync (revision, projection); host sends are latest-wins,
+## so only the newest entry ever matters.
 var _latest_revision := 0
 var _latest_projection: Dictionary = {}
+## Newest revision actually RECONCILED (may trail _latest_revision when a
+## sync lands during the render-frame wait — it must still be rendered).
+var _applied_revision := 0
+## Newest revision acknowledged to the host (always == _applied_revision).
 var _acked_revision := 0
-## Serializes the apply→render→ack loop while awaiting the render frame.
+## Serializes the reconcile→render→ack loop while awaiting the render frame.
 var _applying := false
 
 func _ready() -> void:
@@ -54,21 +58,25 @@ func _on_sync(session_id: String, revision: int, projection: Dictionary) -> void
 	if _applying:
 		return # the apply loop below will pick this revision up
 	_applying = true
-	# Apply → render one frame → ack, until every held revision is rendered.
-	while _acked_revision < _latest_revision:
-		_mark("sync-r%d-reconcile" % revision)
+	# Reconcile → render one frame → ack, until the held truth is fully
+	# rendered. Rendered (applied) and acked are tracked SEPARATELY: a sync
+	# that lands during the frame-wait must itself be reconciled — acking a
+	# revision that was never rendered would strand the board on stale truth
+	# (observed as "Enter next room leaves the old cards on the canvas",
+	# because the host's corrected-geometry sync always lands mid-wait).
+	while _applied_revision < _latest_revision:
+		var target := _latest_revision
 		_reconcile(_latest_projection)
+		_applied_revision = target
 		var room_now: Array = _latest_projection.get("room", [])
 		var first_desc := "none"
 		if not room_now.is_empty():
 			var first: Dictionary = room_now[0]
 			first_desc = "%s@%s" % [first.get("cardId"), str(first.get("x"))]
-		_mark("sync-r%d-reconciled sprites=%d first=%s" % [revision, _sprites.size(), first_desc])
-		_mark("sync-r%d-reconciled" % revision)
+		_mark("sync-r%d-reconciled sprites=%d first=%s" % [_applied_revision, _sprites.size(), first_desc])
 		await get_tree().process_frame
-		_acked_revision = _latest_revision
+		_acked_revision = _applied_revision
 		WebBridge.send_applied(_session_id, _acked_revision)
-		_mark("sync-r%d-acked" % _acked_revision)
 	_applying = false
 
 ## Development diagnostic (Phase 1 spike): stage markers visible from the host.

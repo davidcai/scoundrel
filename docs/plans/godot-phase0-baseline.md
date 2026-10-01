@@ -96,9 +96,34 @@ The full pipeline ran on this machine: pinned toolchain download (both archives 
 3. Vite's watcher crashes (Windows EBUSY) on Godot's import-cache churn — `godot/.godot`, `.toolchain`, `public/godot` are excluded from the watcher (vite.config.ts).
 4. Frame handshake ordering (GDScript): the shell's setter must be CALLED (not assigned over), `_listening` must be up before `scoundrelHostBridgeReady()` drains the shell buffer, and the Board scene pulls `WebBridge.take_latest_sync()` because the autoload is ready before the main scene connects. Diagnostics (`window.__boardMarks`, `scoundrelSinkState`, `scoundrelConsoleLog`) are kept for Phase 2 debugging and must be removed at Phase 4 hardening.
 
+### Deployed serving check (Vercel preview spike, 2026-10-01)
+
+A production build with `VITE_RENDERER=godot` was deployed as a static upload to a throwaway project (**https://scoundrel-godot-spike.vercel.app**, CLI deploy of `dist/`, not the production project; the repo's Git-integration builds cannot run the Godot toolchain, and `public/godot/` is gitignored). Results, per the plan's Vercel requirements:
+
+| Artifact     | Content-Type               | Content-Encoding | Actual transfer |
+| ------------ | -------------------------- | ---------------- | --------------- |
+| `board.wasm` | `application/wasm` ✓       | **br** ✓         | 9.11 MiB        |
+| `board.pck`  | `application/octet-stream` | **br** ✓         | 4.10 MiB        |
+| `board.js`   | `text/javascript`          | br ✓             | 71 kB           |
+| `board.html` | `text/html`                | br ✓             | 2.4 kB          |
+
+- **The plan's "edge does not compress .wasm/.pck" risk does not materialize on Vercel**: both binaries arrive brotli-compressed. Godot-only cold transfer ≈ **13.3 MiB** (still ~2.7× the 5 MiB budget; the wasm dominates — same conclusion as §7 payload).
+- Caching: served `Cache-Control: public, max-age=0, must-revalidate` — warm-cache readiness requires the Phase 4 content-versioned directory + immutable headers.
+- The deployed app was verified end-to-end in a browser: the frame booted from the production build (renderer baked in, no dev overrides), promoted live, and the DOM hit-layer/selection ring/action panel work over the canvas (zh-locale UI rendered — bonus i18n sanity check).
+- Deviation note: the repo's Vercel Git integration builds this branch fine but would ship the app **without** the Godot artifacts (toolchain absent + `public/godot/` gitignored) — the deploy-ownership question (CI-built `dist` vs toolchain-in-Vercel-build) is the plan's anticipated Phase 4 decision and is now evidenced.
+
+### EnterNextRoom stale-canvas bug (found by the owner on the deployed spike; fixed, verified on dev + deployment)
+
+Symptom: after "Enter next room", the canvas kept showing the old room (the carried card only). Root cause was a two-sided race, both fixed:
+
+1. **Host (stale-geometry send)**: during the carry state the room has 1 card, so `useBoardLayout` computes 1 rect. `act(EnterNextRoom)` grows the room to 4, and GodotBoard's store subscription fired synchronously BEFORE React recomputed the layout — sending a projection built against the stale 1-rect layout (1 card). Fix: the subscription defers its send by one microtask (`queueMicrotask`), so React's discrete-event commit — which recomputes the layout — lands first; the layout effect's send in that commit carries the corrected geometry (the microtask duplicate is harmless, latest-wins).
+2. **Frame (acked-but-never-rendered, the actual defect)**: `board.gd`'s apply loop set `_acked_revision = _latest_revision` after the render-frame wait, so a sync arriving during the wait was acknowledged WITHOUT being reconciled — the corrected 4-card projection was always exactly the one skipped, stranding the canvas. Fix: applied and acked revisions are tracked separately (`_applied_revision`); the loop keeps reconciling until the held truth is rendered and acks what it actually rendered. This restores the plan invariant "reconcile statically from its last applied projection to the newest truth".
+
+Verified by scripted browser traces (equip → drink → equip → enter) on both the dev server and the redeployed production site: the canvas now reconciles the full new room (markers show both revisions rendered, sprites=4, carried card badge intact). Also fixed in passing: Godot's importer churns `.tmp` files inside `godot/assets/cards/` (not just `.godot/`), which crashed Vite's watcher on Windows — the staging dir is now watcher-excluded too.
+
 ### Not yet done in Phase 1 (per plan slices)
 
 - Stripped export template spike → payload re-measurement against the 5 MiB budget.
-- Real-device matrix runs on the §4.3 signed-off devices (desktop named; iPhone 15 Pro Max pending; Android skipped by owner decision), cold/warm readiness timings, Vercel preview serving check (MIME/compression of `.wasm`/`.pck`).
+- Real-device matrix runs on the §4.3 signed-off devices (desktop named; iPhone 15 Pro Max pending; Android skipped by owner decision) and cold/warm readiness timings.
 - Sprite-parity e2e (rendered Godot bounds vs DOM rects ≤1px) — Phase 2, with the full protocol envelope.
 - e2e spec (`e2e/godot-board.spec.ts`) written but gated on `GODOT_E2E=1` + a production build with `VITE_RENDERER=godot`; not yet run in CI.
