@@ -25,6 +25,7 @@ function projection(overrides: Record<string, unknown> = {}): BoardProjection {
     carriedCardId: null,
     phase: 'playing',
     reducedMotion: false,
+    runResumed: false,
     ...overrides,
   } as BoardProjection;
 }
@@ -38,6 +39,7 @@ function syncMessage(overrides: Record<string, unknown> = {}): Record<string, un
     layoutRevision: 1,
     fxSeq: 0,
     diagnostics: false,
+    action: null,
     projection: projection(),
     ...overrides,
   };

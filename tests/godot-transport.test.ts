@@ -23,6 +23,7 @@ function projection(): BoardProjection {
     carriedCardId: null,
     phase: 'playing',
     reducedMotion: false,
+    runResumed: false,
   };
 }
 
@@ -99,6 +100,7 @@ describe('attachGodotTransport (real module)', () => {
       layoutRevision: 3,
       fxSeq: 7,
       diagnostics: true,
+      action: null,
     });
     expect(harness.frameWindow.postMessage).toHaveBeenCalledTimes(1);
     const [data, targetOrigin] = harness.frameWindow.postMessage.mock.calls[0] as [string, string];
@@ -114,6 +116,7 @@ describe('attachGodotTransport (real module)', () => {
       layoutRevision: 3,
       fxSeq: 7,
       diagnostics: true,
+      action: null,
     });
     expect(harness.transport.lastSent).toEqual({
       revision: 1,
@@ -129,6 +132,7 @@ describe('attachGodotTransport (real module)', () => {
       layoutRevision: 1,
       fxSeq: 0,
       diagnostics: false,
+      action: null,
     });
     expect(harness.transport.lastSent.revision).toBe(1);
     const before = harness.frameWindow.postMessage.mock.calls.length;
@@ -142,6 +146,7 @@ describe('attachGodotTransport (real module)', () => {
       layoutRevision: 1,
       fxSeq: 0,
       diagnostics: false,
+      action: null,
     });
     expect(harness.frameWindow.postMessage.mock.calls.length).toBe(before);
     expect(harness.transport.lastSent.revision).toBe(1);
@@ -171,6 +176,7 @@ describe('attachGodotTransport (real module)', () => {
       layoutRevision: 3,
       fxSeq: 0,
       diagnostics: true,
+      action: null,
     });
     harness.deliverFromFrame(
       JSON.stringify({
@@ -274,6 +280,7 @@ describe('attachGodotTransport (real module)', () => {
       layoutRevision: 1,
       fxSeq: 0,
       diagnostics: false,
+      action: null,
     });
     harness.transport.dispose();
     harness.transport.dispose(); // idempotent
@@ -283,6 +290,7 @@ describe('attachGodotTransport (real module)', () => {
       layoutRevision: 1,
       fxSeq: 0,
       diagnostics: false,
+      action: null,
     });
 
     const kinds = sentEnvelopes(harness).map((e) => e.kind);

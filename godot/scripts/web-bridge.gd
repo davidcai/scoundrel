@@ -32,6 +32,10 @@ signal bridge_failed(code: String, message: String)
 const PROTOCOL_VERSION := 1
 const MAX_ROOM_CARDS := 4
 const PHASES: PackedStringArray = ["playing", "won", "lost"]
+const HINT_TYPES: PackedStringArray = [
+	"RoomDealt", "RanAway", "MonsterDefeated", "WeaponEquipped", "PotionQuaffed",
+	"UndoDone", "RunAwayBlocked", "InvalidAction", "GameWon", "GameLost",
+]
 
 var _sink: JavaScriptObject = null
 var _window: JavaScriptObject = null
@@ -191,6 +195,11 @@ func _on_sync(envelope: Dictionary, session_id: String) -> void:
 	if not (diagnostics is bool):
 		_fail("protocol", "invalid diagnostics flag")
 		return
+	var action: Variant = envelope.get("action")
+	if action != null:
+		if not (action is Dictionary) or not _valid_action(action):
+			_fail("protocol", "invalid action hint")
+			return
 	var projection: Variant = envelope.get("projection")
 	if not (projection is Dictionary):
 		_fail("protocol", "invalid projection")
@@ -208,6 +217,7 @@ func _on_sync(envelope: Dictionary, session_id: String) -> void:
 		"layout_revision": layout_revision,
 		"fx_seq": fx_seq,
 		"diagnostics": diagnostics,
+		"action": action,
 		"projection": projection,
 	}
 	sync_received.emit(_latest_sync)
@@ -221,6 +231,34 @@ func take_latest_sync() -> Dictionary:
 
 func _is_int(value: Variant) -> bool:
 	return value is int or (value is float and is_finite(value as float) and is_equal_approx(value, round(value as float)))
+
+## Choreography hint validation — mirrors parseActionHint in board-protocol.ts.
+func _valid_action(hint: Dictionary) -> bool:
+	if not (hint.get("type") in HINT_TYPES):
+		return false
+	var card_id: Variant = hint.get("cardId")
+	if card_id != null and not (card_id is String and _card_id_regex.search(card_id) != null):
+		return false
+	var carried_from: Variant = hint.get("carriedFrom")
+	if carried_from != null and not (carried_from is String and _card_id_regex.search(carried_from) != null):
+		return false
+	var damage: Variant = hint.get("damage")
+	if damage != null and not (_is_finite_number(damage) and (damage as float) >= 0.0):
+		return false
+	var wasted: Variant = hint.get("wasted")
+	if wasted != null and not (wasted is bool):
+		return false
+	var discarded_weapon: Variant = hint.get("discardedWeaponId")
+	if discarded_weapon != null and not (discarded_weapon is String and _card_id_regex.search(discarded_weapon) != null):
+		return false
+	var discarded_monsters: Variant = hint.get("discardedMonsterIds")
+	if discarded_monsters != null:
+		if not (discarded_monsters is Array) or discarded_monsters.size() > 16:
+			return false
+		for id: Variant in discarded_monsters:
+			if not (id is String and _card_id_regex.search(id) != null):
+				return false
+	return true
 
 func _is_finite_number(value: Variant) -> bool:
 	return (value is float or value is int) and is_finite(value as float)

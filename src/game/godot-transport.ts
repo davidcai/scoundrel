@@ -1,5 +1,5 @@
 import type { CardId } from '../engine';
-import type { BoardProjection } from './board-protocol';
+import type { ActionHint, BoardProjection } from './board-protocol';
 import { PROTOCOL_VERSION, parseFrameToHost, parseHostToFrame } from './board-protocol';
 
 /**
@@ -47,6 +47,8 @@ export interface SendSyncInput {
   layoutRevision: number;
   fxSeq: number;
   diagnostics: boolean;
+  /** Choreography hint for THIS fxSeq (null on resends/selection-only). */
+  action: ActionHint | null;
 }
 
 export interface GodotTransport {
@@ -133,6 +135,7 @@ export function attachGodotTransport(
         layoutRevision: number;
         fxSeq: number;
         diagnostics: boolean;
+        action: ActionHint | null;
         projection: BoardProjection;
       }
     | {
@@ -175,6 +178,7 @@ export function attachGodotTransport(
         layoutRevision: input.layoutRevision,
         fxSeq: input.fxSeq,
         diagnostics: input.diagnostics,
+        action: input.action,
         projection: input.projection,
       };
       // Never emit an invalid envelope, even if the projection builder lied.

@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
-import type { CardId, GameState } from '../engine';
+import type { CardId, GameResult, GameState } from '../engine';
 import type { BoardBridge } from '../game/bridge';
+import type { ActionHint } from '../game/board-protocol';
 import { buildBoardProjection, type ProjectionLayout } from '../game/board-projection';
 import { attachGodotTransport, type GodotTransport } from '../game/godot-transport';
 import { GODOT_BUILD_ID } from '../game/godot-build-id';
@@ -76,6 +77,44 @@ function diagnosticsRequested(): boolean {
   );
 }
 
+/**
+ * Store result → choreography hint for the frame (plan: "lastResult provides
+ * hints only" — diffs decide existence). RunStarted carries no beat: the
+ * mount deal covers it.
+ */
+function buildActionHint(result: GameResult | null): ActionHint | null {
+  if (result === null) return null;
+  switch (result.type) {
+    case 'RunStarted':
+      return null;
+    case 'RoomDealt':
+      return { type: 'RoomDealt', carriedFrom: result.carriedFrom };
+    case 'MonsterDefeated':
+      return { type: 'MonsterDefeated', cardId: result.cardId, damage: result.damage };
+    case 'WeaponEquipped':
+      return {
+        type: 'WeaponEquipped',
+        cardId: result.cardId,
+        discardedWeaponId: result.discardedWeaponId,
+        discardedMonsterIds: result.discardedMonsterIds,
+      };
+    case 'PotionQuaffed':
+      return { type: 'PotionQuaffed', cardId: result.cardId, wasted: result.wasted };
+    case 'RanAway':
+      return { type: 'RanAway' };
+    case 'RunAwayBlocked':
+      return { type: 'RunAwayBlocked' };
+    case 'InvalidAction':
+      return { type: 'InvalidAction' };
+    case 'UndoDone':
+      return { type: 'UndoDone' };
+    case 'GameWon':
+      return { type: 'GameWon' };
+    case 'GameLost':
+      return { type: 'GameLost' };
+  }
+}
+
 export function GodotBoard({ layout, bridge, onLiveChange }: GodotBoardProps) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [live, setLive] = useState(false);
@@ -116,6 +155,11 @@ export function GodotBoard({ layout, bridge, onLiveChange }: GodotBoardProps) {
     let latestState: GameState | null = useGameStore.getState().game;
     let latestSelected: CardId | null = useGameStore.getState().selectedCardId;
     let latestFxSeq = useGameStore.getState().fxSeq;
+    let latestRunResumed = useGameStore.getState().runResumed;
+    let latestResult: GameResult | null = useGameStore.getState().lastResult;
+    // One fxSeq gets at most one action hint: resends and selection-only
+    // syncs (unchanged fxSeq) never replay choreography (plan rule).
+    let lastSentFxSeq = -1;
 
     const notifyLive = (value: boolean): void => {
       if (liveNow === value) return;
@@ -198,15 +242,21 @@ export function GodotBoard({ layout, bridge, onLiveChange }: GodotBoardProps) {
         state: latestState,
         selectedCardId: latestSelected,
         reducedMotion: prefersReducedMotion(),
+        runResumed: latestRunResumed,
         layout: latestLayoutRef.current,
       });
+      // The action hint rides ONLY the first sync of a new fxSeq — resends
+      // and selection-only syncs never replay choreography (plan rule).
+      const action = latestFxSeq !== lastSentFxSeq ? buildActionHint(latestResult) : null;
       transport.sendSync({
         projection,
         runGeneration: runGenerationRef.current,
         layoutRevision: layoutRevisionRef.current,
         fxSeq: latestFxSeq,
         diagnostics: diagnosticsRef.current,
+        action,
       });
+      lastSentFxSeq = latestFxSeq;
     };
     sendLatestRef.current = sendLatest;
 
@@ -214,6 +264,8 @@ export function GodotBoard({ layout, bridge, onLiveChange }: GodotBoardProps) {
       latestState = state.game;
       latestSelected = state.selectedCardId;
       latestFxSeq = state.fxSeq;
+      latestRunResumed = state.runResumed;
+      latestResult = state.lastResult;
       // runGeneration derivation (plan §Transport: transient, not a save
       // schema change; discriminator = runResumed):
       //   null → game : fresh start bumps; hydrate resume does NOT.

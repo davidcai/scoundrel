@@ -152,5 +152,19 @@ Local build route established (no admin needed — web builds need only Python+S
 
 - ~~Owner decision (plan exit condition)~~ **Resolved**: the owner adopted the 576 px/q 0.8 variant for Phaser-parity quality (see the budget verdict above).
 - Real-device matrix runs on the §4.3 signed-off devices (desktop named; iPhone 15 Pro Max pending; Android skipped by owner decision); throttled cold-readiness runs per the plan's 10 Mbps profile.
-- Sprite-parity e2e (rendered Godot bounds vs DOM rects ≤1px) — Phase 2, with the full protocol envelope.
-- e2e spec (`e2e/godot-board.spec.ts`) written but gated on `GODOT_E2E=1` + a production build with `VITE_RENDERER=godot`; not yet run in CI.
+- ~~Sprite-parity e2e~~ **Done in Phase 2**: `e2e/godot-board.spec.ts` gained the ≤1 CSS px parity test fed by the frame's `diagnostics` message (`godot-diagnostics` query opt-in, mirrored to `window.__godotParity`); manual measurement showed 0.011 px max delta at rest. Still gated on `GODOT_E2E=1` + a production build with `VITE_RENDERER=godot`; not yet run in CI.
+
+## 8. Phase 3 — motion and effects (core implemented 2026-10-01, uncommitted)
+
+The beat language is ported from src/ui/motion.ts + board-scene.ts to GDScript, per plan §Scene and effects:
+
+- **Protocol**: syncs now carry an optional `action` hint (derived from the store's lastResult, attached ONLY to the first sync of a new fxSeq so resends/selection-only syncs never replay choreography) and `runResumed` (resumed runs reconcile statically — no mount deal). Both validated host- and frame-side.
+- **card-sprite.gd**: shapes-only card back + two-phase scaleX flip reveal, and the motion-policy primitives `snap_to`/`freeze` (kill tweens, re-apply the authoritative rect).
+- **fx-director.gd**: the full beat language — staggered deal-in from the deck edge (300 ms, 70 ms stagger, 260 ms flip), sweep to deck edge, monster fly-to-handoff (340 ms, scale 0.85, fade in the last third), potion dissolve (wasted = shorter + dimmed), weapon-zone sweep, undo rewind, blocked-action nudge, camera-shake equivalent (board-root shake), damage vignette pulse + defeat vignette hold (radial `shaders/vignette.gdshader`), CPUParticles2D kill sparks / victory confetti / defeat embers (plan: no particle trails/emit_particle on Compatibility — CPU particles used), reduced-motion fallbacks (opacity-only ≤120 ms, soft terminal fade, instant departures), and the cancellation sweep (every departing sprite is adopted as a transient so cancellation frees it — the orphan-sprite bug).
+- **board.gd**: beat orchestration from hints + diffs — action syncs kill-and-snap survivors before the new beat; runGeneration changes drop every sprite; room-signature equality = selection-only (never restarts); the mount deal fires once on the first hint-less dealt room (hint-bearing syncs always run their own beat); `settled` fires at the beat's deadline scoped to its revision; focus-loss snaps everything to the last sync's truth.
+
+**Verified in-browser** (scripted trace: equip → drink → barehanded fight): mount deal + flip reveal fires (950 ms), WeaponEquipped 280 ms, PotionQuaffed 260 ms, MonsterDefeated 340 ms with visible sparks/handoff/shake/vignette, zero orphan sprites at rest, sprite parity 0.011 px max delta, no console errors. Suite 219 tests, typecheck/lint/build/bundle gate green.
+
+**Two GDScript traps found during verification** (worth remembering): JSON null cannot be assigned to a hard-typed `Dictionary` variable — the assignment errors and the variable silently stays null (use untyped vars + explicit coalescing for nullable envelope fields); and patching `.import` params does not trigger re-import (fixed in the Phase 1 section).
+
+**Remaining for Phase 3 per plan**: the authoring-value comparison (owner judges the monster-defeat beat side-by-side against Phaser on named devices), perf gate (≥55 fps during beats), and the side-by-side demo packaging.

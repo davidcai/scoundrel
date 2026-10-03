@@ -50,6 +50,39 @@ export interface BoardProjection {
   phase: 'playing' | 'won' | 'lost';
   /** Effective reduced motion: stored preference OR prefers-reduced-motion. */
   reducedMotion: boolean;
+  /** The live run was restored from storage (hydrate) — its first reconcile
+   * is static (no mount deal). */
+  runResumed: boolean;
+}
+
+/**
+ * Optional action hint riding a sync (plan: "State diffs determine
+ * arrivals/departures... lastResult provides hints only"). Derived from the
+ * store's lastResult and attached ONLY to the first sync carrying a new
+ * fxSeq, so resends/selection-only syncs never replay choreography. The
+ * frame picks the beat from the hint but still reconciles from the diff.
+ */
+export interface ActionHint {
+  type:
+    | 'RoomDealt'
+    | 'RanAway'
+    | 'MonsterDefeated'
+    | 'WeaponEquipped'
+    | 'PotionQuaffed'
+    | 'UndoDone'
+    | 'RunAwayBlocked'
+    | 'InvalidAction'
+    | 'GameWon'
+    | 'GameLost';
+  cardId?: CardId;
+  carriedFrom?: CardId | null;
+  /** MonsterDefeated: HP damage taken (0 = fully blocked). */
+  damage?: number;
+  /** PotionQuaffed: the potion was wasted (0 heal). */
+  wasted?: boolean;
+  /** WeaponEquipped: the swap discards. */
+  discardedWeaponId?: CardId | null;
+  discardedMonsterIds?: CardId[];
 }
 
 /** Shared envelope head for everything that addresses a session. */
@@ -68,6 +101,8 @@ export interface SyncMessage extends EnvelopeHead {
   /** Action-notification identity (store fxSeq); 0 before any action. */
   fxSeq: number;
   projection: BoardProjection;
+  /** Choreography hint for THIS fxSeq (null on resends/selection-only syncs). */
+  action: ActionHint | null;
   /** Test/dev opt-in: the frame appends sprite-rect diagnostics to applied. */
   diagnostics: boolean;
 }
@@ -201,7 +236,8 @@ function parseProjection(value: unknown): BoardProjection | null {
     !selectedOk ||
     !carriedOk ||
     (v.phase !== 'playing' && v.phase !== 'won' && v.phase !== 'lost') ||
-    typeof v.reducedMotion !== 'boolean'
+    typeof v.reducedMotion !== 'boolean' ||
+    typeof v.runResumed !== 'boolean'
   ) {
     return null;
   }
@@ -211,7 +247,57 @@ function parseProjection(value: unknown): BoardProjection | null {
     carriedCardId: v.carriedCardId as CardId | null,
     phase: v.phase,
     reducedMotion: v.reducedMotion,
+    runResumed: v.runResumed,
   };
+}
+
+const HINT_TYPES: readonly string[] = [
+  'RoomDealt',
+  'RanAway',
+  'MonsterDefeated',
+  'WeaponEquipped',
+  'PotionQuaffed',
+  'UndoDone',
+  'RunAwayBlocked',
+  'InvalidAction',
+  'GameWon',
+  'GameLost',
+];
+
+function parseActionHint(value: unknown): ActionHint | null {
+  if (value === null) return null;
+  if (typeof value !== 'object') return null;
+  const v = value as Record<string, unknown>;
+  if (typeof v.type !== 'string' || !HINT_TYPES.includes(v.type)) return null;
+  const hint: ActionHint = { type: v.type as ActionHint['type'] };
+  if (v.cardId !== undefined) {
+    if (!isCardId(v.cardId)) return null;
+    hint.cardId = v.cardId;
+  }
+  if (v.carriedFrom !== undefined) {
+    if (v.carriedFrom !== null && !isCardId(v.carriedFrom)) return null;
+    hint.carriedFrom = v.carriedFrom as CardId | null;
+  }
+  if (v.damage !== undefined) {
+    if (!isFiniteNumber(v.damage) || v.damage < 0) return null;
+    hint.damage = v.damage;
+  }
+  if (v.wasted !== undefined) {
+    if (typeof v.wasted !== 'boolean') return null;
+    hint.wasted = v.wasted;
+  }
+  if (v.discardedWeaponId !== undefined) {
+    if (v.discardedWeaponId !== null && !isCardId(v.discardedWeaponId)) return null;
+    hint.discardedWeaponId = v.discardedWeaponId as CardId | null;
+  }
+  if (v.discardedMonsterIds !== undefined) {
+    if (!Array.isArray(v.discardedMonsterIds) || v.discardedMonsterIds.length > 16) return null;
+    for (const id of v.discardedMonsterIds) {
+      if (!isCardId(id)) return null;
+    }
+    hint.discardedMonsterIds = v.discardedMonsterIds as CardId[];
+  }
+  return hint;
 }
 
 function parseOrdered(
@@ -244,6 +330,8 @@ export function parseHostToFrame(value: unknown): HostToFrameMessage | null {
       if (typeof v.diagnostics !== 'boolean') return null;
       const projection = parseProjection(v.projection);
       if (projection === null) return null;
+      const action = parseActionHint(v.action);
+      if (v.action !== null && v.action !== undefined && action === null) return null;
       return {
         kind: 'sync',
         ...head,
@@ -251,6 +339,7 @@ export function parseHostToFrame(value: unknown): HostToFrameMessage | null {
         fxSeq: v.fxSeq,
         diagnostics: v.diagnostics,
         projection,
+        action,
       };
     }
     case 'hover': {

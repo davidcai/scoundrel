@@ -32,6 +32,8 @@ export interface ProjectionInputs {
   selectedCardId: CardId | null;
   /** Effective reduced motion (stored preference OR prefers-reduced-motion). */
   reducedMotion: boolean;
+  /** The live run was restored from storage — first reconcile is static. */
+  runResumed: boolean;
   layout: ProjectionLayout;
 }
 
@@ -40,7 +42,7 @@ export interface ProjectionInputs {
  * like the Phaser scene, extra cards get no rect and are not transmitted.
  */
 export function buildBoardProjection(inputs: ProjectionInputs): BoardProjection {
-  const { state, selectedCardId, reducedMotion, layout } = inputs;
+  const { state, selectedCardId, reducedMotion, runResumed, layout } = inputs;
   const room: ProjectionCard[] = [];
   if (state !== null && layout.measured) {
     const count = Math.min(state.room.length, MAX_PROJECTION_CARDS, layout.rects.length);
@@ -66,5 +68,6 @@ export function buildBoardProjection(inputs: ProjectionInputs): BoardProjection 
     carriedCardId: state?.carriedCardId ?? null,
     phase: state?.phase ?? 'playing',
     reducedMotion,
+    runResumed,
   };
 }
