@@ -123,9 +123,34 @@ Verified by scripted browser traces (equip → drink → equip → enter) on bot
 
 Second owner-reported alignment bug, same session: the selected card's gold ring floated ~6px off the canvas card. Root cause: `.card[data-selected='true'] { transform: translateY(-6px) }` (and the −4px hover lift) — a pre-canvas DOM affordance that moves the hit-layer button (ring, focus outline, carried badge ride it) while the canvas sprite stays put. Measured on the deployed site: host and frame agreed on the rect exactly (wrapper inline left/top == frame's applied marker); only the button was displaced by exactly the lift. Fix (styles.css): in `.room.canvas-live`, hover/selected transforms are disabled so every DOM artifact stays glued to the sprite; Phase 3 mirrors the lift in the frame's motion language (the projection already carries selection). Verified by measurement (`transform: none`, button/wrapper delta 0.00) and screenshot on dev + deployment. This is now a canvas-live contract rule: DOM hit-layer transforms require a mirrored canvas beat or must be disabled.
 
+Owner also reported the ring not following viewport resizes; extensive automated resize repro (instant 1280→900→1200, 25-step smooth drag, mid-drag sampling, a non-1.0 DPR tab) showed DOM and frame tracking within 0.02px in every case — unreproduced; most likely a stale (pre-fix) tab, since deployments do not auto-reload open tabs. If it persists after a hard refresh, browser zoom (DPR change at the owner's 125% display scaling) is the prime suspect per the plan's DPR test matrix.
+
+### Readiness (first indicative measurements, cached loads, desktop Chromium, stock template)
+
+Measured from the live Vercel deployment (in-page timer, domcontentloaded → canvas-live flip), 3 runs: **905 / 1011 / 1123 ms** warm. In-frame resource timings: `board.wasm` 150–192 ms, `board.pck` 30–82 ms, `board.js` 26–37 ms (transferSize ≈ 300 B each — served from cache). The ≤ 2 s warm budget is comfortably met on the cached desktop path; these are preliminary (n=3, cached only — true cold and throttled-profile runs, plus the ≥10-run p95 protocol, are the Phase 4 gate).
+
+### Stripped export template spike — results (2026-10-01)
+
+Local build route established (no admin needed — web builds need only Python+SCons+Emscripten, no MSVC): Python 3.12 + SCons installed per-user, emsdk 6.0.11 (`$HOME/emsdk`), Godot 4.7.2 source shallow-cloned at the pinned tag into `.toolchain/godot-src/`, build script `.toolchain/build-stripped-template.sh` (gitignored — throwaway spike tooling; the exact scons flag list: `threads=no` (NOT default — 4.7 defaults threads ON, the plan's single-threaded export must pass it explicitly), `disable_3d=yes disable_physics_2d=yes vulkan=no`, and ~40 `module_*_enabled=no` (media formats, VRAM texture codecs, fonts, TLS/networking, 3D authoring) keeping gdscript, regex, webp (lossy texture decode), text_server_fb). Findings:
+
+- Stripped build: **4:45** on 16 threads (LTO variant 6:19); wasm 39.5 → 21.7 MiB raw; template zip 10.2 → 5.7 MB. Boot-verified: the stripped engine boots the frame, loads textures, reconciles the room — for BOTH the plain and LTO builds.
+- **Import-cache trap (fixed in export-godot.mjs)**: the editor's reimport trigger does NOT refresh already-imported sources when only the `.import` params change — pass-1 lossless `.ctex` silently survived the second import pass and explicit re-imports, shipping WebP-lossless textures (PCK 9.4 MiB and incompressible). Fix: the patch step now clears `.godot/imported` so pass 2 rebuilds it with the patched params. Symptom check for the future: a PCK that gzip-compresses to ≈ its raw size means lossless textures shipped.
+- **LTO (`lto=full`) is not a worthwhile lever** once modules are stripped: 9.55 → 9.39 MiB gzip (−1.7%) for +50% build time. Not adopted.
+- Payload-variant frontier (LTO stripped template, lossy WebP import):
+
+| Variant            | Total gzip   | Total brotli | PCK      |
+| ------------------ | ------------ | ------------ | -------- |
+| **576 px / q 0.8** | **9.39 MiB** | **8.36 MiB** | ~4.3 MiB |
+| 448 px / q 0.8     | 7.78 MiB     | 6.74 MiB     | ~2.4 MiB |
+| 448 px / q 0.7     | 7.21 MiB     | 6.17 MiB     | ~1.9 MiB |
+| 384 px / q 0.8     | 7.06 MiB     | 6.02 MiB     | ~1.7 MiB |
+
+- **Budget verdict + owner decision (2026-10-01): the frozen 5 MiB compressed stop line is not reachable with acceptable texture quality, and the owner adopted the 576 px/q 0.8 variant.** The quality bar is parity with the Phaser/DOM renderer, which serves the full-resolution source art; the owner judged the 448 px variant too soft. The 5 MiB Payload stop line is revised by this decision: the shipping payload is **9.39 MiB gzip / 8.36 MiB brotli**. Readiness still fits — 8.36 MiB brotli ≈ 6.7 s transfer at the 10 Mbps phone profile, inside the ≤ 8 s budget with compile/boot — so the plan's joint Payload×Readiness derivation holds on the readiness side. The 448/384 px rows remain documented for Phase 4 if payload pressure re-emerges. Reaching 5 MiB would need ~14 kB/card textures (≈320 px at q 0.6) — rejected.
+- The custom template is installed as `web_nothreads_release.zip` in the self-contained toolchain (stock backed up as `web_nothreads_release.zip.stock.bak`). Before any adoption (Phase 4), the emsdk pin must be identified from the official 4.7.2 build scripts (local builds used emsdk 6.0.11, newer than the official pin) and the template build moved to CI with cache.
+
 ### Not yet done in Phase 1 (per plan slices)
 
-- Stripped export template spike → payload re-measurement against the 5 MiB budget.
-- Real-device matrix runs on the §4.3 signed-off devices (desktop named; iPhone 15 Pro Max pending; Android skipped by owner decision) and cold/warm readiness timings.
+- ~~Owner decision (plan exit condition)~~ **Resolved**: the owner adopted the 576 px/q 0.8 variant for Phaser-parity quality (see the budget verdict above).
+- Real-device matrix runs on the §4.3 signed-off devices (desktop named; iPhone 15 Pro Max pending; Android skipped by owner decision); throttled cold-readiness runs per the plan's 10 Mbps profile.
 - Sprite-parity e2e (rendered Godot bounds vs DOM rects ≤1px) — Phase 2, with the full protocol envelope.
 - e2e spec (`e2e/godot-board.spec.ts`) written but gated on `GODOT_E2E=1` + a production build with `VITE_RENDERER=godot`; not yet run in CI.

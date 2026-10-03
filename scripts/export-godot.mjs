@@ -35,6 +35,7 @@ import {
   readFileSync,
   readdirSync,
   renameSync,
+  rmSync,
   writeFileSync,
   mkdirSync,
 } from 'node:fs';
@@ -192,9 +193,13 @@ function runGodot(args, label) {
 }
 
 // ── import patching ─────────────────────────────────────────────────────────
+// Lossy WebP import for the staged derivatives. The defaults (576px, q 0.8)
+// are the Phase 1 starting settings; GODOT_CARD_LOSSY_QUALITY /
+// GODOT_CARD_MAX_WIDTH (consumed by prepare-godot-assets.mjs) exist so
+// payload variants can be measured without editing the scripts.
 const IMPORT_PARAMS = {
   'compress/mode': '1', // Lossy
-  'compress/lossy_quality': '0.8',
+  'compress/lossy_quality': process.env.GODOT_CARD_LOSSY_QUALITY ?? '0.8',
   'mipmaps/generate': 'false',
 };
 
@@ -239,7 +244,14 @@ function patchCardImports() {
       patched += 1;
     }
   }
-  console.log(`[godot-export] patched ${patched} texture .import files (lossy 0.8, no mipmaps)`);
+  console.log(`[godot-export] patched ${patched} texture .import files (lossy, no mipmaps)`);
+  // Pass 2 must import with the PATCHED params: the editor's reimport trigger
+  // does not refresh already-imported sources when only the .import params
+  // change (observed: pass-1 lossless .ctex survived the second import pass
+  // and explicit re-imports, silently shipping WebP-lossless textures). Drop
+  // the import cache wholesale — pass 2 rebuilds it with the patched params.
+  rmSync(path.join(godotDir, '.godot', 'imported'), { recursive: true, force: true });
+  console.log('[godot-export] cleared .godot/imported so pass 2 applies the patched params');
 }
 
 // ── main ────────────────────────────────────────────────────────────────────

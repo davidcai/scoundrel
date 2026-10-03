@@ -33,7 +33,7 @@ const outDir = path.join(repoRoot, 'godot', 'assets', 'cards');
 const manifestPath = path.join(repoRoot, 'godot', 'assets', 'manifest.json');
 
 /** Maximum derivative width in px (192 CSS px card width at DPR 3). */
-const MAX_WIDTH = 576;
+const MAX_WIDTH = Number(process.env.GODOT_CARD_MAX_WIDTH ?? 576);
 const PNG_OPTIONS = { compressionLevel: 9 };
 
 /** The Scoundrel deck: clubs/spades full 13 ranks, diamonds/hearts 2–10. */
@@ -105,7 +105,11 @@ async function main() {
     pngOptions: PNG_OPTIONS,
     // Godot import options applied to these derivatives by export-godot.mjs
     // (patched into the generated .import files; verified post-import).
-    importOptions: { compressMode: 'lossy(1)', lossyQuality: 0.8, mipmaps: false },
+    importOptions: {
+      compressMode: 'lossy(1)',
+      lossyQuality: Number(process.env.GODOT_CARD_LOSSY_QUALITY ?? 0.8),
+      mipmaps: false,
+    },
     expectedCardCount: EXPECTED_IDS.length,
     entries,
   };
