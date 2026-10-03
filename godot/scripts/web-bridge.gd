@@ -1,11 +1,11 @@
 extends Node
 ## Frame-side transport bridge (godot-plan.md, "Transport contract and
-## synchronization" — Phase 1 minimal subset).
+## synchronization" — Phase 2 envelope).
 ##
 ## Registered as the `WebBridge` autoload. Lives only in the web export:
-##   host `sync`/`dispose` (JSON string via postMessage → the shell script)
-##     → this node validates the envelope → signals the Board scene
-##   Board acknowledges rendered revisions via send_applied().
+##   host `sync`/`hover`/`policy`/`dispose` (JSON string via postMessage → the
+##     shell script) → this node validates the envelope → signals the Board
+##   Board acknowledges via send_applied/send_settled/send_diagnostics.
 ##
 ## The JS-side contract (shell: web/board-shell.html):
 ##   - `window.scoundrelSetSink(callback)` — the host-message sink. We hand it
@@ -23,7 +23,9 @@ extends Node
 ## This node never touches the engine, rules, storage, or clocks: it is a
 ## presentation-only pipe (plan boundary).
 
-signal sync_received(session_id: String, revision: int, projection: Dictionary)
+signal sync_received(envelope: Dictionary)
+signal hover_received(card_id: String, over: bool)
+signal policy_received(reduced_motion: bool)
 signal dispose_requested
 signal bridge_failed(code: String, message: String)
 
@@ -40,6 +42,10 @@ var _card_id_regex: RegEx = RegEx.new()
 ## autoload becomes ready before the main scene, so signal-only delivery
 ## would lose the first (and often only) sync.
 var _latest_sync := {}
+## The session's build id, echoed from the host's syncs (ProjectSettings'
+## application/config/version is an EMPTY string by default, so a settings
+## fallback never fires — the envelope is the source of truth).
+var _last_build_id := "unknown"
 
 func _ready() -> void:
 	_mark("0-start")
@@ -69,25 +75,42 @@ func _ready() -> void:
 	_listening = true
 	_window.scoundrelHostBridgeReady()
 	_mark("6-ready-signalled")
+	# Announce transport availability to the HOST (plan's bridge-ready): the
+	# parent answers with its latest complete snapshot.
+	send_bridge_ready()
 
 ## Development diagnostic (Phase 1 spike): stage marker visible from the host.
 func _mark(stage: String) -> void:
-	JavaScriptBridge.eval("window.__bridgeStage = '%s'" % stage, true)
+	JavaScriptBridge.eval("window.__bridgeMarks = (window.__bridgeMarks || []); window.__bridgeMarks.push('%s')" % stage, true)
 
-## Frame → host: acknowledge a rendered revision.
-func send_applied(session_id: String, revision: int) -> void:
-	_send({"kind": "applied", "protocolVersion": PROTOCOL_VERSION, "sessionId": session_id, "revision": revision})
+## Frame → host: announce that the GDScript sink is registered.
+func send_bridge_ready() -> void:
+	_send({"kind": "bridge-ready", "protocolVersion": PROTOCOL_VERSION, "buildId": _build_id(), "sessionId": _session_hint()})
+
+## Frame → host: acknowledge a rendered revision (echoes the ordered triple).
+func send_applied(session_id: String, revision: int, run_generation: int, layout_revision: int) -> void:
+	_send({"kind": "applied", "protocolVersion": PROTOCOL_VERSION, "buildId": _build_id(), "sessionId": session_id, "revision": revision, "runGeneration": run_generation, "layoutRevision": layout_revision})
+
+## Frame → host: the revision has no active room choreography.
+func send_settled(session_id: String, revision: int, run_generation: int, layout_revision: int) -> void:
+	_send({"kind": "settled", "protocolVersion": PROTOCOL_VERSION, "buildId": _build_id(), "sessionId": session_id, "revision": revision, "runGeneration": run_generation, "layoutRevision": layout_revision})
+
+## Frame → host: rendered sprite bounds (test/dev builds only).
+func send_diagnostics(session_id: String, revision: int, run_generation: int, layout_revision: int, rects: Array) -> void:
+	_send({"kind": "diagnostics", "protocolVersion": PROTOCOL_VERSION, "buildId": _build_id(), "sessionId": session_id, "revision": revision, "runGeneration": run_generation, "layoutRevision": layout_revision, "rects": rects})
 
 ## Frame → host: structured fatal failure (host falls back to DOM).
 func send_error(code: String, message: String, session_id: String = "") -> void:
-	_send({"kind": "error", "protocolVersion": PROTOCOL_VERSION, "sessionId": session_id, "code": code, "message": message})
+	_send({"kind": "error", "protocolVersion": PROTOCOL_VERSION, "buildId": _build_id(), "sessionId": session_id, "code": code, "message": message})
 
-## The Board scene pulls any sync that arrived before it connected (autoload
-## init order) — consumed once; empty when there is nothing pending.
-func take_latest_sync() -> Dictionary:
-	var latest := _latest_sync
-	_latest_sync = {}
-	return latest
+## The build id of the session: echoed from the host's sync envelopes.
+func _build_id() -> String:
+	return _last_build_id
+
+## bridge-ready carries an empty session hint: the frame has not seen a sync
+## yet, and the host only needs to know the sink exists for THIS frame.
+func _session_hint() -> String:
+	return "frame"
 
 func _send(message: Dictionary) -> void:
 	if _window == null:
@@ -121,32 +144,83 @@ func _on_host_message(args: Array) -> void:
 	if not (session_id is String) or session_id.is_empty() or session_id.length() > 128:
 		_fail("protocol", "invalid sessionId")
 		return
+	if not (envelope.get("buildId") is String) or (envelope.get("buildId") as String).is_empty():
+		_fail("protocol", "invalid buildId")
+		return
+	_last_build_id = envelope.get("buildId") as String
 	match envelope.get("kind"):
 		"sync":
-			var revision: Variant = envelope.get("revision")
-			if not (_is_int(revision) and revision >= 1):
-				_fail("protocol", "invalid revision")
+			_on_sync(envelope, session_id)
+		"hover":
+			var card_id: Variant = envelope.get("cardId")
+			var over: Variant = envelope.get("over")
+			if not (card_id is String) or _card_id_regex.search(card_id) == null or not (over is bool):
+				_fail("protocol", "invalid hover")
 				return
-			var projection: Variant = envelope.get("projection")
-			if not (projection is Dictionary):
-				_fail("protocol", "invalid projection")
+			hover_received.emit(card_id, over)
+		"policy":
+			var reduced: Variant = envelope.get("reducedMotion")
+			if not (reduced is bool):
+				_fail("protocol", "invalid policy")
 				return
-			if not _valid_projection(projection):
-				_fail("protocol", "projection failed validation")
-				return
-			# Retain for the Board scene: autoload _ready runs BEFORE the main
-			# scene connects, so an emission here would be lost — the scene
-			# pulls take_latest_sync() when it is ready (see board.gd).
-			_latest_sync = {"session_id": session_id, "revision": revision, "projection": projection}
-			sync_received.emit(session_id, revision, projection)
+			policy_received.emit(reduced)
 		"dispose":
 			_listening = false
 			dispose_requested.emit()
 		_:
 			_fail("protocol", "unknown message kind")
 
+func _on_sync(envelope: Dictionary, session_id: String) -> void:
+	var revision: Variant = envelope.get("revision")
+	if not _is_int(revision) or (revision as int) < 1:
+		_fail("protocol", "invalid revision")
+		return
+	var run_generation: Variant = envelope.get("runGeneration")
+	if not _is_int(run_generation) or (run_generation as int) < 1:
+		_fail("protocol", "invalid runGeneration")
+		return
+	var layout_revision: Variant = envelope.get("layoutRevision")
+	if not _is_int(layout_revision) or (layout_revision as int) < 1:
+		_fail("protocol", "invalid layoutRevision")
+		return
+	var fx_seq: Variant = envelope.get("fxSeq")
+	if not _is_int(fx_seq) or (fx_seq as int) < 0:
+		_fail("protocol", "invalid fxSeq")
+		return
+	var diagnostics: Variant = envelope.get("diagnostics")
+	if not (diagnostics is bool):
+		_fail("protocol", "invalid diagnostics flag")
+		return
+	var projection: Variant = envelope.get("projection")
+	if not (projection is Dictionary):
+		_fail("protocol", "invalid projection")
+		return
+	if not _valid_projection(projection):
+		_fail("protocol", "projection failed validation")
+		return
+	# Retain for the Board scene: autoload _ready runs BEFORE the main scene
+	# connects, so an emission here would be lost — the scene pulls
+	# take_latest_sync() when it is ready (see board.gd).
+	_latest_sync = {
+		"session_id": session_id,
+		"revision": revision,
+		"run_generation": run_generation,
+		"layout_revision": layout_revision,
+		"fx_seq": fx_seq,
+		"diagnostics": diagnostics,
+		"projection": projection,
+	}
+	sync_received.emit(_latest_sync)
+
+## The Board scene pulls any sync that arrived before it connected (autoload
+## init order) — consumed once; empty when there is nothing pending.
+func take_latest_sync() -> Dictionary:
+	var latest := _latest_sync
+	_latest_sync = {}
+	return latest
+
 func _is_int(value: Variant) -> bool:
-	return value is int or (value is float and is_equal_approx(value, round(value as float)))
+	return value is int or (value is float and is_finite(value as float) and is_equal_approx(value, round(value as float)))
 
 func _is_finite_number(value: Variant) -> bool:
 	return (value is float or value is int) and is_finite(value as float)

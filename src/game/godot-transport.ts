@@ -1,37 +1,61 @@
+import type { CardId } from '../engine';
 import type { BoardProjection } from './board-protocol';
 import { PROTOCOL_VERSION, parseFrameToHost, parseHostToFrame } from './board-protocol';
 
 /**
  * Session-scoped message transport between the React host and the Godot frame
- * (godot-plan.md lifecycle, step 2: "Each mount gets a fresh session
- * identifier and disposal flag").
+ * (godot-plan.md "Transport contract and synchronization", Phase 2 envelope).
  *
- * - Owns the sessionId and the monotonic revision counter for ONE board
- *   mount; a new mount creates a new transport, so late messages from an old
- *   frame can never be mistaken for the current session (session check on
- *   every inbound message).
+ * - Owns the sessionId and the `revision` counter for ONE board mount; a new
+ *   mount creates a new transport, so late messages from an old frame can
+ *   never be mistaken for the current session (session check on every inbound
+ *   message). `runGeneration` / `layoutRevision` are ordering inputs supplied
+ *   by the owner per send; the transport records the last sent triple so the
+ *   owner can gate acknowledgements against exactly what went out.
  * - postMessage only with an explicit target origin — the frame is
  *   same-origin, so the host origin is the target; `'*'` is never used.
  * - Validates every message it sends AND receives (board-protocol parsers),
  *   so a malformed frame message is dropped, not dispatched.
  * - Idempotent dispose: removes the listener, sends `dispose` at most once.
  *
- * The transport is deliberately dumb about projections and lifecycle — the
- * owner (GodotBoard) decides WHAT to send and WHEN to promote/fall back.
+ * The transport is deliberately dumb about projections, generations, and
+ * lifecycle — the owner (GodotBoard) decides WHAT to send and WHEN to
+ * promote/fall back.
  */
 
 export interface GodotTransportCallbacks {
-  /** The frame rendered the given revision of THIS session. */
-  onApplied(revision: number): void;
+  /** The frame's sink is registered; the host starts/continues sending. */
+  onBridgeReady(): void;
+  /** The frame rendered the given ordered triple of THIS session. */
+  onApplied(revision: number, runGeneration: number, layoutRevision: number): void;
+  /** The revision has no active room choreography (test/dev aid). */
+  onSettled(revision: number, runGeneration: number, layoutRevision: number): void;
+  /** Rendered sprite bounds for parity checks (test/dev only). */
+  onDiagnostics(
+    revision: number,
+    runGeneration: number,
+    layoutRevision: number,
+    rects: BoardProjection['room'],
+  ): void;
   /** Structured fatal failure — the host must fall back to DOM. */
   onError(code: string, message: string): void;
 }
 
+export interface SendSyncInput {
+  projection: BoardProjection;
+  runGeneration: number;
+  layoutRevision: number;
+  fxSeq: number;
+  diagnostics: boolean;
+}
+
 export interface GodotTransport {
   readonly sessionId: string;
-  /** The latest revision handed to sendSync (0 before the first sync). */
-  readonly lastRevision: number;
-  sendSync(projection: BoardProjection): void;
+  /** The ordered triple of the last sendSync (0/1/1 before the first sync). */
+  readonly lastSent: { revision: number; runGeneration: number; layoutRevision: number };
+  sendSync(input: SendSyncInput): void;
+  sendHover(cardId: CardId, over: boolean): void;
+  sendPolicy(reducedMotion: boolean): void;
   sendDispose(): void;
   /** Remove listeners and stop delivery. Idempotent. After dispose, no-ops. */
   dispose(): void;
@@ -45,11 +69,14 @@ function createSessionId(): string {
 }
 
 export function attachGodotTransport(
+  buildId: string,
   getFrameWindow: () => Window | null,
   callbacks: GodotTransportCallbacks,
 ): GodotTransport {
   const sessionId = createSessionId();
   let revision = 0;
+  let sentRunGeneration = 1;
+  let sentLayoutRevision = 1;
   let disposed = false;
   let disposeSent = false;
 
@@ -67,61 +94,121 @@ export function attachGodotTransport(
     }
     const message = parseFrameToHost(parsed);
     if (message === null) return;
-    if (message.kind === 'applied') {
-      if (message.sessionId !== sessionId) return; // stale/foreign session
-      callbacks.onApplied(message.revision);
-      return;
-    }
-    // error: sessionId may be empty (boot failure before the frame saw a sync)
-    if (message.sessionId === '' || message.sessionId === sessionId) {
-      callbacks.onError(message.code, message.message);
+    if (message.sessionId !== '' && message.sessionId !== sessionId) return; // stale/foreign
+    switch (message.kind) {
+      case 'bridge-ready':
+        callbacks.onBridgeReady();
+        return;
+      case 'applied':
+        callbacks.onApplied(message.revision, message.runGeneration, message.layoutRevision);
+        return;
+      case 'settled':
+        callbacks.onSettled(message.revision, message.runGeneration, message.layoutRevision);
+        return;
+      case 'diagnostics':
+        callbacks.onDiagnostics(
+          message.revision,
+          message.runGeneration,
+          message.layoutRevision,
+          message.rects,
+        );
+        return;
+      case 'error':
+        // sessionId may be empty (boot failure before the frame saw a sync)
+        callbacks.onError(message.code, message.message);
+        return;
     }
   };
 
   window.addEventListener('message', onMessage);
 
-  const post = (message: HostMessageShape): void => {
+  type OutboundMessage =
+    | {
+        kind: 'sync';
+        protocolVersion: number;
+        buildId: string;
+        sessionId: string;
+        revision: number;
+        runGeneration: number;
+        layoutRevision: number;
+        fxSeq: number;
+        diagnostics: boolean;
+        projection: BoardProjection;
+      }
+    | {
+        kind: 'hover';
+        protocolVersion: number;
+        buildId: string;
+        sessionId: string;
+        cardId: CardId;
+        over: boolean;
+      }
+    | {
+        kind: 'policy';
+        protocolVersion: number;
+        buildId: string;
+        sessionId: string;
+        reducedMotion: boolean;
+      }
+    | { kind: 'dispose'; protocolVersion: number; buildId: string; sessionId: string };
+
+  const post = (message: OutboundMessage): void => {
     const frameWindow = getFrameWindow();
     if (frameWindow === null || disposed) return;
     frameWindow.postMessage(JSON.stringify(message), window.location.origin);
   };
 
-  type HostMessageShape =
-    | {
-        kind: 'sync';
-        protocolVersion: number;
-        sessionId: string;
-        revision: number;
-        projection: BoardProjection;
-      }
-    | { kind: 'dispose'; protocolVersion: number; sessionId: string };
-
   return {
     sessionId,
-    get lastRevision(): number {
-      return revision;
+    get lastSent(): GodotTransport['lastSent'] {
+      return { revision, runGeneration: sentRunGeneration, layoutRevision: sentLayoutRevision };
     },
-    sendSync(projection) {
+    sendSync(input) {
       if (disposed) return;
-      revision += 1;
-      const message = {
+      const candidate = {
         kind: 'sync' as const,
         protocolVersion: PROTOCOL_VERSION,
+        buildId,
         sessionId,
-        revision,
-        projection,
+        revision: revision + 1,
+        runGeneration: input.runGeneration,
+        layoutRevision: input.layoutRevision,
+        fxSeq: input.fxSeq,
+        diagnostics: input.diagnostics,
+        projection: input.projection,
       };
       // Never emit an invalid envelope, even if the projection builder lied.
-      if (parseHostToFrame(message) === null) {
-        revision -= 1;
-        return;
-      }
-      post(message);
+      if (parseHostToFrame(candidate) === null) return;
+      revision += 1;
+      sentRunGeneration = input.runGeneration;
+      sentLayoutRevision = input.layoutRevision;
+      post(candidate);
+    },
+    sendHover(cardId, over) {
+      if (disposed) return;
+      post({
+        kind: 'hover',
+        protocolVersion: PROTOCOL_VERSION,
+        buildId,
+        sessionId,
+        cardId,
+        over,
+      });
+    },
+    sendPolicy(reducedMotion) {
+      if (disposed) return;
+      post({
+        kind: 'policy',
+        protocolVersion: PROTOCOL_VERSION,
+        buildId,
+        sessionId,
+        reducedMotion,
+      });
     },
     sendDispose() {
       if (disposed || disposeSent) return;
       disposeSent = true;
-      post({ kind: 'dispose', protocolVersion: PROTOCOL_VERSION, sessionId });
+      post({ kind: 'dispose', protocolVersion: PROTOCOL_VERSION, buildId, sessionId });
     },
     dispose() {
       if (disposed) return;

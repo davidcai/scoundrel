@@ -215,7 +215,7 @@ export function PlayScreen() {
             plan's Phase 4 exit gate passes. GodotBoard consumes the SAME
             authoritative layout (single calculation, transmitted as rects). */}
           {boardRenderer === 'godot' ? (
-            <GodotBoard layout={board} onLiveChange={setCanvasLive} />
+            <GodotBoard layout={board} bridge={bridge} onLiveChange={setCanvasLive} />
           ) : (
             <PhaserBoard bridge={bridge} onLiveChange={setCanvasLive} />
           )}

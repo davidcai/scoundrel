@@ -13,6 +13,8 @@ const PLACEHOLDER_COLOR := Color(0.0509804, 0.0666667, 0.0980392)
 ## Selection emphasis multiplier (gold-tinted, subtle; the DOM ring is the
 ## real selection indicator).
 const SELECTED_TINT := Color(1.12, 1.06, 0.88)
+## Hover alpha dip (mirrors card-sprite.ts HOVER_ALPHA).
+const HOVER_ALPHA := 0.82
 
 var _card_id := ""
 var _face: Sprite2D
@@ -45,6 +47,14 @@ func set_selected(selected: bool) -> void:
 	else:
 		_face.modulate = Color.WHITE
 		_placeholder.modulate = Color.WHITE
+
+## Hover emphasis from the host's `hover` message — the alpha dip mirrors the
+## Phaser fallback (card-sprite.ts HOVER_ALPHA 0.82); deliberately NOT a tween.
+func set_hovered(hovered: bool) -> void:
+	if hovered:
+		modulate = Color(1.0, 1.0, 1.0, HOVER_ALPHA)
+	else:
+		modulate = Color.WHITE
 
 ## Development diagnostic (Phase 1 spike): stage markers visible from the host.
 func _mark(stage: String) -> void:

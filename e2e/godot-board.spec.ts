@@ -20,6 +20,19 @@ const exportPresent = existsSync(
 );
 const enabled = process.env.GODOT_E2E === '1' && exportPresent;
 
+declare global {
+  interface Window {
+    /** Sprite-parity diagnostics, mirrored by GodotBoard when the
+     * `godot-diagnostics` query flag is present (frame-rendered bounds). */
+    __godotParity?: {
+      revision: number;
+      runGeneration: number;
+      layoutRevision: number;
+      rects: Array<{ cardId: string; x: number; y: number; width: number; height: number }>;
+    };
+  }
+}
+
 test.skip(
   !enabled,
   'Godot export not built or GODOT_E2E not set (run pnpm godot:export, then GODOT_E2E=1 pnpm e2e)',
@@ -67,4 +80,59 @@ test('DOM fallback still plays the game when the frame fails to boot', async ({ 
   await expect(page.locator('.action-panel')).toBeVisible();
   const canvasReady = await page.locator('iframe.godot-board[data-canvas-ready="true"]').count();
   expect(canvasReady).toBe(0);
+});
+
+test('sprite parity: rendered frame rects match DOM hit-layer rects within 1 CSS px', async ({
+  page,
+}) => {
+  await page.goto(`${SEED_URL}&godot-diagnostics=1`);
+  const iframe = page.locator('iframe.godot-board');
+  await expect(iframe).toBeVisible();
+  await expect(iframe).toHaveAttribute('data-canvas-ready', 'true', { timeout: 60_000 });
+
+  // The frame reports rendered sprite bounds per applied revision; the host
+  // mirrors the current ordered triple onto window.__godotParity (diagnostics
+  // opt-in via the query flag).
+  const parity = await page.evaluate(() => window.__godotParity);
+  expect(parity).not.toBeNull();
+
+  const result = await page.evaluate(() => {
+    const parity = window.__godotParity;
+    const room = document.querySelector('.room')?.getBoundingClientRect();
+    if (!parity || !room) return { error: 'missing parity or room' };
+    const domRects = Array.from(document.querySelectorAll('.room > .tooltip-wrap')).map((wrap) => {
+      const btn = wrap.querySelector<HTMLElement>('button.card');
+      const el = (btn ?? wrap) as HTMLElement;
+      const r = el.getBoundingClientRect();
+      return {
+        cardId: btn?.dataset.cardId,
+        x: r.left - room.left,
+        y: r.top - room.top,
+        width: r.width,
+        height: r.height,
+      };
+    });
+    const byId = new Map(domRects.map((r) => [r.cardId, r]));
+    const deltas = parity.rects.map((pr) => {
+      const dr = byId.get(pr.cardId);
+      if (!dr) return { cardId: pr.cardId, missing: true };
+      return {
+        cardId: pr.cardId,
+        dx: Math.abs(pr.x - dr.x),
+        dy: Math.abs(pr.y - dr.y),
+        dw: Math.abs(pr.width - dr.width),
+        dh: Math.abs(pr.height - dr.height),
+      };
+    });
+    return { deltas };
+  });
+  if ('error' in result) throw new Error(result.error);
+  // Plan gate: "every axis within 1 CSS pixel at rest".
+  for (const d of result.deltas) {
+    expect(d.missing, `frame rendered a card the DOM lacks: ${d.cardId}`).toBeFalsy();
+    expect(d.dx).toBeLessThanOrEqual(1);
+    expect(d.dy).toBeLessThanOrEqual(1);
+    expect(d.dw).toBeLessThanOrEqual(1);
+    expect(d.dh).toBeLessThanOrEqual(1);
+  }
 });
