@@ -120,7 +120,6 @@ func _apply_latest(target: Dictionary) -> void:
 	var hint: Variant = target.get("action")
 	if hint == null or not (hint is Dictionary):
 		hint = {}
-	_mark("apply-r%d hint=%s runResumed=%s" % [revision, str(hint.get("type", "none")), str(target["projection"].get("runResumed", false))])
 
 	var generation: int = target["run_generation"]
 	var projection: Dictionary = target["projection"]
@@ -133,10 +132,8 @@ func _apply_latest(target: Dictionary) -> void:
 	_applied_revision = revision
 	_applied_generation = generation
 	_applied_layout = int(target["layout_revision"])
-	_mark("sync-r%d-reconciled sprites=%d" % [_applied_revision, _sprites.size()])
 
 	var beat_ms := _choreograph(diff, target, hint)
-	_mark("beat-r%d hint=%s ms=%d" % [_applied_revision, str(hint.get("type", "none")), int(beat_ms)])
 
 	# Render one frame before acknowledging.
 	await get_tree().process_frame
@@ -166,7 +163,6 @@ func _choreograph(diff: Dictionary, target: Dictionary, hint: Dictionary) -> flo
 	# A hint-bearing sync is an ACTION (equip/drink/…) — it must run its own
 	# beat even on the first dealt room, or the hint is silently swallowed.
 	if not _dealt_once and hint.is_empty():
-		_mark("mount-deal runResumed=%s room=%d" % [str(projection.get("runResumed", false)), room.size()])
 		_dealt_once = true
 		if bool(projection.get("runResumed", false)):
 			return 0.0 # resume: static reconcile (plan rule)
@@ -254,10 +250,6 @@ func _kill_beats_and_snap() -> void:
 	for card_id: String in _sprites.keys():
 		if _rects.has(card_id):
 			_sprites[card_id].snap_to(_rects[card_id])
-
-## Development diagnostic (Phase 1 spike): stage markers visible from the host.
-func _mark(stage: String) -> void:
-	JavaScriptBridge.eval("window.__boardMarks = (window.__boardMarks || []); window.__boardMarks.push('%s')" % stage, true)
 
 ## Schedule `settled` for the given revision at the beat's deadline. A newer
 ## action sync invalidates the pending one (the callback re-checks scope).

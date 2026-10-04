@@ -30,11 +30,29 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
 const buildIdFlag = argv.indexOf('--build-id');
-const buildId = buildIdFlag !== -1 ? argv[buildIdFlag + 1] : 'spike';
+// Default build id: the GENERATED content version (src/game/godot-build-id.ts)
+// so the checker always validates exactly what the app will fetch. An explicit
+// --build-id overrides.
+const generatedId = (() => {
+  try {
+    const source = readFileSync(path.join(repoRoot, 'src', 'game', 'godot-build-id.ts'), 'utf8');
+    return source.match(/GODOT_BUILD_ID = '([^']+)'/)?.[1];
+  } catch {
+    return undefined;
+  }
+})();
+const buildId = buildIdFlag !== -1 ? argv[buildIdFlag + 1] : (generatedId ?? 'spike');
 const strict = argv.includes('--strict');
 
-/** Hard compressed-cold-payload budget (Phase 4 gate; Phase 1 reports). */
-const PAYLOAD_BUDGET_BYTES = 5 * 1024 * 1024;
+/**
+ * Compressed cold-payload budget (gzip). REVISED 2026-10-01 by owner decision
+ * (baseline doc §7): the frozen 5 MiB stop line was unreachable with
+ * acceptable textures once the stripped template exposed the true floor; the
+ * owner adopted the 576 px/q 0.8 variant (measured 9.39 MiB gzip / 8.36 MiB
+ * brotli) for Phaser-parity quality. The gate follows the adopted variant
+ * with margin; brotli is reported alongside (Vercel serves br).
+ */
+const PAYLOAD_BUDGET_BYTES = 10 * 1024 * 1024;
 const EXPECTED_DECK_COUNT = 44;
 
 const exportDir = path.join(repoRoot, 'public', 'godot', buildId);
@@ -122,6 +140,13 @@ function main() {
     }
   }
 
+  // License notices must ship with the engine (plan §Build/CI).
+  for (const notice of ['COPYRIGHT.txt', 'LICENSE.txt']) {
+    if (!files.includes(notice)) {
+      fail(`license notice missing from the export: ${notice}`);
+    }
+  }
+
   // Deck completeness inside the PCK.
   const pckFile = files.find((f) => f.endsWith('.pck'));
   let deckCount = 0;
@@ -177,11 +202,11 @@ function main() {
 
   const overBy = totalGzip - PAYLOAD_BUDGET_BYTES;
   if (overBy > 0) {
-    const message = `compressed payload ${fmt(totalGzip)} exceeds the 5 MiB budget by ${fmt(overBy)}`;
+    const message = `compressed payload ${fmt(totalGzip)} exceeds the revised 10 MiB budget by ${fmt(overBy)}`;
     if (strict) fail(message);
     else warn(`${message} (reported only in Phase 1; hard gate is Phase 4 — use --strict)`);
   } else {
-    console.log('  payload budget: OK (%s gzip ≤ 5.0 MiB)', fmt(totalGzip));
+    console.log('  payload budget: OK (%s gzip ≤ 10.0 MiB)', fmt(totalGzip));
   }
 
   for (const warning of warnings) console.warn(`[godot-check] WARNING: ${warning}`);

@@ -52,40 +52,29 @@ var _latest_sync := {}
 var _last_build_id := "unknown"
 
 func _ready() -> void:
-	_mark("0-start")
 	_card_id_regex.compile("^(club|diamond|heart|spade)-(2|3|4|5|6|7|8|9|10|j|q|k|a)$")
 	if not OS.has_feature("web"):
 		_fail("non-web", "WebBridge requires a web export (JavaScriptBridge unavailable)")
 		return
-	_mark("1-web-feature-ok")
 	_window = JavaScriptBridge.get_interface("window")
-	_mark("2-interface-ok")
 	# The shell script must have registered these host functions during parse.
 	var shell_ready: bool = JavaScriptBridge.eval("typeof scoundrelSetSink === 'function' && typeof scoundrelHostSend === 'function'", true)
-	_mark("3-eval-shell=" + str(shell_ready))
 	if not (shell_ready is bool and shell_ready):
 		_fail("boot", "shell bridge functions missing (stale or foreign shell?)")
 		return
 	# Keep the callback object referenced for the runtime lifetime (plan note).
 	_sink = JavaScriptBridge.create_callback(_on_host_message)
-	_mark("4-callback-created")
 	# CALL the shell's setter with the callback object — assigning to the
 	# property would replace the setter itself (the Phase 1 handshake bug).
 	_window.scoundrelSetSink(_sink)
-	_mark("5-sink-set")
 	# Listen BEFORE the handshake: scoundrelHostBridgeReady() drains the
 	# shell's buffered sync synchronously into the sink — with the flag still
 	# down, that first (and often only) message would be silently dropped.
 	_listening = true
 	_window.scoundrelHostBridgeReady()
-	_mark("6-ready-signalled")
 	# Announce transport availability to the HOST (plan's bridge-ready): the
 	# parent answers with its latest complete snapshot.
 	send_bridge_ready()
-
-## Development diagnostic (Phase 1 spike): stage marker visible from the host.
-func _mark(stage: String) -> void:
-	JavaScriptBridge.eval("window.__bridgeMarks = (window.__bridgeMarks || []); window.__bridgeMarks.push('%s')" % stage, true)
 
 ## Frame → host: announce that the GDScript sink is registered.
 func send_bridge_ready() -> void:

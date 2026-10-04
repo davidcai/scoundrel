@@ -158,6 +158,8 @@ const zh: Translation = {
   ruleWin: '清空所有房间即获胜。得分为剩余生命；死亡时得分为零减去牌堆中仍在潜伏的怪物总和。',
   credits: '制作与链接',
   creditsText: 'Scoundrel 由 Zach Gage 和 Kurt Bieg 设计。这是原版单人 Roguelike 的浏览器实现。',
+  creditsEngine:
+    '房间渲染器由 Godot 引擎（godotengine.org）构建——其版权与许可说明随牌桌导出文件一并发布。',
   linkRulebook: '原版规则书（PDF）',
   linkAnnotated: 'rpdillon.net——注释版规则',
 

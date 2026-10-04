@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
+import { GODOT_BUILD_ID } from '../src/game/godot-build-id';
 
 /**
  * Godot board frame smoke tests (godot-plan.md §Test plan, Phase 1 subset).
@@ -14,7 +15,6 @@ import { expect, test } from '@playwright/test';
  * focus, and the DOM hit-layer keeps working underneath it.
  */
 
-const GODOT_BUILD_ID = 'spike';
 const exportPresent = existsSync(
   path.resolve(import.meta.dirname, '..', 'public', 'godot', GODOT_BUILD_ID, 'board.html'),
 );

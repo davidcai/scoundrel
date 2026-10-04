@@ -130,7 +130,7 @@ describe('GodotBoard (transport mocked)', () => {
     await flushSyncs();
     const iframe = container.querySelector('iframe.godot-board');
     expect(iframe).not.toBeNull();
-    expect(iframe?.getAttribute('src')).toContain('/godot/spike/board.html');
+    expect(iframe?.getAttribute('src')).toMatch(/\/godot\/[a-z0-9-]+\/board\.html/);
     expect(h.sends).toHaveLength(1);
     const first = h.sends[0] as {
       kind: string;
