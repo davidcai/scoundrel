@@ -43,10 +43,16 @@ const WHITE := Color.WHITE
 ## Current motion policy (policy messages override the per-sync value until
 ## the next sync arrives).
 var _reduced_motion := false
+## CSS px → logical-unit multiplier; physical amplitudes scale by it.
+var _dpr := 1.0
 ## Cancellation registries.
 var _tweens: Array[Tween] = []
 var _transients: Array[Node] = []
 var _vignette: ColorRect = null
+
+## CSS px → logical multiplier (set by the board on every apply).
+func set_dpr(dpr: float) -> void:
+	_dpr = dpr
 
 ## Called by the board scene on `policy` messages.
 func set_policy(reduced_motion: bool) -> void:
@@ -223,9 +229,9 @@ func nudge(board: Node2D, sprites: Array) -> float:
 		return 0.0
 	var base_x: float = sprites[0].position.x
 	var tween := _track(board.create_tween())
-	tween.tween_property(board, "position:x", board.position.x - 3.0, NUDGE_MS * 0.25 / 1000.0)
-	tween.tween_property(board, "position:x", board.position.x + 3.0, NUDGE_MS * 0.25 / 1000.0)
-	tween.tween_property(board, "position:x", board.position.x - 2.0, NUDGE_MS * 0.25 / 1000.0)
+	tween.tween_property(board, "position:x", board.position.x - 3.0 * _dpr, NUDGE_MS * 0.25 / 1000.0)
+	tween.tween_property(board, "position:x", board.position.x + 3.0 * _dpr, NUDGE_MS * 0.25 / 1000.0)
+	tween.tween_property(board, "position:x", board.position.x - 2.0 * _dpr, NUDGE_MS * 0.25 / 1000.0)
 	tween.tween_property(board, "position:x", board.position.x, NUDGE_MS * 0.25 / 1000.0)
 	return NUDGE_MS
 
@@ -235,8 +241,8 @@ func shake(board: Node2D) -> float:
 		return 0.0
 	var origin := board.position
 	var tween := _track(board.create_tween())
-	tween.tween_property(board, "position", origin + Vector2(3.0, 2.0), SHAKE_MS * 0.3 / 1000.0)
-	tween.tween_property(board, "position", origin - Vector2(3.0, 1.0), SHAKE_MS * 0.3 / 1000.0)
+	tween.tween_property(board, "position", origin + Vector2(3.0, 2.0) * _dpr, SHAKE_MS * 0.3 / 1000.0)
+	tween.tween_property(board, "position", origin - Vector2(3.0, 1.0) * _dpr, SHAKE_MS * 0.3 / 1000.0)
 	tween.tween_property(board, "position", origin, SHAKE_MS * 0.4 / 1000.0)
 	return SHAKE_MS
 
@@ -293,11 +299,11 @@ func _kill_spark(board: Node2D, at: Vector2) -> void:
 	spark.lifetime = 0.43
 	spark.direction = Vector2(0, -1)
 	spark.spread = 70.0
-	spark.initial_velocity_min = 70.0
-	spark.initial_velocity_max = 230.0
-	spark.gravity = Vector2(0, 380)
-	spark.scale_amount_min = 2.0
-	spark.scale_amount_max = 4.0
+	spark.initial_velocity_min = 70.0 * _dpr
+	spark.initial_velocity_max = 230.0 * _dpr
+	spark.gravity = Vector2(0, 380 * _dpr)
+	spark.scale_amount_min = 2.0 * _dpr
+	spark.scale_amount_max = 4.0 * _dpr
 	spark.color_ramp = _spark_ramp()
 	board.add_child(spark)
 	_track_node(spark)
@@ -326,11 +332,11 @@ func confetti(board: Node2D) -> float:
 	confetti.lifetime = 1.6
 	confetti.direction = Vector2(0, 1)
 	confetti.spread = 12.0
-	confetti.initial_velocity_min = 40.0
-	confetti.initial_velocity_max = 120.0
-	confetti.gravity = Vector2(0, 260)
-	confetti.scale_amount_min = 2.0
-	confetti.scale_amount_max = 3.5
+	confetti.initial_velocity_min = 40.0 * _dpr
+	confetti.initial_velocity_max = 120.0 * _dpr
+	confetti.gravity = Vector2(0, 260 * _dpr)
+	confetti.scale_amount_min = 2.0 * _dpr
+	confetti.scale_amount_max = 3.5 * _dpr
 	confetti.color_ramp = _confetti_ramp()
 	board.add_child(confetti)
 	_track_node(confetti)
@@ -363,11 +369,11 @@ func embers(board: Node2D) -> float:
 	embers_node.lifetime = 2.4
 	embers_node.direction = Vector2(0, 1)
 	embers_node.spread = 15.0
-	embers_node.initial_velocity_min = 18.0
-	embers_node.initial_velocity_max = 55.0
-	embers_node.gravity = Vector2(0, 60)
-	embers_node.scale_amount_min = 2.0
-	embers_node.scale_amount_max = 3.0
+	embers_node.initial_velocity_min = 18.0 * _dpr
+	embers_node.initial_velocity_max = 55.0 * _dpr
+	embers_node.gravity = Vector2(0, 60 * _dpr)
+	embers_node.scale_amount_min = 2.0 * _dpr
+	embers_node.scale_amount_max = 3.0 * _dpr
 	embers_node.color_ramp = _ember_ramp()
 	board.add_child(embers_node)
 	_track_node(embers_node)

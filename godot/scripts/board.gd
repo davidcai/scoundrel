@@ -57,6 +57,8 @@ var _last_room_signature := ""
 var _dealt_once := false
 ## Pending `settled` deadline (invalidated by newer action syncs).
 var _settle_revision := 0
+## CSS px → logical-unit multiplier (canvas backing / CSS; see _apply_latest).
+var _dpr := 1.0
 
 func _ready() -> void:
 	WebBridge.sync_received.connect(_on_sync)
@@ -120,6 +122,13 @@ func _apply_latest(target: Dictionary) -> void:
 	var hint: Variant = target.get("action")
 	if hint == null or not (hint is Dictionary):
 		hint = {}
+	# DPR transform (the plan's "explicit transform into Godot coordinates"):
+	# with stretch disabled, the web DisplayServer's logical size is the canvas
+	# BACKING store (canvas.width = CSS × devicePixelRatio), so 1 logical unit
+	# is 1/dpr CSS px. The host speaks CSS px; multiply every rect by the
+	# device pixel ratio (hidpi-aware: 1 when hidpi is off). Read fresh per
+	# apply — DPR changes re-apply on the next sync.
+	_dpr = maxf(0.5, DisplayServer.screen_get_scale())
 
 	var generation: int = target["run_generation"]
 	var projection: Dictionary = target["projection"]
@@ -127,6 +136,7 @@ func _apply_latest(target: Dictionary) -> void:
 
 	if generation != _applied_generation and _applied_revision != 0:
 		_clear_all_sprites() # run replacement: no old effect survives
+	_fx.set_dpr(_dpr)
 
 	var diff := _reconcile(projection)
 	_applied_revision = revision
@@ -296,10 +306,13 @@ func _reconcile(projection: Dictionary) -> Dictionary:
 	var selected_id: Variant = projection.get("selectedCardId")
 	for card_id: String in wanted:
 		var card: Dictionary = wanted[card_id]
-		var rect := Rect2(
+		# The host speaks CSS px; the frame's logical space is backing px
+		# (CSS × dpr — see _apply_latest). Scale the rect once, here.
+		var css_rect := Rect2(
 			Vector2(card["x"] as float, card["y"] as float),
 			Vector2(card["width"] as float, card["height"] as float)
 		)
+		var rect := Rect2(css_rect.position * _dpr, css_rect.size * _dpr)
 		var sprite: Node2D = _sprites.get(card_id)
 		var is_new := sprite == null
 		if is_new:
@@ -364,14 +377,16 @@ func _room_signature(room: Array) -> String:
 
 ## Rendered sprite bounds in room-box CSS px — the sprite-parity e2e input.
 func _diagnostic_rects() -> Array:
+	# Reported in CSS px (the e2e compares against DOM rects): divide the
+	# dpr-scaled logical rects back to the host's CSS space.
 	var rects: Array = []
 	for card_id: String in _rects.keys():
 		var rect: Rect2 = _rects[card_id]
 		rects.append({
 			"cardId": card_id,
-			"x": rect.position.x,
-			"y": rect.position.y,
-			"width": rect.size.x,
-			"height": rect.size.y,
+			"x": rect.position.x / _dpr,
+			"y": rect.position.y / _dpr,
+			"width": rect.size.x / _dpr,
+			"height": rect.size.y / _dpr,
 		})
 	return rects

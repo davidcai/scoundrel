@@ -87,7 +87,7 @@ The full pipeline ran on this machine: pinned toolchain download (both archives 
 ### Confirmed in practice (was listed as open above)
 
 - Shell placeholders `$GODOT_URL`/`$GODOT_CONFIG` expand as documented for the pinned 4.7.2; the `Engine` API (`startGame` overrides incl. `canvasResizePolicy`, `focusCanvas`) works as documented.
-- 1 Godot logical unit = 1 CSS px confirmed under `stretch/mode=disabled` + adaptive canvas resize (`window.innerWidth` ≡ iframe box; canvas backing follows devicePixelRatio).
+- ~~1 Godot logical unit = 1 CSS px confirmed~~ **CORRECTION (iPhone finding, §10)**: this held only at DPR 1. With stretch disabled, Godot 4.7 web's logical size is the canvas BACKING store (`window_get_size` returns `canvas.width`, not CSS px) — 1 logical unit is 1/dpr CSS px. The desktop verification was a DPR-1.0 coincidence; the plan's demand for a DPR 1/2/3 matrix was right.
 
 ### Integration fixes the spike surfaced (now in code)
 
@@ -181,3 +181,14 @@ The beat language is ported from src/ui/motion.ts + board-scene.ts to GDScript, 
 - **Perf gate (desktop, first measurement)**: in-frame rAF deltas over 90 frames — idle median 10.0 ms / p95 10.6 ms; post-deal median 10.0 ms / p95 10.9 ms (≈100 Hz display). The Animation gate (p95 ≤ 25 ms) passes with 2.3× margin; real-device runs remain.
 
 **Deployed verification** (https://scoundrel-godot-spike.vercel.app): the app fetched `/godot/bcea2382fe460/board.html`, promoted live, all four cards rendered; `COPYRIGHT.txt` serves 200.
+
+## 10. iPhone Safari DPR bug (owner-reported; fixed, awaiting device re-test)
+
+**Report**: iPhone 15 Pro Max, Safari, fresh run on the deployment: the four room cards were originally correctly sized, then SHRANK after a little delay — ending as a tiny 2×2 grid in the top-left of a full-size room box (owner screenshot).
+
+**Root cause** (found in the engine source, platform/web): with `stretch/mode=disabled`, the web DisplayServer's logical window size is the canvas BACKING store — `godot_js_display_window_size_get` returns `GodotConfig.canvas.width` (= CSS × devicePixelRatio, 3 on iPhone). The host transmits CSS-pixel rects; the frame placed them as logical units → every sprite drew at 1/3 CSS size. Desktop Chromium (DPR 1) never exposed it — the geometry contract silently held only at DPR 1, which the plan's test matrix would have caught earlier.
+
+**Fix** (now deployed): the frame reads the device pixel ratio fresh on every apply (`DisplayServer.screen_get_scale()` → the runtime's hidpi-aware `getPixelRatio()`) and scales every rect ONCE (`cssRect × dpr`); reported parity rects are scaled back to CSS px for the e2e; nudge/shake amplitudes and particle velocities/gravity/sizes scale by dpr. The math is DPR-invariant: displayed CSS position = `cssRect × dpr × (canvasCss/canvasBacking) = cssRect`.
+
+**Verification**: desktop DPR-1 regression green (live, parity max delta 0.009 px — the transform is a no-op); compile-checked via headless export. Chromium DPR emulation inside the iframe proved impractical (iframe load lifecycle + WebGL context loss under mid-boot backing-store changes — the fallback-to-DOM contract behaved correctly in that fault). **The decisive check is the owner's iPhone re-test on the deployed build** — per plan, real Safari is the only valid iOS evidence.
+
