@@ -192,3 +192,30 @@ The beat language is ported from src/ui/motion.ts + board-scene.ts to GDScript, 
 
 **Verification**: desktop DPR-1 regression green (live, parity max delta 0.009 px — the transform is a no-op); compile-checked via headless export. Chromium DPR emulation inside the iframe proved impractical (iframe load lifecycle + WebGL context loss under mid-boot backing-store changes — the fallback-to-DOM contract behaved correctly in that fault). **The decisive check is the owner's iPhone re-test on the deployed build** — per plan, real Safari is the only valid iOS evidence.
 
+## 11. Authoring-value verdict + Phase 5 rollout draft
+
+### Verdict (2026-10-03, owner)
+
+**"The godot wins."** The owner judged the full beat language (deal-in + flip reveal, weapon sweep, potion dissolve, monster-defeat handoff stack, rewind, nudge/shake, vignettes) side-by-side against Phaser on the signed-off devices — mini PC desktop and iPhone 15 Pro Max, after the device-verified DPR fix (`37c2c58`) — and picked Godot as the room renderer. That closes the plan's last owner-judged gate (authoring value, §Acceptance): every Phase 0–4 gate is now either measured-pass or owner-signed. Per plan §Delivery phases, the consequence is Phase 5 — controlled adoption. Production default stays `phaser` until the observation period passes.
+
+### Phase 5 — controlled adoption (draft, awaiting owner approval)
+
+Goal: make Godot the room renderer in a reviewable release without risking the shipped experience. No save migration ships with it (renderer state is transient; `SCHEMA_VERSION` stays 1; replay URLs unchanged).
+
+1. **Comparison deployment first** — the `VITE_RENDERER=godot` production build keeps being deployed to the approved throwaway project (existing flow: CLI deploy of a staged `dist/` copy with `vercel.json` inside, `--prod` to promote). The repo's Git-integration builds stay Phaser-default: they cannot run the Godot toolchain and `public/godot/` is gitignored, so they ship the app without artifacts.
+2. **Observation period** (owner plays real runs on the comparison deployment, both devices):
+   - Boot errors / fallback frequency (the 45 s timeout → DOM fallback contract; no boot retry loop).
+   - Input behavior over the canvas: hit layer, focus, selection ring, hover.
+   - Data behavior: stats/settings/run saves correct across renderer choices (fence tests already enforce the boundary; spot-check the deployed build).
+   - Perf feel during beats on iPhone (desktop already measured p95 10.9 ms frame interval vs the 25 ms budget — 2.3× margin).
+   - Payload gate stays green in CI (`--strict` ≤ 10 MiB gzip); cache-empty CI export proven (the written CI job's first runs are also its proof).
+3. **Adoption change** (only after the observation report reads clean) — a dedicated PR that:
+   - Resolves production deploy ownership first: the repo's Vercel Git integration cannot produce the Godot export, so the adoption deploys a **CI-built `dist`** (GitHub Actions artifact → Vercel CLI/API into the production project) — the plan's anticipated deploy-ownership decision, now required.
+   - Flips the production default in `renderer-selection.ts` to `godot` (the build env / dev override stays able to force either renderer).
+   - Records exact toolchain + export hashes and known device limitations here.
+   - Updates README / AGENTS.md / historical plan status pointers per plan §Rollout.
+4. **Phaser removal is its own later change** (delete `src/game/{board-scene,card-sprite,fx}.ts`, `bridge.ts`, `PhaserBoard.tsx`, drop the `phaser` dependency) — never in the same PR as the default flip.
+5. **Rollback at every step**: the previous deployment stays promoted; `VITE_RENDERER=phaser` rebuild restores the prior renderer; the DOM path handles per-session failures without reload or run replacement.
+
+Beyond Phase 5 (not prerequisites, separate decisions): the optional standalone Godot edition (plan §Standalone, ~23–39 days, a different product), and closing the residual owner-side records — real-device fps runs and the NVDA/VoiceOver manual pass (axe already runs in CI).
+
