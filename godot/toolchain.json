@@ -3,6 +3,12 @@
   "godotVersion": "4.7.2",
   "godotRelease": "stable",
   "godotTag": "4.7.2-stable",
+  "source": {
+    "repository": "https://github.com/godotengine/godot.git",
+    "tag": "4.7.2-stable",
+    "commit": "ed1daf0bf001b61586d9930840f2f1394092c079",
+    "$comment": "The stripped web template is built from the engine source cloned at this exact commit (scripts/build-stripped-template.sh provisions it and verifies HEAD == commit; a moved tag or stale cache fails the build instead of shipping different engine code). Commit resolved from the tag via git ls-remote on 2026-10-04."
+  },
   "releaseUrl": "https://github.com/godotengine/godot/releases/tag/4.7.2-stable",
   "checkedOn": "2026-09-30",
   "renderer": "gl_compatibility",

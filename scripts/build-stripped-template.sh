@@ -38,13 +38,48 @@ if [ "$GOT" != "$WANT" ]; then
   echo "emsdk $WANT is required (official 4.7.2 pin); install it first: emsdk install $WANT" >&2
   exit 2
 fi
-cd "$(dirname "$0")/../.toolchain/godot-src"
+# Python: resolve a REAL interpreter. The Windows Store python3/python stubs
+# resolve via command -v but exit 9009 when run — probe each candidate first.
+resolve_py() {
+  for cand in python3 python "$LOCALAPPDATA/Programs/Python/Python312/python.exe"; do
+    if command -v "$cand" >/dev/null 2>&1 && "$cand" -c 'pass' >/dev/null 2>&1; then
+      command -v "$cand"
+      return 0
+    fi
+  done
+  echo "no usable python interpreter found (needed for SCons + the toolchain.json pin)" >&2
+  return 1
+}
+PY=$(resolve_py) || exit 2
+
+# Godot source: provision + verify against the exact-commit pin in
+# toolchain.json ("source"). Nothing else in the pipeline clones it, so a
+# cache-only tree would deadlock CI and a stale cache would silently build
+# different engine code — both are loud failures here instead.
+SRC_JSON="$(dirname "$0")/../godot/toolchain.json"
+SRC_DIR="$(dirname "$0")/../.toolchain/godot-src"
+PIN_PY=$PY
+read -r SRC_URL SRC_TAG SRC_COMMIT <<< "$("$PIN_PY" -c 'import json,sys;j=json.load(open(sys.argv[1]))["source"];print(j["repository"],j["tag"],j["commit"])' "$SRC_JSON")"
+verify_src() {
+  ACTUAL=$(git -C "$SRC_DIR" rev-parse HEAD 2>/dev/null || echo missing)
+  if [ "$ACTUAL" != "$SRC_COMMIT" ]; then
+    echo "godot-src at '$ACTUAL', expected $SRC_COMMIT ($SRC_TAG) — re-cloning" >&2
+    rm -rf "$SRC_DIR"
+    git clone --depth 1 --branch "$SRC_TAG" "$SRC_URL" "$SRC_DIR"
+    ACTUAL=$(git -C "$SRC_DIR" rev-parse HEAD)
+  fi
+  if [ "$ACTUAL" != "$SRC_COMMIT" ]; then
+    echo "FATAL: tag $SRC_TAG no longer points at the pinned commit $SRC_COMMIT; re-pin godot/toolchain.json" >&2
+    exit 3
+  fi
+}
+verify_src
+cd "$SRC_DIR"
 
 # -j: 16 locally, cores available on CI (cap 8 to bound memory).
 JOBS=$(nproc 2>/dev/null || echo 8)
 JOBS=$((JOBS > 8 ? 8 : JOBS))
 
-PY=$(command -v python3 || command -v python)
 $PY -m SCons -j"$JOBS" platform=web target=template_release arch=wasm32 \
   production=yes debug_symbols=no threads=no \
   disable_3d=yes disable_physics_2d=yes vulkan=no \

@@ -94,21 +94,18 @@ func _viewport_size(board: Node2D) -> Vector2:
 # ── Beats ────────────────────────────────────────────────────────────────────
 
 ## Staggered deal: fly in from the deck edge with a card-back flip reveal.
-## `entries` = [{sprite, rect}]; the carried card re-enters LAST with a pulse.
+## `entries` = [{sprite, rect}] — ARRIVALS ONLY: a carried card never leaves
+## the screen, so the caller presents it with repulse() instead.
 ## Returns total duration ms.
-func deal_in(board: Node2D, entries: Array, carried_id: String, base_delay_ms: float) -> float:
+func deal_in(board: Node2D, entries: Array, base_delay_ms: float) -> float:
 	if _reduced_motion:
 		return _reduced_arrivals(entries)
 	if entries.is_empty():
 		return 0.0
 	var deck_x := _viewport_size(board).x + _entry_width(entries) * 0.75
 	var total := base_delay_ms
-	var ordered := entries.duplicate()
-	if carried_id != "":
-		ordered = ordered.filter(func(e: Dictionary) -> bool: return e["sprite"].card_id != carried_id)
-		ordered.append(entries.filter(func(e: Dictionary) -> bool: return e["sprite"].card_id == carried_id)[0])
-	for i in ordered.size():
-		var entry: Dictionary = ordered[i]
+	for i in entries.size():
+		var entry: Dictionary = entries[i]
 		var sprite: Node2D = entry["sprite"]
 		var rect: Rect2 = entry["rect"]
 		var delay_ms := base_delay_ms + i * DEAL_STAGGER_MS
@@ -123,8 +120,6 @@ func deal_in(board: Node2D, entries: Array, carried_id: String, base_delay_ms: f
 		tween.parallel().tween_property(sprite, "position", target, DEAL_MS / 1000.0).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
 		tween.parallel().tween_property(sprite, "scale", Vector2.ONE, DEAL_MS / 1000.0).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
 		sprite.play_flip_reveal(FLIP_MS, delay_ms + FLIP_DELAY_MS)
-		if sprite.card_id == carried_id:
-			_pulse_sprite(board, sprite, delay_ms + FLIP_MS + 60.0)
 		total = maxf(total, delay_ms + DEAL_MS + FLIP_DELAY_MS + FLIP_MS)
 	return total
 

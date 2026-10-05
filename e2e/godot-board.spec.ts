@@ -7,7 +7,7 @@ import { GODOT_BUILD_ID } from '../src/game/godot-build-id';
  * Godot board frame smoke tests (godot-plan.md §Test plan, Phase 1 subset).
  *
  * These run ONLY against a build that selected the Godot renderer
- * (VITE_RENDERER=godot) AND a completed export (public/godot/spike/). CI's
+ * (VITE_RENDERER=godot) AND a completed export (public/godot/<build-id>/). CI's
  * standard Chromium job keeps Phaser as the production default and skips
  * these; the Godot CI job builds with the renderer switch and runs them.
  * Full parity/fault matrices are Phase 2+ work — this spec pins the Phase 1
@@ -70,7 +70,7 @@ test('frame boots, promotes live, and leaves the DOM hit-layer functional', asyn
 test('DOM fallback still plays the game when the frame fails to boot', async ({ page }) => {
   // Block the Godot artifacts: the board must fall back to DOM without
   // touching the run (plan: "Graphics support cannot be a prerequisite").
-  await page.route('**/godot/spike/**', (route) => route.abort());
+  await page.route(`**/godot/${GODOT_BUILD_ID}/**`, (route) => route.abort());
   await page.goto(SEED_URL);
 
   // Either the frame never mounted (preflight/boot failure) or it mounted and
@@ -135,4 +135,53 @@ test('sprite parity: rendered frame rects match DOM hit-layer rects within 1 CSS
     expect(d.dw).toBeLessThanOrEqual(1);
     expect(d.dh).toBeLessThanOrEqual(1);
   }
+});
+
+test('carry-forward room deals on the canvas (RoomDealt with carriedFrom)', async ({ page }) => {
+  const scriptErrors: string[] = [];
+  page.on('console', (msg) => {
+    if (msg.type() === 'error' && /script error|invalid get index/i.test(msg.text())) {
+      scriptErrors.push(msg.text());
+    }
+  });
+
+  await page.goto(`${SEED_URL}&godot-diagnostics=1`);
+  const iframe = page.locator('iframe.godot-board');
+  await expect(iframe).toHaveAttribute('data-canvas-ready', 'true', { timeout: 60_000 });
+
+  // seed s20 room 1 (this deck: diamonds = weapons, hearts = potions,
+  // clubs/spades = monsters): diamond-5, heart-9, spade-8, diamond-9. Equip,
+  // fight, drink, then enter carrying the last card — the trace that used to
+  // crash the frame's carry deal (deal_in indexed a filtered-away entry and no
+  // `applied` ack was ever sent, stranding the canvas on the old room).
+  await page.locator('[data-card-id="diamond-5"]').click();
+  await page.getByRole('button', { name: /^Equip/ }).click();
+  await page.locator('[data-card-id="spade-8"]').click();
+  await page.getByRole('button', { name: /fight with/i }).click();
+  await page.locator('[data-card-id="heart-9"]').click();
+  await page.getByRole('button', { name: /drink potion/i }).click();
+
+  const enter = page.getByRole('button', { name: /enter next room/i });
+  await expect(enter).toHaveAttribute('aria-disabled', 'false', { timeout: 15_000 });
+  await enter.click();
+
+  // The canvas must reconcile the new room: the carried card plus the three
+  // dealt cards, still promoted, with no GDScript script error on the console.
+  // Pre-fix, parity could never grow past the 1-card carry state (no `applied`
+  // ack → no diagnostics), so polling on LENGTH is the actual discriminator.
+  await expect
+    .poll(
+      async () => {
+        const parity = await page.evaluate(() => window.__godotParity ?? null);
+        return parity === null ? 0 : parity.rects.length;
+      },
+      { timeout: 15_000 },
+    )
+    .toBe(4);
+  const carriedIds = await page.evaluate(() =>
+    (window.__godotParity?.rects ?? []).map((rect) => rect.cardId),
+  );
+  expect(carriedIds).toContain('diamond-9');
+  await expect(iframe).toHaveAttribute('data-canvas-ready', 'true');
+  expect(scriptErrors).toEqual([]);
 });

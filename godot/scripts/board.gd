@@ -176,8 +176,7 @@ func _choreograph(diff: Dictionary, target: Dictionary, hint: Dictionary) -> flo
 		_dealt_once = true
 		if bool(projection.get("runResumed", false)):
 			return 0.0 # resume: static reconcile (plan rule)
-		var carried: String = _carried_id(projection)
-		var mount_ms: float = _fx.deal_in(self, _entries_for(room), carried, 0.0)
+		var mount_ms: float = _fx.deal_in(self, _entries_for(room), 0.0)
 		_fx.wipe(self)
 		return mount_ms + WIPE_SLACK_MS
 
@@ -186,7 +185,7 @@ func _choreograph(diff: Dictionary, target: Dictionary, hint: Dictionary) -> flo
 	if hint.is_empty():
 		if room_changed:
 			var swap_ms: float = _fx.sweep_to_edge(self, diff["departed"].values(), 0.0)
-			swap_ms = maxf(swap_ms, _fx.deal_in(self, _entries_for(room), "", 140.0))
+			swap_ms = maxf(swap_ms, _fx.deal_in(self, _entries_for(room), 140.0))
 			_fx.wipe(self)
 			return swap_ms + WIPE_SLACK_MS
 		return 0.0
@@ -199,12 +198,12 @@ func _choreograph(diff: Dictionary, target: Dictionary, hint: Dictionary) -> flo
 				return e["sprite"].card_id != carried_id)
 			if carried_id != "" and _sprites.has(carried_id):
 				_fx.repulse(self, _sprites[carried_id])
-			ms = maxf(ms, _fx.deal_in(self, arrived, carried_id, 0.0))
+			ms = maxf(ms, _fx.deal_in(self, arrived, 0.0))
 			_fx.wipe(self)
 			return ms + WIPE_SLACK_MS
 		"RanAway":
 			var ms: float = _fx.sweep_to_edge(self, diff["departed"].values(), 0.0)
-			ms = maxf(ms, _fx.deal_in(self, _entries_for(room), "", 140.0))
+			ms = maxf(ms, _fx.deal_in(self, _entries_for(room), 140.0))
 			return ms
 		"MonsterDefeated":
 			var monster: Node2D = diff["departed"].get(_optional_card(hint, "cardId"), null)
@@ -247,10 +246,6 @@ func _choreograph(diff: Dictionary, target: Dictionary, hint: Dictionary) -> flo
 
 func _optional_card(hint: Dictionary, field: String) -> String:
 	var value: Variant = hint.get(field, null)
-	return value if value != null else ""
-
-func _carried_id(projection: Dictionary) -> String:
-	var value: Variant = projection.get("carriedCardId", null)
 	return value if value != null else ""
 
 ## Motion-policy sweep: kill every in-flight beat and snap all survivors to

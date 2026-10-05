@@ -23,7 +23,7 @@ pnpm e2e          # Playwright e2e — run `pnpm build` first (serves dist/)
 pnpm godot:assets # stage 44 card PNG derivatives into godot/assets/cards/
 pnpm godot:import # headless Godot import ×2 (lossy-0.8 patch between passes)
 pnpm godot:export # full pipeline: pinned toolchain (downloads on first use) → assets → import → export → check
-pnpm check:godot  # validate + measure an existing export (public/godot/spike/)
+pnpm check:godot  # validate + measure an existing export (public/godot/<build-id>/)
 ```
 
 Node 22 is what CI uses (`.github/workflows/ci.yml`); use it locally.
