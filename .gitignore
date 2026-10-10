@@ -11,6 +11,11 @@ node_modules
 dist
 output/
 
+# Local deploy staging (dist copy + vercel.json for CLI deploys) and the
+# esbuild temp redirect used when builds run on this machine (.tmp-build)
+.deploy-staging
+.tmp-build
+
 # Git worktrees
 .worktrees
 dist-ssr
