@@ -2,6 +2,10 @@
 
 Guidance for AI coding agents working in this repo.
 
+## Agent skills
+
+- [apply-card-style](.agents/skills/apply-card-style/SKILL.md) — Restyle Scoundrel card artwork as whimsical ink-and-watercolor illustrations. When requested, load this skill through your agent's skill tool or read the linked file directly if it is not listed. It includes tool selection and fallback instructions for Codex, ZCode, OpenCode, and other agents.
+
 ## Project
 
 Scoundrel — a 1-player roguelike dungeon-crawling card game, implemented as a web app. See `README.md` for the project overview. The full rule set lives in `docs/rules.md` and is the source of truth for gameplay behavior; `docs/spec.md` is the implementation spec the app realizes. For history, `docs/plans/phaser-adoption-plan.md` records the completed Phaser adoption, `docs/plans/phaser-plan.md` is its superseded proposal (stale), and `docs/design-plan.md` is a historical decision record.
@@ -20,6 +24,10 @@ pnpm typecheck    # tsc -b
 pnpm test         # Vitest: engine unit + RTL integration tests
 pnpm test:watch   # Vitest in watch mode
 pnpm e2e          # Playwright e2e — run `pnpm build` first (serves dist/)
+pnpm godot:assets # stage 44 card PNG derivatives into godot/assets/cards/
+pnpm godot:import # headless Godot import ×2 (lossy-0.8 patch between passes)
+pnpm godot:export # full pipeline: pinned toolchain (downloads on first use) → assets → import → export → check
+pnpm check:godot  # validate + measure an existing export (public/godot/<build-id>/)
 ```
 
 Node 22 is what CI uses (`.github/workflows/ci.yml`); use it locally.
@@ -29,6 +37,7 @@ Node 22 is what CI uses (`.github/workflows/ci.yml`); use it locally.
 - `src/engine/` — pure TypeScript game engine (deck, seeded RNG, reducer `(state, action) → { state, result }`, all rules, scoring). Zero React, zero DOM; Node-testable.
 - `src/store/` — Zustand store, sharded versioned localStorage persistence (`scoundrel:settings`/`stats`/`run`), stats aggregation, shareable replay URLs. Schema changes bump `SCHEMA_VERSION` in `persistence.ts` and chain a migration, or saved data is discarded.
 - `src/game/` — Phaser 4 canvas board layer (`phaser` runtime dep) bridged to React via `src/ui/PhaserBoard.tsx` and a bridge module. The canvas renders no text and takes no pointer events; layout is shared with React through the pure functions in `board-layout.ts` (DOM-free) and `board-metrics.ts` (reads computed styles from the DOM).
+- `godot/` + `src/game/{board-protocol,board-projection,godot-transport,renderer-selection}.ts` + `src/ui/GodotBoard.tsx` — Godot web-frame room renderer, Phases 0–4 complete (docs/plans/godot-plan.md; results in docs/plans/godot-phase0-baseline.md). A same-origin iframe renders the room via an exported Godot 4.7.2 project; the engine/store stay authoritative and never import Godot. The renderer switch (dev URL `&renderer=godot`, build env `VITE_RENDERER`; production default stays `phaser`) selects at most ONE board runtime. `board-protocol.ts` is the only wire format — keep it Godot/store-free. `godot/assets/cards/` is GENERATED staging (never hand-edit; authored JPEGs in `assets/` are the only source); `.godot/`, `.toolchain/`, `public/godot/` are ignored build output.
 - `src/ui/` — React screens and components. Transient card-selection lives in the store, never in engine state.
 - `assets/` — the 44 card artwork JPEGs (bundled via `import.meta.glob` in `src/ui/card-image.ts`).
 - `tests/` — store unit tests + RTL integration tests. Engine tests live next to the code in `src/engine/`.
