@@ -28,11 +28,15 @@ export EMSDK="$HOME/emsdk"
 # Dockerfile.web: EMSCRIPTEN_VERSION=6.0.1). Refuse a different emcc so the
 # produced template stays reproducible against the official pin.
 WANT=6.0.1
-if [ -f "$HOME/emsdk/emsdk.bat" ]; then
-  "$HOME/emsdk/emsdk.bat" activate "$WANT" >/dev/null 2>&1
-else
-  "$HOME/emsdk/emsdk" activate "$WANT" >/dev/null 2>&1
-fi
+# Pick the emsdk activator by PLATFORM, not by file existence: emsdk.bat is
+# checked into the emsdk repo on every OS, so [ -f ... ] is true on Linux too
+# and bash there dies with exit 126 (Permission denied) executing it.
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*)
+    "$HOME/emsdk/emsdk.bat" activate "$WANT" >/dev/null 2>&1 ;;
+  *)
+    "$HOME/emsdk/emsdk" activate "$WANT" >/dev/null 2>&1 ;;
+esac
 GOT=$(emcc --version 2>/dev/null | head -1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+" | head -1)
 if [ "$GOT" != "$WANT" ]; then
   echo "emsdk $WANT is required (official 4.7.2 pin); install it first: emsdk install $WANT" >&2
