@@ -1,15 +1,15 @@
 ---
-name: apply-card-style
+name: apply-monster-card-style
 description: Restyle supplied card artwork as whimsical ink-and-watercolor illustrations while retaining the original subject, card numeral, suit symbol, and aspect ratio. Use when applying this visual style to Scoundrel cards.
 ---
 
-# Apply Card Style
+# Apply Monster Card Style
 
 ## Agent compatibility
 
-These instructions work with Codex, OpenCode, and other agents that can read Markdown skills. Keep this file at `.agents/skills/apply-card-style/SKILL.md` as the repository's shared source.
+These instructions work with Codex, OpenCode, and other agents that can read Markdown skills. Keep this file at `.agents/skills/apply-monster-card-style/SKILL.md` as the repository's shared source.
 
-- **OpenCode:** discovers this project location directly; load `apply-card-style` with its skill tool. See [OpenCode skill discovery](https://opencode.ai/docs/skills/).
+- **OpenCode:** discovers this project location directly; load `apply-monster-card-style` with its skill tool. See [OpenCode skill discovery](https://opencode.ai/docs/skills/).
 - **Other agents:** read this file directly when asked to apply the card style.
 
 Skill loading and image-editing capability are separate. Use the host agent's available tools; do not assume Codex-specific tool names, plugins, or another installed skill exist.

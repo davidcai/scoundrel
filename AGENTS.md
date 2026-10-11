@@ -4,7 +4,8 @@ Guidance for AI coding agents working in this repo.
 
 ## Agent skills
 
-- [apply-card-style](.agents/skills/apply-card-style/SKILL.md) — Restyle Scoundrel card artwork as whimsical ink-and-watercolor illustrations. When requested, load this skill through your agent's skill tool or read the linked file directly if it is not listed. It includes tool selection and fallback instructions for Codex, ZCode, OpenCode, and other agents.
+- [apply-monster-card-style](.agents/skills/apply-monster-card-style/SKILL.md) — Restyle Scoundrel card artwork as whimsical ink-and-watercolor illustrations. When requested, load this skill through your agent's skill tool or read the linked file directly if it is not listed. It includes tool selection and fallback instructions for Codex, ZCode, OpenCode, and other agents.
+- [apply-item-card-style](.agents/skills/apply-item-card-style/SKILL.md) — Restyle Scoundrel item card artwork as whimsical ink-and-watercolor illustrations. When requested, load this skill through your agent's skill tool or read the linked file directly if it is not listed. It includes tool selection and fallback instructions for Codex, ZCode, OpenCode, and other agents.
 
 ## Project
 
