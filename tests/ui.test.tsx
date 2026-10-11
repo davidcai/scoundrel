@@ -305,6 +305,28 @@ describe('win/lose screen', () => {
     expect(stats.runs).toHaveLength(1);
   });
 
+  // Deal-reset regression: PlayScreen's seed-URL effect used to track the
+  // subscribed `game`, so after "Play again" started a random-seed run the
+  // still-mounted effect saw `game` change, found the hash's old `?seed=`
+  // no longer matching, and re-fired startRun(URL seed) a beat later —
+  // killing the freshly dealt run's deal animation (double runGeneration).
+  it('starts a random-seed run via Play again from a seeded URL, never re-applying the URL seed', async () => {
+    const user = userEvent.setup();
+    await renderAt('#/play?seed=regseed');
+    await waitFor(() => expect(useGameStore.getState().game?.seed).toBe('regseed'));
+
+    playOutGreedy();
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: /victory|defeat/i })).toBeInTheDocument(),
+    );
+    await user.click(screen.getByRole('button', { name: /play again/i }));
+
+    // Settle after the click so a re-fired seed effect (the bug) would land:
+    // with the bug present the next run gets reseeded to `regseed` again.
+    await waitFor(() => expect(currentGame().phase).toBe('playing'));
+    expect(useGameStore.getState().game?.seed).not.toBe('regseed');
+  });
+
   it('copies the replay link', async () => {
     const user = userEvent.setup();
     // userEvent.setup() installs its own clipboard stub, so override it after.

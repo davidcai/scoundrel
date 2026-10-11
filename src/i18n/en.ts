@@ -170,6 +170,8 @@ const en = {
   credits: 'Credits & links',
   creditsText:
     'Scoundrel was designed by Zach Gage and Kurt Bieg. This is a browser implementation of the original one-player roguelike.',
+  creditsEngine:
+    'The room renderer is built with the Godot Engine (godotengine.org) — its copyright and license notes ship with the board export.',
   linkRulebook: 'Original rule book (PDF)',
   linkAnnotated: 'rpdillon.net — annotated rules',
 

@@ -8,6 +8,20 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   base: process.env.BASE_URL ?? '/',
   plugins: [react()],
+  server: {
+    watch: {
+      // The Godot frame's import cache, toolchain, and import staging churn
+      // temp files that crash the watcher on Windows (EBUSY — including the
+      // importer's .tmp rewrites inside godot/assets/cards/) — none of it is
+      // app source.
+      ignored: [
+        '**/godot/.godot/**',
+        '**/godot/assets/cards/**',
+        '**/.toolchain/**',
+        '**/public/godot/**',
+      ],
+    },
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],

@@ -64,3 +64,89 @@ jobs:
             test-results/
             playwright-report/
           retention-days: 7
+
+  # Godot board frame (docs/plans/godot-plan.md Phase 4): pinned toolchain →
+  # stripped template build → export → artifact gate → Godot-renderer e2e.
+  # The toolchain/template cache key covers everything the build depends on;
+  # a cache miss IS the cache-empty build proof the plan requires.
+  godot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint + tests (fast guards before the long build)
+        run: |
+          pnpm lint
+          pnpm test
+
+      # Python + SCons for the stripped template build (official web pin:
+      # emsdk 6.0.1 — godotengine/build-containers Dockerfile.web).
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install SCons + Emscripten (pinned 6.0.1)
+        run: |
+          pip install "scons~=4.2"
+          git clone --depth 1 --branch 6.0.1 https://github.com/emscripten-core/emsdk.git "$HOME/emsdk"
+          "$HOME/emsdk/emsdk" install 6.0.1
+          "$HOME/emsdk/emsdk" activate 6.0.1
+          echo "$HOME/emsdk/upstream/emscripten" >> "$GITHUB_PATH"
+          echo "$HOME/emsdk/upstream/bin" >> "$GITHUB_PATH"
+
+      # Cache everything the template build produced (emsdk sysroot cache +
+      # the godot source tree + compiled objects). The key pins: emsdk
+      # version, Godot tag, and the build script content.
+      - name: Restore stripped-template build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            $HOME/emsdk
+            .toolchain/godot-src
+          key: godot-stripped-${{ runner.os }}-emsdk-6.0.1-godot-4.7.2-${{ hashFiles('scripts/build-stripped-template.sh') }}
+          restore-keys: |
+            godot-stripped-${{ runner.os }}-emsdk-6.0.1-godot-4.7.2-
+
+      - name: Build stripped web template
+        run: bash scripts/build-stripped-template.sh
+
+      # Clean export: assets → two-pass import (lossy patch) → release
+      # export → content-versioned artifacts + strict artifact gate.
+      - name: Export + validate board frame
+        run: node scripts/export-godot.mjs --strict
+        env:
+          GODOT_TEMPLATE_ZIP: ${{ github.workspace }}/.toolchain/godot-src/bin/godot.web.template_release.wasm32.nothreads.zip
+
+      # The Godot-renderer browser gate: production build with the renderer
+      # switch + the Godot e2e suite (boot, hit-layer, fallback, sprite
+      # parity) + the axe accessibility spec against the Godot build.
+      - name: Build app with Godot renderer
+        run: pnpm build
+        env:
+          VITE_RENDERER: godot
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Godot e2e + accessibility
+        run: pnpm exec playwright test e2e/godot-board.spec.ts e2e/accessibility.spec.ts
+        env:
+          GODOT_E2E: '1'
+
+      - name: Upload export artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-board-export
+          path: dist/godot/
+          retention-days: 7

@@ -550,8 +550,10 @@ export class MotionDirector {
 
     // Canvas-mode contract (see `isCanvasTerritory`): when the canvas owns
     // the room visuals, beats tagged `room` are dropped at plan level so
-    // DOM choreography never fights the canvas's sprites.
-    const canvasOwnsRoom = root.querySelector('.phaser-board.canvas-live') !== null;
+    // DOM choreography never fights the canvas's sprites. Both board frames
+    // (Phaser div, Godot iframe) carry the canvas-live marker when promoted.
+    const canvasOwnsRoom =
+      root.querySelector('.phaser-board.canvas-live, .godot-board.canvas-live') !== null;
 
     if (prefersReducedMotion()) {
       if (canvasOwnsRoom) return; // arrivals are the canvas's pixels now

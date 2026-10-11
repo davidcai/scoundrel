@@ -1,0 +1,166 @@
+<!doctype html>
+<!--
+  Custom export shell for the Scoundrel board frame (godot-plan.md, "Embed and
+  lifecycle choice"). Consumed by the Web export preset (export_presets.cfg:
+  html/custom_html_shell) — `$GODOT_URL` and `$GODOT_CONFIG` are expanded by
+  the pinned exporter at export time (4.7.2; their exact expansion is
+  version-specific output and is re-verified by scripts/check-godot-artifacts.mjs
+  on every export, never assumed).
+
+  Responsibilities (godot-plan.md lifecycle):
+  - Route host postMessages (JSON strings) to the GDScript bridge and route
+    GDScript sends back to the parent with an explicit same-origin target.
+    The shell is a router, NOT a validator: the GDScript side re-validates
+    every envelope (web-bridge.gd) and the host re-validates replies.
+  - Buffer the latest host sync until Godot registers its sink, then replay
+    it (latest-wins; no queue).
+  - Start the engine on an explicit canvas, adaptive resize, NO auto focus
+    (keyboard focus stays with the parent DOM — plan requirement).
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scoundrel Board</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        /* Room background — the frame draws its own room (opaque baseline). */
+        background: #0d1119;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        outline: none;
+      }
+    </style>
+    <script type="text/javascript" src="$GODOT_URL"></script>
+  </head>
+  <body>
+    <canvas id="board-canvas" aria-hidden="true"></canvas>
+    <script type="text/javascript">
+      const GODOT_CONFIG = $GODOT_CONFIG;
+    </script>
+    <script type="text/javascript">
+      (function () {
+        'use strict';
+
+        var TARGET = window.parent;
+        // Same-origin frame: the parent's origin equals ours, so it is both
+        // the required source of inbound messages and the explicit target of
+        // every outbound one. '*' is never used (plan rule).
+        var ORIGIN = window.location.origin;
+
+        function fromHost(event) {
+          return event.source === TARGET && event.origin === ORIGIN;
+        }
+
+        // Development diagnostic (Phase 1 spike): capture engine console
+        // errors so the host can read them via scoundrelConsoleLog().
+        var consoleLog = [];
+        ['error', 'warn'].forEach(function (level) {
+          var original = window.console[level];
+          window.console[level] = function () {
+            try {
+              consoleLog.push(
+                level + ': ' + Array.prototype.map.call(arguments, String).join(' ').slice(0, 400),
+              );
+            } catch (hookError) {
+              /* never break the engine on the hook */
+            }
+            if (typeof original === 'function') original.apply(window.console, arguments);
+          };
+        });
+        window.scoundrelConsoleLog = function () {
+          return consoleLog.slice(-40);
+        };
+
+        // frame → host (JSON string straight through; the host parses).
+        window.scoundrelHostSend = function (json) {
+          try {
+            TARGET.postMessage(json, ORIGIN);
+          } catch (error) {
+            /* target gone mid-send — the host owns teardown */
+          }
+        };
+
+        function sendBootError(message) {
+          TARGET.postMessage(
+            JSON.stringify({
+              kind: 'error',
+              protocolVersion: 1,
+              sessionId: '',
+              code: 'boot',
+              message: String(message).slice(0, 512),
+            }),
+            ORIGIN,
+          );
+        }
+
+        // host → frame routing: buffer the latest sync until Godot registers
+        // its sink, then deliver (latest-wins — no queue). Dispose is only
+        // forwardable once the sink exists; before that, engine boot has not
+        // finished and the host's iframe removal is the effective teardown.
+        var sink = null;
+        var buffered = null;
+        // Development diagnostic: handshake state from outside (Phase 1 spike).
+        window.scoundrelSinkState = function () {
+          return { sink: sink !== null, buffered: buffered !== null };
+        };
+        window.scoundrelSetSink = function (callback) {
+          sink = function (payload) {
+            try {
+              callback(JSON.stringify(payload));
+            } catch (error) {
+              /* engine mid-teardown */
+            }
+          };
+        };
+        window.scoundrelHostBridgeReady = function () {
+          if (sink !== null && buffered !== null) {
+            var payload = buffered;
+            buffered = null;
+            sink(payload);
+          }
+        };
+        window.addEventListener('message', function (event) {
+          if (!fromHost(event) || typeof event.data !== 'string') return;
+          var data;
+          try {
+            data = JSON.parse(event.data);
+          } catch (error) {
+            return;
+          }
+          if (data === null || typeof data !== 'object') return;
+          if (data.kind === 'sync') {
+            buffered = data;
+            if (sink !== null) {
+              sink(data);
+            }
+          } else if (data.kind === 'dispose' && sink !== null) {
+            sink(data);
+          }
+        });
+
+        // Engine boot: explicit canvas, adaptive resize (fill the iframe),
+        // no automatic canvas focus (keyboard stays with the parent DOM).
+        var engine = new Engine(GODOT_CONFIG);
+        engine.startGame({
+          canvas: document.getElementById('board-canvas'),
+          canvasResizePolicy: 2,
+          focusCanvas: false,
+          onSuccess: function () {},
+          onError: function (error) {
+            sendBootError(error);
+          },
+        });
+      })();
+    </script>
+  </body>
+</html>
