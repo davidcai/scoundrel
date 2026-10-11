@@ -12,7 +12,10 @@ extends Node2D
 ##   room signature) never restart anything.
 ## - A runGeneration change drops EVERY sprite (a run replacement cancels all
 ##   old effects even if the seed matches).
-## - A resumed run's first reconcile is static (no mount deal).
+## - The session's first reconcile is static (no mount deal) — fresh and
+##   resumed alike: the DOM hit-layer already shows the dealt room's artwork
+##   until the canvas-live promotion, so an animated mount deal here is a
+##   second visible deal of the same room.
 ## - `settled` fires when the beat's choreography deadline passes, scoped to
 ##   the revision it was scheduled for — cancelled choreography never
 ##   acknowledges a stale revision.
@@ -52,8 +55,9 @@ var _applying := false
 ## Room identity of the last applied revision — identical signatures are
 ## selection-only beats (never restart anything).
 var _last_room_signature := ""
-## The mount deal fires once per session on the first sync with a dealt room
-## (unless the run was resumed from storage — static reconcile).
+## Set on the first hint-less sync with a dealt room: that first reconcile is
+## static (fresh + resumed alike — see _choreograph), and identical-room
+## syncs afterwards are selection-only (never restart anything).
 var _dealt_once := false
 ## Pending `settled` deadline (invalidated by newer action syncs).
 var _settle_revision := 0
@@ -134,7 +138,14 @@ func _apply_latest(target: Dictionary) -> void:
 	var projection: Dictionary = target["projection"]
 	var room: Array = projection.get("room", [])
 
-	if generation != _applied_generation and _applied_revision != 0:
+	# Run replacement: generation change after a prior apply — no old effect
+	# survives. Captured BEFORE _applied_generation is overwritten: the
+	# choreography must know a replacement happened, because the session's
+	# first-reconcile static rule does NOT extend to a replacement's
+	# hint-less room change (Play again while the board is live still
+	# arrives animated — see the fall-through in _choreograph).
+	var replaced := generation != _applied_generation and _applied_revision != 0
+	if replaced:
 		_clear_all_sprites() # run replacement: no old effect survives
 	_fx.set_dpr(_dpr)
 
@@ -143,7 +154,7 @@ func _apply_latest(target: Dictionary) -> void:
 	_applied_generation = generation
 	_applied_layout = int(target["layout_revision"])
 
-	var beat_ms := _choreograph(diff, target, hint)
+	var beat_ms := _choreograph(diff, target, hint, replaced)
 
 	# Render one frame before acknowledging.
 	await get_tree().process_frame
@@ -155,7 +166,7 @@ func _apply_latest(target: Dictionary) -> void:
 
 ## Choreography: choose the beat from the hint + the diff, run it, and return
 ## its total duration ms (0 = static — settle immediately).
-func _choreograph(diff: Dictionary, target: Dictionary, hint: Dictionary) -> float:
+func _choreograph(diff: Dictionary, target: Dictionary, hint: Dictionary, replaced: bool) -> float:
 	var projection: Dictionary = target["projection"]
 	var reduced: bool = projection.get("reducedMotion", false)
 	var room_changed: bool = diff["room_changed"]
@@ -169,16 +180,26 @@ func _choreograph(diff: Dictionary, target: Dictionary, hint: Dictionary) -> flo
 	if room.is_empty():
 		return 0.0
 
-	# The mount deal: first sync with a dealt room, unless the run resumed.
-	# A hint-bearing sync is an ACTION (equip/drink/…) — it must run its own
-	# beat even on the first dealt room, or the hint is silently swallowed.
+	# The session's FIRST dealt-room reconcile is static — fresh and resumed
+	# alike. The DOM hit-layer always shows the dealt room's artwork
+	# pre-promotion (GodotBoard flips canvas-live only on the first rendered
+	# acknowledgement), so an animated mount deal here was a SECOND visible
+	# deal of the same room whenever the frame boots slowly (the double
+	# first-room deal bug); the static reconcile instead swaps identical
+	# artwork pixel-for-pixel when the promotion lands.
+	#
+	# Two carve-outs keep every other beat intact:
+	# - A hint-bearing sync is an ACTION (equip/drink/…) — it must run its
+	#   own beat even on the first dealt room, or the hint is silently
+	#   swallowed.
+	# - A hint-less room change after a run REPLACEMENT (Play again while
+	#   the board is already live) falls through to the defensive full swap
+	#   below: the sprites were just dropped, so the new room still arrives
+	#   animated.
 	if not _dealt_once and hint.is_empty():
 		_dealt_once = true
-		if bool(projection.get("runResumed", false)):
-			return 0.0 # resume: static reconcile (plan rule)
-		var mount_ms: float = _fx.deal_in(self, _entries_for(room), 0.0)
-		_fx.wipe(self)
-		return mount_ms + WIPE_SLACK_MS
+		if bool(projection.get("runResumed", false)) or not replaced:
+			return 0.0 # first reconcile / resume: static reconcile (plan rule)
 
 	# Action beats need the hint; a room change without one (defensive —
 	# hint-less sync with a diffed room) falls back to a full swap.

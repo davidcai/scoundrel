@@ -6,7 +6,7 @@ import { buildBoardProjection, type ProjectionLayout } from '../game/board-proje
 import { attachGodotTransport, type GodotTransport } from '../game/godot-transport';
 import { GODOT_BUILD_ID } from '../game/godot-build-id';
 import { useGameStore } from '../store/game-store';
-import { prefersReducedMotion } from './motion';
+import { cancelAll, prefersReducedMotion } from './motion';
 import type { BoardLayoutView } from './use-board-layout';
 
 /**
@@ -164,6 +164,20 @@ export function GodotBoard({ layout, bridge, onLiveChange }: GodotBoardProps) {
     const notifyLive = (value: boolean): void => {
       if (liveNow === value) return;
       liveNow = value;
+      if (value) {
+        // Promotion transition (the applied triple matched the last sent
+        // snapshot): the frame now owns the room pixels, so cancel every
+        // in-flight DOM beat — a mount deal planned before promotion can
+        // still be mid-flight (DOM deal ghosts ride the fx-layer ABOVE the
+        // canvas), and the freshly-promoted static snap must not be
+        // overlapped by DOM choreography. One synchronous sweep at this
+        // transition only: later applieds while live leave DOM chrome beats
+        // (HP bar, kill stack) alone, and `cancelAll` restores hit-layer
+        // buttons hidden by the deal before the canvas-live CSS swap.
+        // PlayScreen's director independently drops NEW room beats once the
+        // canvas-live marker exists (plan-time check in motion.ts).
+        cancelAll(iframeRef.current?.closest('.room') ?? null);
+      }
       setLive(value);
       onLiveChangeRef.current?.(value);
     };
@@ -204,9 +218,11 @@ export function GodotBoard({ layout, bridge, onLiveChange }: GodotBoardProps) {
           ) {
             return;
           }
-          // Cancel DOM room ghosts in the same commit: two renderers must not
-          // animate the same pixels (PlayScreen's director drops room beats
-          // once the canvas-live marker appears — see motion.ts).
+          // Same-commit canvas-live promotion: two renderers must not animate
+          // the same pixels — notifyLive's promotion transition sweeps
+          // in-flight DOM room beats (see above), and PlayScreen's director
+          // drops NEW room beats once the canvas-live marker appears
+          // (plan-time flag check in motion.ts).
           notifyLive(true);
         },
         onSettled() {

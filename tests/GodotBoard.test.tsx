@@ -64,6 +64,19 @@ const h = vi.hoisted(() => {
   return { state, sends, callbacks, transport };
 });
 
+/**
+ * The motion module is mocked at its import boundary: the promotion-cancels-
+ * DOM-beats contract is the HOST's call (GodotBoard notifies the sweep at the
+ * canvas-live transition), and the sweep's inner mechanics (tracked
+ * animations, ghost layer) need the Web Animations API jsdom does not have.
+ * `prefersReducedMotion` returns false so projections/policy stay neutral.
+ */
+const motion = vi.hoisted(() => ({
+  cancelAll: vi.fn(),
+  prefersReducedMotion: vi.fn(() => false),
+}));
+vi.mock('../src/ui/motion', () => motion);
+
 vi.mock('../src/game/godot-transport', () => ({
   attachGodotTransport: vi.fn((_buildId: unknown, _getWindow: unknown, attached: unknown) => {
     h.callbacks.current = attached as typeof h.callbacks.current;
@@ -116,6 +129,7 @@ describe('GodotBoard (transport mocked)', () => {
     h.transport.sendPolicy.mockClear();
     h.transport.sendDispose.mockClear();
     h.transport.dispose.mockClear();
+    motion.cancelAll.mockClear();
     useGameStore.getState().reset();
     startSeededRun();
   });
@@ -165,6 +179,53 @@ describe('GodotBoard (transport mocked)', () => {
     act(() => h.callbacks.current?.onApplied(1, 1, 1)); // exact triple
     expect(container.querySelector('[data-canvas-ready="true"]')).not.toBeNull();
     expect(onLiveChange).toHaveBeenCalledWith(true);
+  });
+
+  it('sweeps in-flight DOM beats on the promotion transition, and only there', async () => {
+    const onLiveChange = vi.fn();
+    // Rendered inside the room box: the promotion sweep is scoped to the DOM
+    // territory the canvas is about to own (the `.room` element).
+    const { container, unmount } = render(
+      <div className="room">
+        <GodotBoard layout={LAYOUT} bridge={null} onLiveChange={onLiveChange} />
+      </div>,
+    );
+    await flushSyncs();
+    const roomEl = container.querySelector('.room');
+
+    // Stale acknowledgements neither promote nor sweep the DOM.
+    act(() => h.callbacks.current?.onApplied(1, 9, 1));
+    act(() => h.callbacks.current?.onApplied(1, 1, 9));
+    expect(container.querySelector('[data-canvas-ready="true"]')).toBeNull();
+    expect(onLiveChange).not.toHaveBeenCalledWith(true);
+    expect(motion.cancelAll).not.toHaveBeenCalled();
+
+    // The matching triple promotes: one synchronous cancel at the transition,
+    // scoped to the room box — a mount deal planned pre-promotion can still
+    // be mid-flight, and must not overlay the promoted canvas's static snap.
+    act(() => h.callbacks.current?.onApplied(1, 1, 1));
+    expect(container.querySelector('[data-canvas-ready="true"]')).not.toBeNull();
+    expect(onLiveChange).toHaveBeenCalledWith(true);
+    expect(motion.cancelAll).toHaveBeenCalledTimes(1);
+    expect(motion.cancelAll).toHaveBeenCalledWith(roomEl);
+
+    // Later applieds while live are static reconciliations — in-flight DOM
+    // chrome beats (HP bar, kill stack) must keep running.
+    await act(async () => {
+      useGameStore.getState().selectCard(useGameStore.getState().game?.room[0] ?? null);
+    });
+    act(() =>
+      h.callbacks.current?.onApplied(
+        h.state.revision,
+        h.state.runGeneration,
+        h.state.layoutRevision,
+      ),
+    );
+    expect(motion.cancelAll).toHaveBeenCalledTimes(1);
+
+    // Teardown is not a promotion: going live→false cancels nothing.
+    unmount();
+    expect(motion.cancelAll).toHaveBeenCalledTimes(1);
   });
 
   it('rejects a stale revision after a selection change and promotes on the current one', async () => {
