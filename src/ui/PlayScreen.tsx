@@ -47,10 +47,17 @@ export function PlayScreen() {
   };
 
   // Shareable replay URL: `#/play?seed=...&config=...` deterministically restarts that run.
+  // Key the effect on the URL params ONLY: the current game is read via
+  // getState() at run time instead of the subscribed `game`. With `game` in
+  // the deps the effect re-fired on every store change — right after
+  // "Play again"/"New run" started a random-seed run, it found the hash's old
+  // `?seed=` no longer matching and re-fired startRun(URL seed) a beat later,
+  // killing the fresh run's deal animation (the double-deal deal-reset bug).
   useEffect(() => {
     if (seedParam === null || seedParam.trim() === '') return;
     const seed = seedParam.trim().toLowerCase();
     const config = decodeConfig(configParam);
+    const game = useGameStore.getState().game;
     const sameRun =
       game !== null &&
       game.seed === seed &&
@@ -58,7 +65,7 @@ export function PlayScreen() {
       game.config.potionsPerRoom === config.potionsPerRoom &&
       game.config.weaponDegradation === config.weaponDegradation;
     if (!sameRun) startRun(seed, config);
-  }, [seedParam, configParam, game, startRun]);
+  }, [seedParam, configParam, startRun]);
 
   const roomRef = useRef<HTMLDivElement>(null);
   // Motion director anchor: the `.screen.play` root scopes every FX query.
