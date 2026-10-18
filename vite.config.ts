@@ -2,7 +2,7 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-// Card artwork (`assets/*.jpg`) is bundled via `import.meta.glob` in
+// Card artwork (`assets/*.png`) is bundled via `import.meta.glob` in
 // src/ui/card-image.ts so image URLs are hashed and base-correct in every
 // serving setup (dev, preview, GitHub Pages subpath).
 export default defineConfig({

@@ -17,7 +17,7 @@ NO gameplay, input, text, storage, or clocks.
 - `scripts/fx-director.gd` — the beat language (deal-in + flip, sweeps, dissolve, handoff, rewind, nudge/shake, vignette, particles), mirroring `src/ui/motion.ts` + `src/game/board-scene.ts`.
 - `web/board-shell.html` — custom export shell: host↔frame postMessage router, latest-sync buffer, engine boot (no canvas auto-focus).
 - `toolchain.json` — pinned 4.7.2 editor/templates URLs + official SHA-512 sums (never follow a moving `stable`).
-- `assets/cards/` — GENERATED import staging (44 resized PNG derivatives of `assets/*.jpg`, by `scripts/prepare-godot-assets.mjs`). Never hand-edit; the authored JPEGs stay the only source.
+- `assets/cards/` — GENERATED import staging (44 resized PNG derivatives of `assets/*.png`, by `scripts/prepare-godot-assets.mjs`). Never hand-edit; the authored PNGs stay the only source.
 - `tests/` — NOT present: the GDScript side has no in-repo test runner; the frame is verified by `e2e/godot-board.spec.ts` + scripted browser traces.
 
 ## Commands
