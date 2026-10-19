@@ -33,6 +33,7 @@ export function AboutScreen() {
         <section>
           <h3>{t('credits')}</h3>
           <p className="muted">{t('creditsText')}</p>
+          <p className="muted">{t('creditsEngine')}</p>
           <ul className="links-list">
             <li>
               <a href="http://stfj.net/art/2011/Scoundrel.pdf" target="_blank" rel="noreferrer">
