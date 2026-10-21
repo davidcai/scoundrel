@@ -544,7 +544,7 @@ body {
   user-select: none;
 }
 
-/* Shown if the artwork JPEG fails to load or is missing. */
+/* Shown if the artwork image fails to load or is missing. */
 .card-fallback {
   position: absolute;
   inset: 0;
