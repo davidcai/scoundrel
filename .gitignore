@@ -33,3 +33,28 @@ blob-report
 
 # ZCode workspace scope file (auto-synced from this .gitignore)
 .zcodeignore
+
+# Secrets and local credentials — never commit these
+.env
+.env.*
+!.env.example
+.npmrc
+.pnpmrc
+.netrc
+*.pem
+*.key
+*.p12
+*.keystore
+id_rsa
+id_ed25519
+id_ecdsa
+id_dsa
+
+# Local tooling / deploy state
+.vercel/
+
+# Beads issue tracker exports contain email addresses — keep out of the repo
+.beads/
+
+# Audit evidence workspace (raw scan output, not for publication)
+audit/
