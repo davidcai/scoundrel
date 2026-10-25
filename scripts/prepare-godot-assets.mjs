@@ -3,8 +3,8 @@
  * prepare-godot-assets.mjs — stage the card deck for the Godot frame
  * (godot-plan.md, "Asset pipeline").
  *
- * `assets/*.jpg` stays the ONLY authored source. This script validates the
- * exact expected 44 card ids and generates resized PNG derivatives under
+ * The authored PNGs in `assets/*.png` are the ONLY source. This script validates
+ * the exact expected 44 card ids and generates resized PNG derivatives under
  * `godot/assets/cards/` (the Godot import staging directory), preserving
  * aspect ratio and never upscaling smaller sources. Derivatives are staging
  * input for the Godot import — they are not served; the export ships the
@@ -53,8 +53,8 @@ async function main() {
     console.error(`[godot-assets] source directory missing: ${sourceDir}`);
     process.exit(1);
   }
-  const sourceFiles = new Set((await readdir(sourceDir)).filter((f) => f.endsWith('.jpg')));
-  const expectedFiles = new Set(EXPECTED_IDS.map((id) => `${id}.jpg`));
+  const sourceFiles = new Set((await readdir(sourceDir)).filter((f) => f.endsWith('.png')));
+  const expectedFiles = new Set(EXPECTED_IDS.map((id) => `${id}.png`));
   const missing = [...expectedFiles].filter((f) => !sourceFiles.has(f));
   const unexpected = [...sourceFiles].filter((f) => !expectedFiles.has(f));
   if (missing.length > 0 || unexpected.length > 0) {
@@ -73,7 +73,7 @@ async function main() {
   let copiedScale = 0;
 
   for (const id of EXPECTED_IDS) {
-    const sourcePath = path.join(sourceDir, `${id}.jpg`);
+    const sourcePath = path.join(sourceDir, `${id}.png`);
     const source = await readFile(sourcePath);
     const metadata = await sharp(source).metadata();
     const targetWidth = Math.min(MAX_WIDTH, metadata.width);
@@ -86,7 +86,7 @@ async function main() {
     const outPath = path.join(outDir, `${id}.png`);
     await writeFile(outPath, derivative);
     entries[id] = {
-      source: `assets/${id}.jpg`,
+      source: `assets/${id}.png`,
       sourceSha256: sha256(source),
       sourceSize: { width: metadata.width, height: metadata.height },
       derivative: `godot/assets/cards/${id}.png`,
