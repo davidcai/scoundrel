@@ -46,9 +46,9 @@ Transfer time at the 10 Mbps / 100 ms test profile: 5 MiB compressed ≈ 4.2 s.
 1. **Stripped export template: yes, spike it inside Phase 1.** The stock Godot 4.3+ web `.wasm` alone is ~5 MB brotli (upstream figure, to be confirmed at pin time) — before loader/PCK/textures — so the 5 MiB gate can only pass with a stripped custom template (disable 3D and unused modules). Discovering that after building Phase 2 would waste the app-integration work, so the template spike runs inside Phase 1. Its maintenance cost stays excluded from the baseline estimate, per the plan.
 2. **Comparison effect (authoring-value gate): the monster-defeat beat.** Representative because it exercises every effect class the board uses: particles (kill spark), tween choreography (fly-to-handoff arc + fade), shader/camera FX (danger vignette), and the canvas-boundary handoff to DOM chrome. Existing Phaser reference: `flyToKillHandoff` + `killSpark` + `pulseVignette` (src/game/board-scene.ts, src/game/fx.ts). Named approver: David Cai. Comparison criteria (frozen): (a) ≥ 55 fps during the beat on named devices, (b) visual coherence at or above Phaser's (spark shape/decay, handoff arc, vignette), (c) the beat is editable in the Godot editor and reviewable without rebuilding the host app.
 3. **Named device matrix — signed off by the owner, 2026-09-30** (owner answers; two deviations from the plan's proposed midrange classes, accepted for now):
-   - Desktop reference: **owner's mini PC — AMD Ryzen 7 8845HS, AMD Radeon 780M iGPU, ~30 GB RAM, Chrome stable, 60 Hz** (frozen as the desktop measurement surface; all desktop numbers in this document were captured on it).
+   - Desktop reference: **owner's mini PC — ~30 GB RAM, Chrome stable, 60 Hz** (frozen as the desktop measurement surface; all desktop numbers in this document were captured on it).
    - Android: **skipped by owner decision** (no Android device available). Consequence, recorded explicitly: the midrange-Android Chrome gate is unmeasured until a device is available; desktop Chromium emulation does not substitute (plan rule). Revisit before Phase 4's device matrix.
-   - iOS: **iPhone 15 Pro Max, Safari current** — a flagship, not the plan's proposed SE/12 class. Consequence: iOS results will be optimistic for the wasm-memory and WebGL-eviction checks; a lower-end iOS data point should be borrowed (friend/family device or a used SE) before the Phase 4 gate is treated as passed.
+   - iOS: **flagship iPhone, Safari current** — a flagship, not the plan's proposed SE/12 class. Consequence: iOS results will be optimistic for the wasm-memory and WebGL-eviction checks; a lower-end iOS data point should be borrowed (friend/family device or a used SE) before the Phase 4 gate is treated as passed.
 4. **Branch/worktree**: implementation runs on `feat/godot-zai-glm` (this repo's checkout); the plan document itself was authored on `codex/godot-plan` and merged. Commits/pushes require explicit owner approval.
 5. **Test scenarios** (fixture trace, frozen from plan §Test plan 4): seed `s20` deals diamond-5, heart-9, spade-8, diamond-9; exercise equip/potion/fight, carryover, next room, undo, blocked and successful flee, overlapping flee/redeal, weapon swap/kill stack, all eight config combinations, final 1–4-card rooms, both terminal outcomes, abandon/restart, hydration, terminal reload. Playwright renderer-parity runs fix `Date.now` via `page.clock.setFixedTime(new Date('2026-09-30T12:00:00Z'))` per plan §Test plan 5.
 
@@ -151,7 +151,7 @@ Local build route established (no admin needed — web builds need only Python+S
 ### Not yet done in Phase 1 (per plan slices)
 
 - ~~Owner decision (plan exit condition)~~ **Resolved**: the owner adopted the 576 px/q 0.8 variant for Phaser-parity quality (see the budget verdict above).
-- Real-device matrix runs on the §4.3 signed-off devices (desktop named; iPhone 15 Pro Max pending; Android skipped by owner decision); throttled cold-readiness runs per the plan's 10 Mbps profile.
+- Real-device matrix runs on the §4.3 signed-off devices (desktop named; flagship iPhone pending; Android skipped by owner decision); throttled cold-readiness runs per the plan's 10 Mbps profile.
 - ~~Sprite-parity e2e~~ **Done in Phase 2**: `e2e/godot-board.spec.ts` gained the ≤1 CSS px parity test fed by the frame's `diagnostics` message (`godot-diagnostics` query opt-in, mirrored to `window.__godotParity`); manual measurement showed 0.011 px max delta at rest. Still gated on `GODOT_E2E=1` + a production build with `VITE_RENDERER=godot`; not yet run in CI.
 
 ## 8. Phase 3 — motion and effects (core implemented 2026-10-01, uncommitted)
@@ -184,7 +184,7 @@ The beat language is ported from src/ui/motion.ts + board-scene.ts to GDScript, 
 
 ## 10. iPhone Safari DPR bug (owner-reported; fixed, awaiting device re-test)
 
-**Report**: iPhone 15 Pro Max, Safari, fresh run on the deployment: the four room cards were originally correctly sized, then SHRANK after a little delay — ending as a tiny 2×2 grid in the top-left of a full-size room box (owner screenshot).
+**Report**: flagship iPhone, Safari, fresh run on the deployment: the four room cards were originally correctly sized, then SHRANK after a little delay — ending as a tiny 2×2 grid in the top-left of a full-size room box (owner screenshot).
 
 **Root cause** (found in the engine source, platform/web): with `stretch/mode=disabled`, the web DisplayServer's logical window size is the canvas BACKING store — `godot_js_display_window_size_get` returns `GodotConfig.canvas.width` (= CSS × devicePixelRatio, 3 on iPhone). The host transmits CSS-pixel rects; the frame placed them as logical units → every sprite drew at 1/3 CSS size. Desktop Chromium (DPR 1) never exposed it — the geometry contract silently held only at DPR 1, which the plan's test matrix would have caught earlier.
 
@@ -196,7 +196,7 @@ The beat language is ported from src/ui/motion.ts + board-scene.ts to GDScript, 
 
 ### Verdict (2026-10-03, owner)
 
-**"The godot wins."** The owner judged the full beat language (deal-in + flip reveal, weapon sweep, potion dissolve, monster-defeat handoff stack, rewind, nudge/shake, vignettes) side-by-side against Phaser on the signed-off devices — mini PC desktop and iPhone 15 Pro Max, after the device-verified DPR fix (`37c2c58`) — and picked Godot as the room renderer. That closes the plan's last owner-judged gate (authoring value, §Acceptance): every Phase 0–4 gate is now either measured-pass or owner-signed. Per plan §Delivery phases, the consequence is Phase 5 — controlled adoption. Production default stays `phaser` until the observation period passes.
+**"The godot wins."** The owner judged the full beat language (deal-in + flip reveal, weapon sweep, potion dissolve, monster-defeat handoff stack, rewind, nudge/shake, vignettes) side-by-side against Phaser on the signed-off devices — mini PC desktop and flagship iPhone, after the device-verified DPR fix (`37c2c58`) — and picked Godot as the room renderer. That closes the plan's last owner-judged gate (authoring value, §Acceptance): every Phase 0–4 gate is now either measured-pass or owner-signed. Per plan §Delivery phases, the consequence is Phase 5 — controlled adoption. Production default stays `phaser` until the observation period passes.
 
 ### Phase 5 — controlled adoption (draft, awaiting owner approval)
 
