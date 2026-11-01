@@ -5,14 +5,14 @@
 Each labeled item has a stable ID and link anchor. Use the ID when referencing a requirement or decision. Keep IDs when editing or moving an item; retire an ID rather than reusing it for a different meaning.
 
 <a id="info-001"></a>
-### INFO-001: Product and sources
+### INFO-001: Product context
 
-Scoundrel is a single-player dungeon-crawling card game for the web. This PRD draws on the player-facing requirements in `main`'s `docs/spec.md` and the prior product and design plan on this branch.
+Scoundrel is a single-player dungeon-crawling card game for the web. This PRD defines the intended product from its initial release.
 
 <a id="info-002"></a>
 ### INFO-002: Document authority
 
-This PRD defines product goals, scope, and acceptance outcomes. The [game rules](rules.md) are authoritative for default gameplay and scoring. The [design plan](design-plan.md) specifies presentation decisions that satisfy the PRD. It references requirements here rather than maintaining a second feature list. The current rules and PRD supersede older specification choices, including English-only support and artwork limited to backdrops.
+This PRD defines product goals, scope, and acceptance outcomes. The [game rules](rules.md) are authoritative for default gameplay and scoring. The [design plan](design-plan.md) specifies presentation decisions that satisfy the PRD. It references requirements here rather than maintaining a second feature list.
 
 ## Product goals
 
@@ -66,24 +66,24 @@ Replacing a weapon explains that the old weapon and all its defeated monsters ar
 <a id="req-007"></a>
 ### REQ-007: Run away when permitted
 
-Running away returns the room's cards to the bottom of the dungeon and deals another room. Default play prohibits running away from consecutive rooms. Running away is always unavailable in the final room, including when the consecutive-room restriction is turned off.
+Running away is allowed only before the first card in a room is resolved. Selecting or previewing a card does not count as resolving it. This timing restriction applies under either consecutive-room house-rule choice. Running away returns all four room cards to the bottom of the dungeon and deals another room. Default play prohibits running away from consecutive rooms. Running away is always unavailable in the final room, including when the consecutive-room restriction is turned off.
 
 <a id="req-008"></a>
 ### REQ-008: Retry the current room
 
-Undo to Room Start restores the current room's starting health, equipment, defeated monsters, cards, and potion allowance. It restores the same room rather than generating another dungeon. Undo remains available after resuming a saved run. Entering the next room ends the opportunity to undo the previous room.
+Undo to Room Start restores the current room's starting health, equipment, defeated monsters, cards, and potion allowance. It restores the same room rather than generating another dungeon. Undo remains available after resuming an unfinished saved run. Undo is unavailable once the run ends in a win or loss, including after reloading the result screen. Entering the next room ends the opportunity to undo the previous room. Running away also starts a new room with its own undo starting point; undo cannot return to the escaped room.
 
 <a id="req-009"></a>
 ### REQ-009: Finish and review a run
 
-Clearing the final room while alive produces a win. Health at zero or below produces a loss. Scoring follows the game rules. The result screen shows outcome, final health, score, seed, rule options, and highlights such as monsters defeated, potions wasted, and rooms explored. Reloading preserves the result screen. Each completed run contributes to statistics once, including after repeated reloads.
+Clearing the final room while alive produces a win. Health at zero or below produces a loss. Scoring follows the game rules. The result screen shows outcome, final health, score, seed, rule options, and highlights such as monsters defeated, potions wasted, and rooms explored. A completed result is final; retrying requires starting a fresh run or replay. Reloading preserves the result screen. Each completed run contributes to statistics once, including after repeated reloads.
 
 ## Supporting requirements
 
 <a id="req-010"></a>
 ### REQ-010: Preserve progress and preferences
 
-Players can close and reopen the game to resume their active run with its room progress and undo intact. Settings and statistics persist between visits. Changing settings does not alter an active run's rules, and removing a saved run does not remove statistics or preferences. Product updates should preserve existing player progress and preferences.
+Players can close and reopen the game to resume their active run with its room progress and undo intact. Settings and statistics persist between visits. Changing settings does not alter an active run's rules, and removing a saved run does not remove statistics or preferences. Future product updates should preserve progress and preferences created by this game.
 
 <a id="req-011"></a>
 ### REQ-011: Offer three house-rule choices
@@ -143,6 +143,11 @@ The following are outside the core product:
 - Additional scoring or deck variants and difficulty presets beyond the three house-rule options.
 - A required linear tutorial, audio, or detailed gameplay analytics beyond the listed statistics and run highlights.
 
+<a id="dec-003"></a>
+### DEC-003: Fresh release
+
+Define save, preference, seed, and replay-link formats for this product. Data import and compatibility work are outside scope. Preserve data created by this game as described in [REQ-010](#req-010).
+
 ## Product acceptance
 
 All requirements above are in scope. The following checks group the outcomes needed for the core product to be ready.
@@ -160,7 +165,7 @@ Previews explain confirmed outcomes; undo and save/resume restore the expected r
 <a id="ac-003"></a>
 ### AC-003: Review and reproduce runs
 
-Results survive reloads without duplicate statistics. History replays and shared links start the intended dungeon with the intended rules. Covers [REQ-009](#req-009), [REQ-013](#req-013), and [REQ-014](#req-014).
+Results are final, with undo unavailable after a win or loss, and survive reloads without duplicate statistics. History replays and shared links start the intended dungeon with the intended rules. Covers [REQ-009](#req-009), [REQ-013](#req-013), and [REQ-014](#req-014).
 
 <a id="ac-004"></a>
 ### AC-004: Respect preferences
