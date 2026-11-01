@@ -2,22 +2,15 @@
 
 ## Base instructions for DeepSeek Harness
 
-### Roles and models (OpenCode Go)
-
-- **Main/Coder:** DeepSeek V4.1 Flash 1017; owns edits and integration.
-- **Explorer:** GLM 5.3 Flash; read-only research, concise evidence with paths.
-- **Reviewer:** GLM 5.3; read-only independent review of diff and requirements.
-- **Debugger:** DeepSeek V4.1 Flash 1017; root-cause diagnosis, only main agent edits unless explicitly delegated.
-
 ### Workflow
 
 1. Identify the package manager and existing conventions from repository files; do not assume them.
-2. Inspect only relevant files; ask Explorer for bounded cross-file searches when needed.
+2. Inspect only relevant files; use a subagent for bounded cross-file searches when needed.
 3. Write acceptance criteria and a short plan before nontrivial edits.
 4. Make the smallest safe change; follow existing architecture and conventions.
 5. Run targeted checks, then broader checks when justified.
 6. For failures, capture error evidence, isolate root cause, retry no more than twice without new evidence.
-7. Ask Reviewer for independent diff review on nontrivial changes.
+7. Request an independent diff review on nontrivial changes.
 8. Report files changed, tests actually run, outcomes, and unresolved risks.
 
 ### Guardrails
@@ -25,18 +18,18 @@
 - Never claim a command passed unless its output was observed.
 - Never commit, reset, clean, delete, install packages, or modify lockfiles without need and approval when destructive or unexpected.
 - Never expose secrets, `.env` values, or credentials to agents or logs.
-- Explorer and Reviewer must have read-only tool permissions enforced by the harness; prompts alone are not security controls.
+- Subagents used for research or review must have read-only tool permissions enforced by the harness; prompts alone are not security controls.
 - Subagents: depth 1, maximum 2 active; do not delegate trivial tasks.
 
 ## Scoundrel project guidance
 
 ### Read before working
 
-Read [the PRD](docs/prd.md), [the game rules](docs/rules.md), [the design plan](docs/design-plan.md), and [the implementation plan](docs/implementation-plan.md) before working. The PRD owns product scope and numbered requirements; the rules own default gameplay and scoring; the design plan owns presentation; the implementation plan owns delivery order and technical boundaries. Reference PRD IDs when planning, implementing, or reviewing work. Keep IDs and their anchors stable.
+Read [the PRD](docs/prd.md), [the game rules](docs/rules.md), [the design plan](docs/design-plan.md), and [the implementation plan](docs/implementation-plan.md), and check [development progress](docs/progress.md) for the current phase before working. The PRD owns product scope and numbered requirements; the rules own default gameplay and scoring; the design plan owns presentation; the implementation plan owns delivery order and technical boundaries. Reference PRD IDs when planning, implementing, or reviewing work. Keep IDs and their anchors stable.
 
 ### Phase and scope
 
-- This branch is in the planning phase. Until the user explicitly authorizes implementation, create and revise planning documents only; do not scaffold an application, add dependencies, create source files, or write executable test code. The [implementation plan](docs/implementation-plan.md) records this boundary.
+- This branch is in the planning phase. Until the user explicitly authorizes implementation, create and revise planning documents only; do not scaffold an application, add dependencies, create source files, or write executable test code. The [development progress](docs/progress.md) record tracks the current phase and next actions.
 - Treat this as a fresh release. Define this product's own save, preference, seed, and replay-link formats; data import and compatibility with other products are out of scope. See [DEC-003](docs/prd.md#dec-003).
 - Hosting is settled in the [implementation plan](docs/implementation-plan.md); the hosting choice alone does not authorize deployment.
 - The parent product branch is standalone and must not be merged into `main`. Do not merge or open a merge request for this branch without explicit instructions.
@@ -44,6 +37,7 @@ Read [the PRD](docs/prd.md), [the game rules](docs/rules.md), [the design plan](
 ### Working rules
 
 - Resolve gameplay ambiguities against the canonical documents before encoding them, and record approved clarifications in the owning document.
+- Update [development progress](docs/progress.md) when a phase starts, completes, or its status changes.
 - Keep game rules independent of presentation and saved-data handling; use one source for previews and confirmed outcomes.
 - Follow the [design plan](docs/design-plan.md) for card artwork and presentation; use the current PNG artwork only, never the archived JPEG set.
 - Follow [REQ-016](docs/prd.md#req-016) and [REQ-017](docs/prd.md#req-017) for browser and accessibility targets, plus the verification expectations in the [implementation plan](docs/implementation-plan.md).

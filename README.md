@@ -7,6 +7,7 @@ This branch plans a fresh game release. It contains artwork, product documents, 
 - [Game rules](docs/rules.md) describe the deck, room and combat rules, and scoring.
 - [Product requirements](docs/prd.md) define the player experience, feature scope, and acceptance outcomes.
 - [Design plan](docs/design-plan.md) describes presentation decisions and the design handoff sequence, referencing requirements in the PRD.
+- [Development progress](docs/progress.md) tracks phase status, completed work, and next actions.
 - [Card artwork](assets/) contains the current set of 44 PNG images.
 - [Previous card artwork](assets-old/) preserves the earlier set of 44 JPEG images for reference.
 

@@ -1,10 +1,8 @@
 # Scoundrel implementation plan
 
-## Status and boundaries
+## Plan scope and boundaries
 
-Planning draft. No implementation is authorized yet. This branch contains artwork and documents, not an application. This plan proposes how to build the product and does not claim any build, test, performance, or deployment result.
-
-Until implementation is authorized, change planning documents only. Do not scaffold an application, add dependencies, create source files, or write executable test code.
+This plan proposes how to build the product and does not claim any build, test, performance, or deployment result. Current phase, status, and next actions are tracked in [progress.md](progress.md).
 
 The [PRD](prd.md#info-002) owns product scope, the [rules](rules.md) own default gameplay, and the [design plan](design-plan.md) owns presentation choices. This document owns delivery order, proposed technical boundaries, and verification. Resolve contradictions in the owning document rather than introducing a second ruleset here. Keep links, PRD references, and requirement coverage valid when editing these documents.
 
@@ -12,7 +10,7 @@ Use only [assets/](../assets/) as runtime card artwork. Keep [assets-old/](../as
 
 ## Approved implementation approach
 
-Use TypeScript, React, and Vite, with an independent, pure game-rules layer and an accessible HTML-based interface. This implementation approach is approved; implementation itself is not yet authorized. Select supported dependency versions when implementation begins; none are pinned or installed in this planning phase.
+Use TypeScript, React, and Vite, with an independent, pure game-rules layer and an accessible HTML-based interface. This implementation approach is approved. Select supported dependency versions when implementation begins.
 
 Use regular HTML elements for cards, controls, labels, and contextual help in the first playable version. They suit the turn-based board and keep input, screen-reader access, responsive layout, and translated text together. A canvas renderer is outside the approved initial approach; revisit only if a later product decision justifies it. Motion is presentation feedback, not the authority for game state.
 
@@ -58,7 +56,7 @@ Keep the literal canonical loss-scoring rule unless the user changes it: remaini
 
 ## Delivery plan
 
-All phases below are pending. Each phase produces a reviewable result and ends with its acceptance check. Do not treat this checklist as authorization to start coding.
+Each phase produces a reviewable result and ends with its acceptance check. Do not treat this checklist as authorization to start coding. Track phase status in [progress.md](progress.md).
 
 ### 1. Settle the foundation
 
@@ -111,11 +109,3 @@ Acceptance check: all required checks pass, manual review findings are resolved 
 | Saved data becomes unreadable after a future product update | Version and validate data created by this product; preserve supported saves and preferences |
 | Artwork or effects obscure accessible information | Current assets only; translated text, focus, and announcements remain independently readable |
 | Scope expands into renderer rewrites or extra modes | Keep delivery tied to PRD IDs and [DEC-002](prd.md#dec-002); revisit only on an explicit product decision |
-
-## Planning review
-
-A separate reviewer checked this draft against the PRD, rules, and design plan. The review found no blocking scope conflict and confirmed coverage of all 17 requirements. The plan includes explicit scoring and statistics checks and a second design handoff. Escape timing, fresh-release scope, and undo being unavailable after a win or loss are settled. No implementation checks have been run because implementation has not begun.
-
-## Next action
-
-Vercel hosting, browser targets, and initial accessibility priorities are settled above. Add a future-update acceptance scenario proving that data created by this game remains usable across a supported saved-data format change. Wait for explicit implementation authorization before phase 1 scaffolding.
