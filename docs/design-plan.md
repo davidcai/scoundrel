@@ -31,3 +31,7 @@ Use this sequence for design handoff:
 2. Once the style guide is approved, extend that visual language to statistics, settings, and the result scorecard. Review against [REQ-009](prd.md#req-009), [REQ-011](prd.md#req-011), [REQ-012](prd.md#req-012), [REQ-013](prd.md#req-013), and [REQ-014](prd.md#req-014).
 
 Use the PRD's [product acceptance checks](prd.md#product-acceptance) for the final product review rather than keeping a separate feature checklist here.
+
+## Approved screen direction
+
+The [mockup review guide](mockups/README.md) contains desktop and mobile title/play-screen previews, static layout documents, design tokens, and sample-state notes. The user approved this visual direction and the title/play-screen layouts on November 1, 2026. Use their tokens and composition as the baseline for implementation and the remaining screens. Additional states still need design; approval does not authorize game implementation.

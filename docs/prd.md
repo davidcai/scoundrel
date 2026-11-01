@@ -29,7 +29,7 @@ Returning players can resume unfinished runs, review their progress, replay a du
 <a id="goal-003"></a>
 ### GOAL-003: Make the full game accessible
 
-Players using a keyboard, screen reader, or small touchscreen can complete the same game as other players.
+Players using a keyboard or small touchscreen can complete the game. Provide common accessibility support as part of normal interface work; extensive accessibility work is a lower priority for the initial release.
 
 ## Core requirements
 
@@ -139,12 +139,12 @@ Contextual help explains card types, damage previews, weapon degradation, and ru
 <a id="req-016"></a>
 ### REQ-016: Support desktop and mobile play
 
-Critical game information and controls remain legible on desktop and small mobile screens, with usable touch targets and sufficient contrast.
+Support modern browsers, with Chromium-based browsers and Safari as the primary verification targets on applicable desktop and mobile devices. Critical game information and controls remain legible on desktop and small mobile screens, with usable touch targets and sufficient contrast.
 
 <a id="req-017"></a>
-### REQ-017: Support keyboard and screen-reader play
+### REQ-017: Support keyboard navigation and basic accessibility
 
-Every card, action, and contextual explanation is accessible with a keyboard and has visible focus. Screen-reader users receive descriptive card information and announcements for meaningful changes, including combat, potion use, blocked actions, and run outcomes. Contextual explanations are also available with pointer and touch input.
+Players can navigate cards, actions, screens, and contextual help with the keyboard, with visible focus and no keyboard traps. Use semantic controls, descriptive labels and card information, readable contrast, and basic screen-reader support. Contextual explanations are also available with pointer and touch input. Keyboard navigation and these basic practices are in scope for the initial release. Formal accessibility audits, conformance certification, and extensive screen-reader testing are lower-priority follow-up work and do not block the initial release.
 
 ## Product decisions
 
@@ -195,4 +195,4 @@ All house-rule choices work as described without changing an active run's rules.
 <a id="ac-005"></a>
 ### AC-005: Play and learn across devices and access needs
 
-The complete play flow and contextual help work with keyboard, screen reader, and touch, with legible information in both supported languages and the agreed visual identity. Covers [REQ-012](#req-012), [REQ-015](#req-015), [REQ-016](#req-016), [REQ-017](#req-017), and [DEC-001](#dec-001).
+The complete play flow and contextual help work with keyboard and touch in the target browsers, with visible focus, semantic controls, descriptive labels, legible information in both supported languages, and the agreed visual identity. Review basic accessibility; formal audits and extensive screen-reader testing are not initial-release gates. Covers [REQ-012](#req-012), [REQ-015](#req-015), [REQ-016](#req-016), [REQ-017](#req-017), and [DEC-001](#dec-001).

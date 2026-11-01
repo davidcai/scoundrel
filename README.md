@@ -11,3 +11,5 @@ This branch plans a fresh game release. It contains artwork, product documents, 
 - [Previous card artwork](assets-old/) preserves the earlier set of 44 JPEG images for reference.
 
 Read [AGENTS.md](AGENTS.md) for agent guidance and [the implementation plan](docs/implementation-plan.md) for the proposed delivery sequence and decisions to settle before coding.
+
+Review the [title and play-screen mockups](docs/mockups/README.md) for desktop and mobile visual proposals.

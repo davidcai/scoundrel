@@ -8,11 +8,11 @@ The [PRD](prd.md#info-002) owns product scope, the [rules](rules.md) own default
 
 Use only [assets/](../assets/) as runtime card artwork. Keep [assets-old/](../assets-old/) as archived reference; exclude it from future application outputs.
 
-## Proposed approach
+## Approved implementation approach
 
-Propose TypeScript, React, and Vite, with a pure game-rules layer and an accessible page-based interface. Select supported dependency versions when implementation begins; none are pinned or installed in this planning phase.
+Use TypeScript, React, and Vite, with an independent, pure game-rules layer and an accessible HTML-based interface. This implementation approach is approved; implementation itself is not yet authorized. Select supported dependency versions when implementation begins; none are pinned or installed in this planning phase.
 
-Prefer regular page elements for cards, controls, labels, and contextual help in the first playable version. They suit the turn-based board and keep input, screen-reader access, responsive layout, and translated text together. A canvas renderer is an alternative if a later visual requirement justifies its cost; it is not a prerequisite for the PRD. Motion is presentation feedback, not the authority for game state.
+Use regular HTML elements for cards, controls, labels, and contextual help in the first playable version. They suit the turn-based board and keep input, screen-reader access, responsive layout, and translated text together. A canvas renderer is outside the approved initial approach; revisit only if a later product decision justifies it. Motion is presentation feedback, not the authority for game state.
 
 | Proposed area | Responsibility | Boundary |
 | --- | --- | --- |
@@ -32,6 +32,18 @@ Choose a state-management library only if the initial vertical slice needs it. T
 
 - A win or loss is final. Undo is unavailable after either outcome, including after reloading the result screen. Retrying starts a fresh attempt. See [REQ-008](prd.md#req-008) and [REQ-009](prd.md#req-009).
 
+## Initial hosting target
+
+Host the initial release on Vercel. Keep deployment configuration and build instructions in implementation documentation rather than the PRD. Hosting is settled; publishing a deployment is not authorized by this plan.
+
+When deployment is authorized, verify the deployed game loads its current artwork, supports opening and refreshing screens and replay links directly, and preserves saves, preferences, and statistics across reloads on the intended player-facing URL. If preview deployments are used, verify their replay links and asset paths too. Document that saved data belongs to the browser and site address where it was created; no cross-site or cross-device synchronization is in scope.
+
+## Browser and accessibility targets
+
+Follow [REQ-016](prd.md#req-016) and [REQ-017](prd.md#req-017). Support modern browsers, using current stable Chromium-based browsers and Safari at verification time as primary targets. Verify applicable desktop and mobile use. Use Chromium and WebKit browser automation for broad checks, plus a real Safari smoke check; WebKit automation alone is not proof of Safari compatibility.
+
+Keyboard navigation and common accessibility practices are initial-release work. Use semantic controls, descriptive labels, visible focus, and readable contrast. Verify the complete flow without a pointer, including help and dialogs, with no focus traps. Keep basic screen-reader support, but formal audits, certification, and extensive screen-reader testing are lower-priority follow-ups rather than release blockers.
+
 ## Statistics decisions
 
 Room counts, abandonment losses and scoring, consecutive-win streaks, and the newest-50-runs history limit are settled in [REQ-013](prd.md#req-013). Lifetime statistics persist independently of the retained history entries.
@@ -48,7 +60,7 @@ All phases below are pending. Each phase produces a reviewable result and ends w
 
 ### 1. Settle the foundation
 
-Confirm the proposed interface approach; agree on the first title/play-screen design using the design plan's handoff sequence. Define the expected 44-card asset inventory, the seed/replay contract, and the intended release environment. Only after implementation is authorized, create the minimum application and verification tooling.
+Use the approved title/play-screen mockups and style tokens from the design plan's handoff sequence. Define the expected 44-card asset inventory and the seed/replay contract. Prepare build and routing choices for the Vercel hosting target. Only after implementation is authorized, create the minimum application and verification tooling.
 
 Requirements: [REQ-001](prd.md#req-001), [REQ-010](prd.md#req-010), [REQ-014](prd.md#req-014), [REQ-016](prd.md#req-016), [REQ-017](prd.md#req-017), and [DEC-001](prd.md#dec-001).
 
@@ -64,11 +76,11 @@ Acceptance check: rule tests pass for weapon damage at and below zero, equal-val
 
 ### 3. Deliver a complete playable run
 
-Connect title, play, and result screens to the rules layer. Include card selection and confirmation, weapon/kill-stack presentation, contextual help, explicit room entry, and undo. Include current artwork, responsive layout, keyboard interaction, translated messages, screen-reader feedback, and reduced-motion behavior from the first playable slice. Add About and preferences so a player can discover the rules and choose a ruleset. After the style guide is approved, review its extension to settings and the result scorecard; review the statistics screen in phase 4 as the second design handoff.
+Connect title, play, and result screens to the rules layer. Include card selection and confirmation, weapon/kill-stack presentation, contextual help, explicit room entry, and undo. Include current artwork, responsive layout, keyboard interaction, translated messages, basic accessible labels and feedback, and reduced-motion behavior from the first playable slice. Add About and preferences so a player can discover the rules and choose a ruleset. After the style guide is approved, review its extension to settings and the result scorecard; review the statistics screen in phase 4 as the second design handoff.
 
 Requirements: [REQ-001](prd.md#req-001), [REQ-003](prd.md#req-003), [REQ-004](prd.md#req-004), [REQ-005](prd.md#req-005), [REQ-006](prd.md#req-006), [REQ-007](prd.md#req-007), [REQ-008](prd.md#req-008), [REQ-009](prd.md#req-009), [REQ-011](prd.md#req-011), [REQ-012](prd.md#req-012), [REQ-015](prd.md#req-015), [REQ-016](prd.md#req-016), and [REQ-017](prd.md#req-017).
 
-Acceptance check: seeded playthroughs reach both win and loss through real interface actions. A player can select, preview, confirm, inspect help, undo, and enter the next room using keyboard alone and on a small touchscreen. Verify both languages, visible focus, meaningful announcements, legibility, and clarity with reduced motion. Visual review confirms the current artwork and agreed design direction.
+Acceptance check: seeded playthroughs reach both win and loss through real interface actions. A player can select, preview, confirm, inspect help, undo, and enter the next room using keyboard alone and on a small touchscreen. Verify both languages, visible focus, keyboard navigation without traps, semantic controls, descriptive labels, legibility, and clarity with reduced motion in the target browsers. Visual review confirms the current artwork and agreed design direction.
 
 ### 4. Add continuity, history, and replay
 
@@ -82,7 +94,7 @@ Streak acceptance checks: both counters start at 0; win, win, loss, win yields c
 
 ### 5. Verify product readiness
 
-Review every PRD acceptance check and the approved design. Run automated rule, interface, and browser checks appropriate to each behavior. Add manual screen-reader and touch review alongside automated accessibility checks. Verify the agreed release build in its intended environment; document run, build, and verification commands only once those commands actually exist.
+Review every PRD acceptance check and the approved design. Run automated rule, interface, and browser checks appropriate to each behavior. Run Chromium and WebKit browser checks and a real Safari smoke check, including touch and complete keyboard playthroughs. Review basic accessibility during normal interface verification; record extensive screen-reader testing and formal audits as lower-priority follow-ups. Verify the release build for Vercel and, when deployment is authorized, smoke-check the deployed URL; document run, build, and verification commands only once those commands actually exist.
 
 Requirements: all [product acceptance checks](prd.md#product-acceptance), including [AC-001](prd.md#ac-001), [AC-002](prd.md#ac-002), [AC-003](prd.md#ac-003), [AC-004](prd.md#ac-004), and [AC-005](prd.md#ac-005).
 
@@ -104,4 +116,4 @@ A separate reviewer checked this draft against the PRD, rules, and design plan. 
 
 ## Next action
 
-Review the proposed interface approach and define the release environment and accessibility targets. Wait for explicit implementation authorization before phase 1 scaffolding.
+The [desktop and mobile title/play-screen direction](mockups/README.md) is approved. Vercel hosting, browser targets, and initial accessibility priorities are settled above. Add a future-update acceptance scenario proving that data created by this game remains usable across a supported saved-data format change. Wait for explicit implementation authorization before phase 1 scaffolding.
