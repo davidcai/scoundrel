@@ -36,7 +36,7 @@ Players using a keyboard, screen reader, or small touchscreen can complete the s
 <a id="req-001"></a>
 ### REQ-001: Start and resume
 
-The title screen offers New Run, Enter Seed, Stats, Settings, and About. Continue is prominent when an unfinished saved run exists. Returning players choose when to resume rather than being placed directly into a run. New Run starts a shuffled dungeon using the player's selected rule options.
+The title screen offers New Run, Enter Seed, Stats, Settings, and About. Continue is prominent when an unfinished saved run exists. Returning players choose when to resume rather than being placed directly into a run. New Run starts a shuffled dungeon using the player's selected rule options. The game keeps one active run. Starting a fresh attempt through New Run, valid seed entry, history replay, or a valid shared link immediately replaces any unfinished run without confirmation. The replaced run cannot be resumed and is recorded as an abandoned loss under [REQ-013](#req-013).
 
 <a id="req-002"></a>
 ### REQ-002: Play by the selected rules
@@ -71,7 +71,13 @@ Running away is allowed only before the first card in a room is resolved. Select
 <a id="req-008"></a>
 ### REQ-008: Retry the current room
 
-Undo to Room Start restores the current room's starting health, equipment, defeated monsters, cards, and potion allowance. It restores the same room rather than generating another dungeon. Undo remains available after resuming an unfinished saved run. Undo is unavailable once the run ends in a win or loss, including after reloading the result screen. Entering the next room ends the opportunity to undo the previous room. Running away also starts a new room with its own undo starting point; undo cannot return to the escaped room.
+Undo to Room Start restores the current room's starting health, equipment, defeated-monster stack, room cards and their order, draw-pile order, potion allowance, escape eligibility, and run-highlight counters. It restores the same room rather than generating another dungeon. The seed and selected rules stay fixed.
+
+If escape was allowed at room entry, undo makes escape available again because no card remains resolved. If escape was blocked at room entry because the preceding room was escaped, undo keeps it blocked. Other restrictions, including the final-room escape prohibition, still apply.
+
+Undo reverses changes to run highlights made since the room began, including monsters defeated and potions wasted. Retrying a room must not accumulate duplicate counts.
+
+Undo remains available after resuming an unfinished saved run. Undo is unavailable once the run ends in a win or loss, including after reloading the result screen. Entering the next room ends the opportunity to undo the previous room. Running away also starts a new room with its own undo starting point; undo cannot return to the escaped room.
 
 <a id="req-009"></a>
 ### REQ-009: Finish and review a run
@@ -104,12 +110,26 @@ Players can select English, Simplified Chinese, or automatic language selection 
 <a id="req-013"></a>
 ### REQ-013: Review statistics and recent runs
 
-Statistics show games played, wins, losses, win rate, best score, current streak, and best streak. Recent run history appears newest first and shows each run's seed, rule options, outcome, score, date, and rooms cleared. Players can replay a listed dungeon with its original rule options. History is a bounded collection of recent runs; lifetime totals remain useful beyond that collection.
+Statistics show games played, wins, losses, win rate, best score, current streak, and best streak. Recent run history appears newest first and shows each run's seed, rule options, outcome, score, date, and rooms cleared. Players can replay a listed dungeon with its original rule options. Keep the newest 50 completed runs, including abandoned losses. When a new entry exceeds that limit, remove the oldest history entry. Trimming history must not change lifetime games played, wins, losses, win rate, best score, current streak, or best streak. An unfinished active run does not occupy a history entry.
+
+An unfinished run is abandoned when it is replaced by a fresh attempt or explicitly discarded. Record it exactly once as a loss, increasing games played and losses and including it in the win-rate calculation. Identify the loss as abandoned in run history. Score it using the normal loss formula at the moment of abandonment: the negative sum of monster values remaining in the draw pile. Ignore remaining health and exclude unresolved room monsters. If no monsters remain in the draw pile, the score is 0; the outcome is still a loss. Include this score in best-score comparisons like any other run. Returning to the title screen, closing the game, or reloading does not abandon a resumable run. Invalid seed entries or shared links that do not start a replacement run do not record a loss.
+
+Streaks count consecutive wins across all runs, including replays and house-rule variants. Both streak counters start at 0. Each win increases the current streak by 1; each loss, including abandonment, resets it to 0. The best streak is the highest current streak ever reached and does not decrease. An unfinished run leaves both counters unchanged. Record each outcome once so reloading cannot increase or reset a streak again. For example, win, win, loss, win produces a current streak of 1 and a best streak of 2.
+
+Room counts are application statistics with these definitions:
+
+- **Rooms explored:** Increase once whenever a new room is dealt, including the starting room and each replacement room dealt after escape. Resuming or undoing the same room does not add another explored room.
+- **Rooms cleared:** Increase once when the required cards have been resolved while the player is alive: three cards in a normal room, or every card in the final room. Pressing Enter Next Room is not required for this count.
+- **Escape:** The escaped room remains explored but is not cleared. Its replacement adds one explored room, even if some of its cards have been seen before.
+- **Undo:** Restore room-start counters according to [REQ-008](#req-008). Undoing a cleared room removes that room's cleared count; clearing it again adds it once. The current room remains explored.
+- **Death:** The room where the player dies is explored but not cleared, even if the lethal action resolves its last required card.
+
+For example, clearing the first room, escaping the second, and dying in the third produces 3 rooms explored and 1 room cleared.
 
 <a id="req-014"></a>
 ### REQ-014: Share and replay a dungeon
 
-Players can enter a seed or copy a replay link from the result screen. A seed identifies the starting dungeon. A replay link includes both the seed and rule options, so another player can begin the same challenge. It starts a fresh attempt rather than copying moves or current progress. Entering a seed alone uses the recipient's selected rule options.
+Players can enter a seed or copy a replay link from the result screen. A seed identifies the starting dungeon. A replay link includes both the seed and rule options, so another player can begin the same challenge. It starts a fresh attempt rather than copying moves or current progress. Entering a seed alone uses the recipient's selected rule options. Fresh attempts follow the replacement policy in [REQ-001](#req-001).
 
 <a id="req-015"></a>
 ### REQ-015: Learn through contextual help
