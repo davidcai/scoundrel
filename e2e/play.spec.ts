@@ -101,10 +101,12 @@ test('seed input validates without replacing the run; rules freeze at start; key
   await page.keyboard.press('ArrowRight');
   await expect(page.locator('[data-card-id]').nth(1)).toBeFocused();
   await expect(page.locator('[data-card-id]').nth(1)).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page.getByLabel('Weapon degradation', { exact: true }).uncheck();
   await page.keyboard.press('Escape');
-  await expect(page.locator('.nav .tag')).toHaveText('Default rules');
+  await page.getByRole('button', { name: 'Continue run', exact: true }).click();
+  expect((await saved(page)).session.game.config.weaponDegradation).toBe(true);
 });
 
 test('responsive English and Chinese play layouts have loaded images and no horizontal overflow', async ({
@@ -112,9 +114,13 @@ test('responsive English and Chinese play layouts have loaded images and no hori
 }) => {
   await startCinder(page);
   for (const language of ['en', 'zh']) {
+    await page.getByRole('button', { name: 'Menu', exact: true }).click();
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     await page.locator('#language').selectOption(language);
     await page.keyboard.press('Escape');
+    await page
+      .getByRole('button', { name: language === 'zh' ? '继续游戏' : 'Continue run', exact: true })
+      .click();
     for (const width of [320, 390, 637, 768, 1000, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(

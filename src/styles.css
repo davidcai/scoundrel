@@ -56,6 +56,10 @@ button.primary {
   border-color: var(--action);
   font-weight: bold;
 }
+button.primary:hover:not(:disabled) {
+  background: #e5f3b3;
+  border-color: #e5f3b3;
+}
 h1,
 h2,
 p {
@@ -89,9 +93,6 @@ h2 {
   gap: 24px;
   border-bottom: 1px solid var(--line);
   padding: 24px 0;
-}
-.shell[data-playing='true'] .topbar {
-  padding-block: 8px;
 }
 .wordmark {
   display: flex;
@@ -134,7 +135,13 @@ h2 {
   letter-spacing: 0.12em;
 }
 .intro h1 {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   margin: 24px 0;
+}
+.intro h1 .mark {
+  flex: none;
 }
 .lead {
   font:
@@ -142,6 +149,23 @@ h2 {
     Georgia,
     serif;
   color: var(--muted);
+}
+.lead span {
+  display: block;
+}
+.game-description {
+  margin-top: 24px;
+  font-size: 14px;
+}
+.title-links {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.title-links button {
+  flex: 1;
+  min-width: 0;
+  padding-inline: 4px;
 }
 .start {
   margin-top: 40px;
@@ -369,6 +393,33 @@ dialog::backdrop {
   }
 }
 @media (max-width: 599px) {
+  .start {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .start > button {
+    min-width: 0;
+    padding-inline: 8px;
+  }
+  .title-links {
+    grid-column: 1 / -1;
+  }
+  .game-description {
+    display: none;
+  }
+  .intro .lead {
+    font-size: clamp(11px, 3.65vw, 20px);
+    white-space: nowrap;
+  }
+  :lang(zh-CN) .intro .lead {
+    font-size: clamp(13px, 4.2vw, 20px);
+  }
+  .intro .lead span {
+    display: inline;
+  }
+  .intro h1 {
+    justify-content: center;
+    font-size: clamp(44px, 14vw, 64px);
+  }
   .intro > .kicker,
   .intro-copy {
     text-align: center;
@@ -480,6 +531,7 @@ meter {
   accent-color: var(--action);
 }
 .status-items {
+  flex: none;
   display: flex;
   gap: 32px;
   min-width: 0;
@@ -498,6 +550,9 @@ meter {
     24px Baskerville,
     Georgia,
     serif;
+}
+.status-menu {
+  flex: none;
 }
 .run-seed {
   font-size: 12px;
@@ -949,11 +1004,21 @@ meter {
 }
 
 @media (max-width: 480px) {
+  .statusbar {
+    gap: 8px;
+    font-size: 14px;
+  }
+  .status-menu {
+    padding-inline: 8px;
+  }
   .health {
     gap: 8px;
   }
   .health-value {
-    font-size: 24px;
+    font-size: 22px;
+  }
+  .status-items strong {
+    font-size: 14px;
   }
   .health meter {
     display: none;

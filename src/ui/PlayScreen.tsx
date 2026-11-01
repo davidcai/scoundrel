@@ -10,8 +10,9 @@ interface Props {
   t: Translate;
   onSelect: (id: CardId) => void;
   onAct: (action: Action) => void;
+  onTitle: () => void;
 }
-export function PlayScreen({ game, selected, t, onSelect, onAct }: Props) {
+export function PlayScreen({ game, selected, t, onSelect, onAct, onTitle }: Props) {
   const { board: b } = game;
   const room = useRef<HTMLDivElement>(null);
   const next = useRef<HTMLButtonElement>(null);
@@ -79,6 +80,9 @@ export function PlayScreen({ game, selected, t, onSelect, onAct }: Props) {
             <strong>{t('cardsRemaining', { count: b.dungeon.length })}</strong>
           </div>
         </div>
+        <button className="status-menu" onClick={onTitle}>
+          {t('menu')}
+        </button>
       </section>
       <div className="board">
         <section className="room-area" aria-label={t('room', { room: b.highlights.roomsExplored })}>

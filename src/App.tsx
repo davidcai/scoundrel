@@ -134,7 +134,6 @@ export function App({ initial }: { initial: InitialSave }) {
       <div
         className="shell"
         data-reduced-motion={reducedMotion}
-        data-playing={session.screen === 'play' && game?.status === 'playing'}
         data-save-status={isSaving ? 'saving' : problem ? 'unsaved' : 'saved'}
         inert={problem === 'conflict'}
       >
@@ -149,32 +148,33 @@ export function App({ initial }: { initial: InitialSave }) {
         >
           {t('skip')}
         </a>
-        <header className="topbar">
-          <div className="wordmark">
-            <span className="mark" aria-hidden="true" />
-            <span className="brand">{t('gameName')}</span>
-          </div>
-          <nav className="nav" aria-label={t('mainMenu')}>
+        {session.screen === 'play' && game?.status !== 'playing' && (
+          <header className="topbar">
+            <div className="wordmark">
+              <span className="mark" aria-hidden="true" />
+              <span className="brand">{t('gameName')}</span>
+            </div>
             {!onTitle && (
-              <>
-                <span className="tag">
-                  {t(
-                    game &&
-                      (game.config.allowConsecutiveEscapes ||
-                        game.config.unlimitedPotions ||
-                        !game.config.weaponDegradation)
-                      ? 'customRules'
-                      : 'defaultRules',
-                  )}
-                </span>
-                <button onClick={title}>{t('menu')}</button>
-              </>
+              <nav className="nav" aria-label={t('mainMenu')}>
+                <>
+                  <span className="tag">
+                    {t(
+                      game &&
+                        (game.config.allowConsecutiveEscapes ||
+                          game.config.unlimitedPotions ||
+                          !game.config.weaponDegradation)
+                        ? 'customRules'
+                        : 'defaultRules',
+                    )}
+                  </span>
+                  <button onClick={title}>{t('menu')}</button>
+                </>
+                <button onClick={() => openPanel('settings')}>{t('settings')}</button>
+                <button onClick={() => openPanel('about')}>{t('about')}</button>
+              </nav>
             )}
-            {onTitle && <button onClick={() => dispatch({ type: 'stats' })}>{t('stats')}</button>}
-            <button onClick={() => openPanel('settings')}>{t('settings')}</button>
-            <button onClick={() => openPanel('about')}>{t('about')}</button>
-          </nav>
-        </header>
+          </header>
+        )}
         {linkError && (
           <p className="link-error" role="alert">
             {t('invalidReplay')}
@@ -191,28 +191,21 @@ export function App({ initial }: { initial: InitialSave }) {
               <section className="intro" aria-labelledby="title">
                 <p className="kicker">{t('kicker')}</p>
                 <div className="intro-copy">
-                  <h1 id="title">{t('gameName')}</h1>
+                  <h1 id="title">
+                    <span className="mark" aria-hidden="true" />
+                    <span>{t('gameName')}</span>
+                  </h1>
                   <p className="lead">
-                    {t('leadOne')}
-                    <br />
-                    {t('leadTwo')}
-                    <br />
-                    {t('leadThree')}
+                    <span>{t('leadOne')}</span> <span>{t('leadTwo')}</span>{' '}
+                    <span>{t('leadThree')}</span>
                   </p>
+                  <p className="game-description muted">{t('gameDescription')}</p>
                 </div>
                 <div className="start">
                   {game?.status === 'playing' && (
-                    <>
-                      <p className="muted">
-                        {t('savedSummary', {
-                          room: game.board.highlights.roomsExplored,
-                          health: game.board.health,
-                        })}
-                      </p>
-                      <button className="primary wide" onClick={continueRun}>
-                        {t('continueRun')}
-                      </button>
-                    </>
+                    <button className="primary wide" onClick={continueRun}>
+                      {t('continueRun')}
+                    </button>
                   )}
                   <button
                     className={game?.status === 'playing' ? 'wide' : 'primary wide'}
@@ -220,20 +213,23 @@ export function App({ initial }: { initial: InitialSave }) {
                   >
                     {t('newRun')}
                   </button>
+                  {game?.status === 'playing' && (
+                    <button
+                      onClick={async () => {
+                        if (await dispatch({ type: 'discard' })) showHash('#/');
+                      }}
+                    >
+                      {t('discardRun')}
+                    </button>
+                  )}
                   <button className="wide" onClick={() => openPanel('enterSeed')}>
                     {t('enterSeed')}
                   </button>
-                  {game?.status === 'playing' && (
-                    <>
-                      <button
-                        onClick={async () => {
-                          if (await dispatch({ type: 'discard' })) showHash('#/');
-                        }}
-                      >
-                        {t('discardRun')}
-                      </button>
-                    </>
-                  )}
+                  <nav className="title-links" aria-label={t('mainMenu')}>
+                    <button onClick={() => dispatch({ type: 'stats' })}>{t('stats')}</button>
+                    <button onClick={() => openPanel('settings')}>{t('settings')}</button>
+                    <button onClick={() => openPanel('about')}>{t('about')}</button>
+                  </nav>
                 </div>
               </section>
               <div className="fan" role="group" aria-label={t('fanLabel')}>
@@ -278,6 +274,7 @@ export function App({ initial }: { initial: InitialSave }) {
               t={t}
               onSelect={(cardId) => dispatch({ type: 'select', cardId })}
               onAct={act}
+              onTitle={title}
             />
           ) : game ? (
             <ResultScreen

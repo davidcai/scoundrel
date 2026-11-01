@@ -73,16 +73,17 @@ test('abandonment statistics are durable and history replay uses original rules'
   await expect(page.locator('.history-entry')).toHaveCount(1);
   await expect(page.locator('.history-entry')).toContainText('Abandoned · Loss');
   await expect(page.locator('.history-entry h3')).toHaveText('cinder');
+  await page.getByRole('button', { name: 'Back to title', exact: true }).click();
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page.getByLabel('Weapon degradation', { exact: true }).uncheck();
   await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Stats', exact: true }).click();
   await page
     .locator('.history-entry')
     .getByRole('button', { name: 'Replay this dungeon', exact: true })
     .click();
   await page.getByRole('button', { name: 'Start new run', exact: true }).click();
   await expect(page.locator('.seed-value')).toHaveText('cinder');
-  await expect(page.locator('.nav .tag')).toHaveText('Default rules');
   const state = await saved(page);
   expect(state.session.statistics.losses).toBe(2);
   expect(state.preferences.config.weaponDegradation).toBe(false);
@@ -258,12 +259,12 @@ for (const language of ['en', 'zh'] as const) {
     await page.goto('/#/play?v=1&seed=cinder&rules=001');
     await page.locator('[data-card-id="diamond-6"]').click();
     await page.getByRole('button', { name: 'Equip weapon', exact: true }).click();
+    await page.getByRole('button', { name: 'Menu', exact: true }).click();
     if (zh) {
       await page.getByRole('button', { name: 'Settings', exact: true }).click();
       await page.locator('#language').selectOption('zh');
       await page.keyboard.press('Escape');
     }
-    await page.getByRole('button', { name: zh ? '菜单' : 'Menu', exact: true }).click();
     await saved(page);
     const before = await storedRaw(page);
     const newRun = page.getByRole('button', { name: zh ? '新游戏' : 'New run', exact: true });
