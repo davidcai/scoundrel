@@ -7,6 +7,7 @@ Tracks where development currently stands. The [implementation plan](implementat
 - **Phase:** Planning. Implementation has not been authorized; the branch contains artwork and documents, not an application.
 - **Last updated:** 2026-11-01.
 - **Branch:** standalone product branch; do not merge into `main` or open a merge request without explicit instructions.
+- **Design:** no visual direction is approved; the earlier title/play direction was withdrawn with the removed design references, and the [design plan](design-plan.md#design-approval-status) records the pending style-guide approval.
 
 ### Phase gate
 
@@ -29,12 +30,14 @@ Work and acceptance checks for each phase are defined in the [delivery plan](imp
 - Planning documents drafted: PRD, game rules, design plan, and implementation plan.
 - Independent planning review found no blocking scope conflict and confirmed coverage of all 17 requirements; escape timing, fresh-release scope, and undo being unavailable after a win or loss are settled.
 - Agent instructions combined with the DeepSeek Harness kit; generic skills added under `.agents/skills/`.
-- Design mockups removed and their references scrubbed; artwork rules moved into the design plan.
+- Design mockups removed and their references scrubbed; artwork rules moved into the design plan. The earlier approved visual direction was withdrawn with those references, so no visual direction is currently approved.
+- Adversarial document review fixed one high, seven medium, and eight low issues: design approval gate, loss scoring, escape return order, explicit discard, house-rule semantics, save and link recovery, future-update acceptance, measurable accessibility targets, final-room rule wording, wasted-potion definition, explored-versus-cleared counts, language fallback, archived-artwork exclusion, stable product-acceptance anchor, multi-tab recording, and statistics definitions.
 - No implementation checks have run because implementation has not begun.
 
 ## Next actions
 
 - Wait for explicit implementation authorization before phase 1 scaffolding.
+- Approve and record the written style guide in the design plan before the phase 3 design review.
 - Record the approved package manager and dependency versions when implementation starts.
-- Add a future-update acceptance scenario proving that data created by this game remains usable across a supported saved-data format change.
+- Verify the phase-4 future-update saved-data format-change scenario when implementation begins.
 - Keep the Vercel hosting target, browser targets, and accessibility priorities recorded in the implementation plan; deployment still requires explicit authorization.

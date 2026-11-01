@@ -2,6 +2,12 @@
 
 The [PRD](prd.md) owns product goals, requirements, scope, and acceptance outcomes, as defined by [INFO-002](prd.md#info-002). This plan records presentation choices and the design handoff sequence. Requirement changes belong in the PRD; default gameplay changes belong in the [game rules](rules.md).
 
+## Design approval status
+
+Visual direction is not decided yet.
+
+Before the phase 3 design review, the user defines and approves a written style guide: typography, color tokens, spacing, component states, and the title/play-screen composition. Record the approval date and scope in this section. Until that approval is recorded, do not claim an approved design, treat the direction in [DEC-001](prd.md#dec-001) and "Visual treatment" below as requiring approval, or reintroduce the removed design references.
+
 ## Visual treatment
 
 Supports [DEC-001](prd.md#dec-001) and [REQ-016](prd.md#req-016).
@@ -12,7 +18,7 @@ Use crisp typography, depth, shadow, and high contrast to give the interface a m
 
 Supports [DEC-001](prd.md#dec-001).
 
-Use the 44 PNG card illustrations in [assets/](../assets/) and preserve their suit-and-rank filenames. The JPEG images in [assets-old/](../assets-old/) are archived references only: do not load, bundle, copy, or use them as fallback artwork in the product unless the user explicitly requests it.
+Use the 44 PNG card illustrations in [assets/](../assets/) and preserve their suit-and-rank filenames. The JPEG images in [assets-old/](../assets-old/) are archived references only: do not load, bundle, copy, or use them as fallback artwork in the product.
 
 ## Card table and feedback
 
@@ -33,7 +39,7 @@ Use contextual tooltips for card meanings, the weapon's degradation chain, and r
 
 Use this sequence for design handoff:
 
-1. Establish the style guide, title screen, and play screen. Review these against [DEC-001](prd.md#dec-001), [REQ-001](prd.md#req-001), and [REQ-003](prd.md#req-003) through [REQ-008](prd.md#req-008), including the access needs in [REQ-016](prd.md#req-016) and [REQ-017](prd.md#req-017).
-2. Once the style guide is approved, extend that visual language to statistics, settings, and the result scorecard. Review against [REQ-009](prd.md#req-009), [REQ-011](prd.md#req-011), [REQ-012](prd.md#req-012), [REQ-013](prd.md#req-013), and [REQ-014](prd.md#req-014).
+1. Establish the style guide, title screen, and play screen. Review these against [DEC-001](prd.md#dec-001), [REQ-001](prd.md#req-001), and [REQ-003](prd.md#req-003) through [REQ-008](prd.md#req-008), including the access needs in [REQ-016](prd.md#req-016) and [REQ-017](prd.md#req-017). Record the style-guide approval in the section above.
+2. Once the style guide is approved and recorded in the section above, extend that visual language to statistics, settings, and the result scorecard. Review against [REQ-009](prd.md#req-009), [REQ-011](prd.md#req-011), [REQ-012](prd.md#req-012), [REQ-013](prd.md#req-013), and [REQ-014](prd.md#req-014).
 
 Use the PRD's [product acceptance checks](prd.md#product-acceptance) for the final product review rather than keeping a separate feature checklist here.
