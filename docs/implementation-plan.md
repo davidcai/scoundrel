@@ -2,7 +2,7 @@
 
 ## Status and boundaries
 
-Planning draft. No implementation is authorized yet. This branch contains artwork and documents, not an application. This plan proposes how to build the product and does not claim any build, test, performance, or deployment result.
+Implementation started on November 1, 2026. The initial scaffold and approved title-screen foundation are implemented. The independent rules layer is now implemented and tested; playable UI integration is implemented; persistence and statistics/history UI are implemented. Product readiness verification and deployment remain pending. The progress record below distinguishes completed checks from future acceptance criteria.
 
 The [PRD](prd.md#info-002) owns product scope, the [rules](rules.md) own default gameplay, and the [design plan](design-plan.md) owns presentation choices. This document owns delivery order, proposed technical boundaries, and verification. Resolve contradictions in the owning document rather than introducing a second ruleset here.
 
@@ -10,7 +10,7 @@ Use only [assets/](../assets/) as runtime card artwork. Keep [assets-old/](../as
 
 ## Approved implementation approach
 
-Use TypeScript, React, and Vite, with an independent, pure game-rules layer and an accessible HTML-based interface. This implementation approach is approved; implementation itself is not yet authorized. Select supported dependency versions when implementation begins; none are pinned or installed in this planning phase.
+Use TypeScript, React, and Vite, with an independent, pure game-rules layer and an accessible HTML-based interface. This implementation approach and the initial foundation work are approved. Dependency versions are recorded in `package.json` and the worktree lockfile.
 
 Use regular HTML elements for cards, controls, labels, and contextual help in the first playable version. They suit the turn-based board and keep input, screen-reader access, responsive layout, and translated text together. A canvas renderer is outside the approved initial approach; revisit only if a later product decision justifies it. Motion is presentation feedback, not the authority for game state.
 
@@ -56,17 +56,19 @@ Keep the literal canonical loss-scoring rule unless the user changes it: remaini
 
 ## Delivery plan
 
-All phases below are pending. Each phase produces a reviewable result and ends with its acceptance check. Do not treat this checklist as authorization to start coding.
+The phase 1 scaffold/title screen and phase 2 rules layer are implemented and verified. Phase 3 playable-screen integration is implemented and verified. Phase 4 persistence/history is implemented. Phase 5 release verification remains pending. Each phase produces a reviewable result and ends with its acceptance check.
 
 ### 1. Settle the foundation
 
-Use the approved title/play-screen mockups and style tokens from the design plan's handoff sequence. Define the expected 44-card asset inventory and the seed/replay contract. Prepare build and routing choices for the Vercel hosting target. Only after implementation is authorized, create the minimum application and verification tooling.
+Use the approved title/play-screen mockups and style tokens from the design plan's handoff sequence. Define the expected 44-card asset inventory and the seed/replay contract. Prepare build and routing choices for the Vercel hosting target. The minimum application and verification tooling are now in place. The version-1 seed/replay contract is now documented in [the rules-layer contract](engine-contract.md).
 
 Requirements: [REQ-001](prd.md#req-001), [REQ-010](prd.md#req-010), [REQ-014](prd.md#req-014), [REQ-016](prd.md#req-016), [REQ-017](prd.md#req-017), and [DEC-001](prd.md#dec-001).
 
-Acceptance check: approved decisions are recorded in the owning documents; the design covers small-screen and keyboard use; an asset inventory matches all 44 expected cards. After scaffolding is authorized, the minimal app builds and displays a current artwork card without including archived artwork.
+Acceptance check: approved decisions are recorded in the owning documents; the design covers small-screen and keyboard use; an asset inventory matches all 44 expected cards. The minimal app builds and displays a current artwork card without including archived artwork.
 
 ### 2. Prove the game rules
+
+Status: implemented. See [the rules-layer contract](engine-contract.md) for the public API, version-1 seed/replay format, and the current suite.
 
 Build the presentation-independent game model and its focused behavioral tests before connecting the full interface. Cover deck construction, seeded order, legal actions, previews, combat, equipment replacement, potion limits, escape restrictions, carryover, final rooms, room undo, scoring, and the three house-rule choices.
 
@@ -76,6 +78,8 @@ Acceptance check: rule tests pass for weapon damage at and below zero, equal-val
 
 ### 3. Deliver a complete playable run
 
+Status: implemented; phase 4 now adds durability. New Run, seed entry, replay links, the approved play screen, room controls, English/Chinese feedback, and final results are connected to the engine. Stats/history UI and reload recovery are implemented in phase 4.
+
 Connect title, play, and result screens to the rules layer. Include card selection and confirmation, weapon/kill-stack presentation, contextual help, explicit room entry, and undo. Include current artwork, responsive layout, keyboard interaction, translated messages, basic accessible labels and feedback, and reduced-motion behavior from the first playable slice. Add About and preferences so a player can discover the rules and choose a ruleset. After the style guide is approved, review its extension to settings and the result scorecard; review the statistics screen in phase 4 as the second design handoff.
 
 Requirements: [REQ-001](prd.md#req-001), [REQ-003](prd.md#req-003), [REQ-004](prd.md#req-004), [REQ-005](prd.md#req-005), [REQ-006](prd.md#req-006), [REQ-007](prd.md#req-007), [REQ-008](prd.md#req-008), [REQ-009](prd.md#req-009), [REQ-011](prd.md#req-011), [REQ-012](prd.md#req-012), [REQ-015](prd.md#req-015), [REQ-016](prd.md#req-016), and [REQ-017](prd.md#req-017).
@@ -84,11 +88,13 @@ Acceptance check: seeded playthroughs reach both win and loss through real inter
 
 ### 4. Add continuity, history, and replay
 
+Status: implemented. See [the persistence contract](persistence-contract.md) for the version-1 format, transactional writes, recovery, and verification.
+
 Save active runs including room undo, preferences, and completed outcomes. Keep active-run rules fixed when preferences change. Add aggregate statistics, recent history using the limit in [REQ-013](prd.md#req-013), replay from history, seed entry, and share links. Separate a fresh seeded attempt from resuming a saved run. Apply the single-active-run replacement policy in [REQ-001](prd.md#req-001) to every fresh-run entry point. Record abandoned runs as losses when replaced or explicitly discarded, preserving their abandoned status in history and applying the normal loss formula to the outgoing draw pile before replacing or removing the run. Record completed runs once even after reloads, and preserve lifetime totals when recent history is trimmed.
 
 Requirements: [REQ-001](prd.md#req-001), [REQ-008](prd.md#req-008), [REQ-009](prd.md#req-009), [REQ-010](prd.md#req-010), [REQ-012](prd.md#req-012), [REQ-013](prd.md#req-013), and [REQ-014](prd.md#req-014).
 
-Acceptance check: close/reopen and reload checks preserve progress, undo, preferences, and results. Reloading a completed run does not increment statistics again or make undo available. Verify this after both win and loss. Removing a run preserves preferences and previously recorded statistics while adding the required abandoned loss for an unfinished run. Verify that New Run, valid seed entry, history replay, and a valid shared link each replace an unfinished run without confirmation, and that Continue or reload then restores only the replacement run. Each replacement must record exactly one abandoned loss for the outgoing run, updating games played, losses, and win rate. Reloading must not record that loss again. Explicitly discarding an unfinished run has the same statistical effect. For both replacement and discard, verify that positive remaining health does not affect abandonment score, unresolved room monsters are excluded, and 38 monster points in the outgoing draw pile produce a score of -38. A draw pile with no monsters produces score 0 but remains a loss. Include abandonment scores in best-score comparisons and confirm the incoming run does not affect the outgoing score. Returning to the title, closing, or reloading a resumable run must not record a loss. Invalid seeds or links must not replace the active run or count it as abandoned. Check every listed statistic and history field, newest-first history order, and unchanged lifetime totals after trimming history. After recording 51 runs, exactly the newest 50 remain in history, while lifetime statistics include all 51 outcomes. Include abandoned losses in this limit and exclude unfinished active runs. Reload must neither restore trimmed entries nor apply an outcome again. Verify room counts and result highlights against [REQ-013](prd.md#req-013). Include the clear/escape/death example yielding 3 explored and 1 cleared; a clear/undo/clear sequence; the final room; and death on the last required card. Check explored counts immediately after a deal and cleared counts before pressing Enter Next Room. After save/resume, undo must still restore room-start escape eligibility and counters exactly. Review the statistics screen against the approved visual language. A history replay and a copied link reproduce the starting deck and original rule options; seed-only entry uses selected options. Invalid or unreadable saves and replay links produce understandable recovery choices rather than an unusable screen.
+Acceptance check: close/reopen and reload checks preserve progress, undo, preferences, and results. Before shipping a saved-data format change, load a fixture saved by this game's preceding supported format and verify progress, room undo, settings, statistics, and result finality survive migration. This applies to future versions of this game, not data import from other releases. Reloading a completed run does not increment statistics again or make undo available. Verify this after both win and loss. Removing a run preserves preferences and previously recorded statistics while adding the required abandoned loss for an unfinished run. Verify that New Run, valid seed entry, history replay, and a valid shared link each replace an unfinished run without confirmation, and that Continue or reload then restores only the replacement run. Each replacement must record exactly one abandoned loss for the outgoing run, updating games played, losses, and win rate. Reloading must not record that loss again. Explicitly discarding an unfinished run has the same statistical effect. For both replacement and discard, verify that positive remaining health does not affect abandonment score, unresolved room monsters are excluded, and 38 monster points in the outgoing draw pile produce a score of -38. A draw pile with no monsters produces score 0 but remains a loss. Include abandonment scores in best-score comparisons and confirm the incoming run does not affect the outgoing score. Returning to the title, closing, or reloading a resumable run must not record a loss. Invalid seeds or links must not replace the active run or count it as abandoned. Check every listed statistic and history field, newest-first history order, and unchanged lifetime totals after trimming history. After recording 51 runs, exactly the newest 50 remain in history, while lifetime statistics include all 51 outcomes. Include abandoned losses in this limit and exclude unfinished active runs. Reload must neither restore trimmed entries nor apply an outcome again. Verify room counts and result highlights against [REQ-013](prd.md#req-013). Include the clear/escape/death example yielding 3 explored and 1 cleared; a clear/undo/clear sequence; the final room; and death on the last required card. Check explored counts immediately after a deal and cleared counts before pressing Enter Next Room. After save/resume, undo must still restore room-start escape eligibility and counters exactly. Review the statistics screen against the approved visual language. A history replay and a copied link reproduce the starting deck and original rule options; seed-only entry uses selected options. Invalid or unreadable saves and replay links produce understandable recovery choices rather than an unusable screen.
 
 Streak acceptance checks: both counters start at 0; win, win, loss, win yields current 1 and best 2. Verify that abandonment resets the current streak, an unfinished run leaves both unchanged, and reload does not apply an outcome twice. Include wins and losses from replays and different house-rule settings in the same streak. Trimming history must preserve both streak counters.
 
@@ -112,8 +118,53 @@ Acceptance check: all required checks pass, manual review findings are resolved 
 
 ## Planning review
 
-A separate reviewer checked this draft against the PRD, rules, and design plan. The review found no blocking scope conflict and confirmed coverage of all 17 requirements. The plan includes explicit scoring and statistics checks and a second design handoff. Escape timing, fresh-release scope, and undo being unavailable after a win or loss are settled. No implementation checks have been run because implementation has not begun.
+A separate reviewer checked this draft against the PRD, rules, and design plan. The review found no blocking scope conflict and confirmed coverage of all 17 requirements. The plan includes explicit scoring and statistics checks and a second design handoff. Escape timing, fresh-release scope, and undo being unavailable after a win or loss are settled. That planning review preceded implementation; measured implementation checks are recorded below.
+
+## Foundation verification
+
+Measured on November 1, 2026:
+
+| Check | Result |
+| --- | --- |
+| Node 22.23.4 production build | Typecheck and Vite build passed |
+| `pnpm format:check` | Passed |
+| `scripts/check-artwork.mjs` | Exact 44-card source inventory; archived artwork excluded |
+| Local Chromium production checks | English and Chinese at 320, 390, 768, and 1440px; current artwork loaded; no horizontal overflow or runtime errors |
+| Keyboard and dialog checks | Skip link, settings controls, Escape close, focus restoration, and About links verified |
+| Independent foundation review | Approved after 2 rounds; fixed automatic-language selection to honor browser preference order |
+
+Safari has not yet been verified. All original PNG card assets are bundled, with only rendered cards requested by the browser; delivery optimization remains release work. The three original title illustrations total about 7.4 MB. Persistence and statistics were added after the foundation checks; see phase 4 verification below.
+
+## Rules-layer verification
+
+Measured on November 1, 2026:
+
+- `pnpm test` on Node 22.23.4: 79 tests passed, including 256 complete seeded runs across all eight configurations and a pinned version-1 deck fixture.
+- Node 22 production build, typecheck, artwork validation, and formatting checks passed.
+- Independent review approved the engine, tests, and versioned replay contract with no open findings.
+
+## Playable UI verification
+
+Measured on November 1, 2026:
+
+- 82 engine/session unit tests pass.
+- Six production Chromium browser tests pass. A pinned `browser-1` fixture is played through real UI actions under default rules, reaching a win with score 7. A separate lethal run reaches a loss. Tests also cover previews, confirmation, full-room undo, carryover, escape restriction, validation, frozen active-run rules, and keyboard selection.
+- English and Chinese play layouts were checked at 320, 390, 637, 768, 1000, and 1440px with loaded artwork and no horizontal overflow. Desktop/mobile production screenshots were visually reviewed against the mockups.
+- Build, typecheck, artwork archive exclusion, and formatting checks pass. Independent review approved after fixing a skip-link/history regression; a browser check confirms skipping preserves the replay fragment and equipped weapon.
+
+Win-test fixture note: heuristic searches pruned valid routes before UI actions ran. The final test uses an independently verified, pinned default-rules route, validates it against the engine, then executes every action in the browser. No game-state injection or relaxed rules are used.
+
+## Persistence and history verification
+
+Measured on November 1, 2026:
+
+- 99 engine/session/save-envelope unit tests pass on Node 22.23.4. They cover room-start restoration, fixed active-run rules, result finality, exactly-once outcomes, history trimming, lifetime statistics and streaks, invalid envelopes, and a synthetic migration-chain fixture.
+- All 16 production Chromium browser tests pass. They cover reload and close/reopen recovery, preferences, abandoned losses, history replay with original rules, explicit discard, win/loss reload without recounting, corrupt/newer saves, unavailable storage, failed-write preservation and retry, and simultaneous-tab conflict protection.
+- Browser storage uses one versioned envelope in an IndexedDB read/write transaction so checking the previous revision and replacing it are atomic. A browser trace disproved the earlier assumption that a Web Lock refreshes another renderer's localStorage cache; that approach was removed.
+- Typecheck, production build, artwork inventory/archive exclusion, formatting, and changed-document local links/anchors pass. Desktop English and mobile Chinese Stats screens were visually checked without horizontal overflow; rule details open using the keyboard.
+- Independent persistence review approved after two rounds. The only finding was the cross-tab overwrite race; transactional storage fixed it, with no declined or open findings.
+- This is the first save format for this fresh release. Before any future supported format change, add real preceding-version fixtures and the corresponding migration. The synthetic fixture proves the migration helper, not compatibility with a released predecessor.
 
 ## Next action
 
-The [desktop and mobile title/play-screen direction](mockups/README.md) is approved. Vercel hosting, browser targets, and initial accessibility priorities are settled above. Add a future-update acceptance scenario proving that data created by this game remains usable across a supported saved-data format change. Wait for explicit implementation authorization before phase 1 scaffolding.
+Proceed to phase 5: verify PRD coverage, optimize artwork delivery, and run WebKit plus real Safari smoke checks. Review the saved-game and Stats experience locally first. Vercel publishing remains a separate, explicitly authorized action.
