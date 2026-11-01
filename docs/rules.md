@@ -16,20 +16,20 @@ Scoundrel is a popular 1-player roguelike dungeon-crawling card game. Played wi
 
 ## Playing a Room
 
-1. Deal: Flip the top 4 cards from the Dungeon face up to form a Room.
-2. Resolve: You must interact with and resolve 3 of the 4 cards in any order you choose. The 4th remaining card carries over into the next room.
-3. Running Away: Once per turn, if you choose not to face a room, you can send all 4 cards to the bottom of the Dungeon deck and deal a new room of 4 cards. You cannot run from two rooms in a row.
+1. Deal: Flip cards from the Dungeon face up until the Room contains 4 cards, including any carried card. If fewer cards remain, deal all of them. Once the Dungeon draw pile is empty after dealing, this is the final room.
+2. Resolve: Resolve 3 of the 4 cards in any order you choose. The 4th remaining card carries over into the next room. In the final room, resolve every remaining card with no carryover, even if only one card remains.
+3. Running Away: Once per turn, if you choose not to face a room, you can send all 4 cards to the bottom of the Dungeon deck and deal a new room of 4 cards. You cannot run from two rooms in a row. You cannot run away from the final room, because the Dungeon draw pile is empty.
 
 ## Combat & Item Rules
 
 - Fighting Barehanded: Take damage equal to the full value of the monster.
-- Fighting with a Weapon: Equip a Diamond card. Subtract the weapon's value from the monster's value; you take the remaining difference as damage. The monster card is placed on top of your weapon.
+- Fighting with a Weapon: Equip a Diamond card. Subtract the weapon's value from the monster's value; you take the remaining difference as damage, with a minimum of 0. A weapon stronger than the monster causes no damage to the player and does not restore health. The monster card is placed on top of your weapon.
 - Weapon Degradation: After a weapon defeats a monster, it can only fight subsequent monsters that have a lower value than the last monster it killed. If a stronger monster appears, you must either find a new weapon, switch weapons (picking up a new Diamond automatically discards your old weapon), or fight barehanded.
 - Health Potions: You may only drink one health potion per room. A second potion you drink in the same room is discarded and restores nothing. A Heart you leave un-resolved (such as the carried 4th card) is not discarded — it carries into the next room, and the one-potion limit resets each room.
 
 ## Winning and Losing
 
-- Winning: Successfully clear and navigate through every room of the dungeon until the deck is empty. Your final score is your remaining health (maximum of 20).
+- Winning: Successfully resolve every card in the final room while still alive. An empty Dungeon draw pile alone does not count as a win. Your final score is your remaining health (maximum of 20).
 - Losing: If your health drops to 0 or below, you are defeated. Your final negative score is calculated by subtracting the values of all remaining unplayed monsters left in the dungeon deck from 0.
 
 ## References

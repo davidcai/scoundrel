@@ -8,7 +8,7 @@ The default game follows [the Scoundrel rules](rules.md). The rules document is 
 
 ## Game experience
 
-The player starts with 20 health and works through a 44-card dungeon. Each room presents up to four cards. Monsters inflict damage, weapons reduce it, and potions restore health. Players choose the order in which to resolve cards and which card to carry forward. The game ends when the dungeon is cleared or health reaches zero.
+The player starts with 20 health and works through a 44-card dungeon. Each room presents up to four cards. Monsters inflict damage, weapons reduce it, and potions restore health. Players choose the order in which to resolve cards and which card to carry forward. The game ends when the dungeon is cleared or health drops to zero or below.
 
 The game should make each decision understandable before the player commits:
 
@@ -39,7 +39,7 @@ At the end of a run, a scorecard shows the outcome, health, score, seed, selecte
 
 ## Visual direction
 
-The game should feel like a modern RPG with a dark dungeon-crawler mood. Use crisp typography, depth, shadow, and strong contrast to create a mysterious, adventurous atmosphere while keeping game information easy to read. The card artwork in [assets](../assets/) supplies the visual identity of the deck.
+The game should feel like a modern RPG with a dark dungeon-crawler mood. Use crisp typography, depth, shadow, and strong contrast to create a mysterious, adventurous atmosphere while keeping game information easy to read. The current card artwork in [assets](../assets/) supplies the visual identity of the deck. The earlier artwork is preserved in [assets-old](../assets-old/) for reference.
 
 The original design plan prioritized a visual style guide, title screen, and play screen first. Stats, settings, and the end-of-run scorecard followed, using the same visual language.
 
