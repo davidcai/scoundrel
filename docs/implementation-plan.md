@@ -60,7 +60,7 @@ All phases below are pending. Each phase produces a reviewable result and ends w
 
 ### 1. Settle the foundation
 
-Use the approved title/play-screen mockups and style tokens from the design plan's handoff sequence. Define the expected 44-card asset inventory and the seed/replay contract. Prepare build and routing choices for the Vercel hosting target. Only after implementation is authorized, create the minimum application and verification tooling.
+Follow the design plan's handoff sequence and visual treatment. Define the expected 44-card asset inventory and the seed/replay contract. Prepare build and routing choices for the Vercel hosting target. Only after implementation is authorized, create the minimum application and verification tooling.
 
 Requirements: [REQ-001](prd.md#req-001), [REQ-010](prd.md#req-010), [REQ-014](prd.md#req-014), [REQ-016](prd.md#req-016), [REQ-017](prd.md#req-017), and [DEC-001](prd.md#dec-001).
 
@@ -116,4 +116,4 @@ A separate reviewer checked this draft against the PRD, rules, and design plan. 
 
 ## Next action
 
-The [desktop and mobile title/play-screen direction](mockups/README.md) is approved. Vercel hosting, browser targets, and initial accessibility priorities are settled above. Add a future-update acceptance scenario proving that data created by this game remains usable across a supported saved-data format change. Wait for explicit implementation authorization before phase 1 scaffolding.
+Vercel hosting, browser targets, and initial accessibility priorities are settled above. Add a future-update acceptance scenario proving that data created by this game remains usable across a supported saved-data format change. Wait for explicit implementation authorization before phase 1 scaffolding.

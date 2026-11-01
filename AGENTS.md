@@ -10,7 +10,7 @@ Use the 44 PNG card images in [assets/](assets/) for the game's artwork. Preserv
 
 ## Current phase: planning only
 
-Follow [the implementation plan](docs/implementation-plan.md). For now, create and revise planning documents only. Do not scaffold an application, add dependencies, create source files or executable test code. Static HTML/CSS design documents and PNG previews under `docs/mockups/` are allowed for screen review; they must contain no game behavior. Begin implementation only after the user explicitly asks to proceed.
+Follow [the implementation plan](docs/implementation-plan.md). For now, create and revise planning documents only. Do not scaffold an application, add dependencies, create source files or executable test code. Begin implementation only after the user explicitly asks to proceed.
 
 The parent product branch is standalone and must not be merged into `main`. Do not merge or open a merge request for this planning branch without explicit instructions.
 
