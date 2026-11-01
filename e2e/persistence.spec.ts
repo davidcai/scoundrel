@@ -61,6 +61,7 @@ test('abandonment statistics are durable and history replay uses original rules'
   await page.goto('/#/play?v=1&seed=cinder&rules=001');
   await page.getByRole('button', { name: 'Menu', exact: true }).click();
   await page.getByRole('button', { name: 'New run', exact: true }).click();
+  await page.getByRole('button', { name: 'Start new run', exact: true }).click();
   expect((await saved(page)).session.statistics).toMatchObject({
     gamesPlayed: 1,
     wins: 0,
@@ -79,6 +80,7 @@ test('abandonment statistics are durable and history replay uses original rules'
     .locator('.history-entry')
     .getByRole('button', { name: 'Replay this dungeon', exact: true })
     .click();
+  await page.getByRole('button', { name: 'Start new run', exact: true }).click();
   await expect(page.locator('.seed-value')).toHaveText('cinder');
   await expect(page.locator('.nav .tag')).toHaveText('Default rules');
   const state = await saved(page);
@@ -112,6 +114,7 @@ test('a stale tab cannot overwrite another tab and safely reloads the saved game
   const other = await context.newPage();
   await other.goto('/');
   await other.getByRole('button', { name: 'New run', exact: true }).click();
+  await other.getByRole('button', { name: 'Start new run', exact: true }).click();
   const replacementSeed = await other.locator('.seed-value').innerText();
   await expect(page.getByRole('alert')).toContainText('changed in another tab');
   await page.getByRole('button', { name: 'Reload saved game', exact: true }).click();
@@ -246,3 +249,57 @@ test('simultaneous tabs cannot both replace the same saved revision', async ({ p
   await expect(loser.getByRole('alert')).toContainText('changed in another tab');
   await expect(winner.locator('.seed-value')).toHaveText(stored.session.game.seed);
 });
+
+for (const language of ['en', 'zh'] as const) {
+  test(`replacement confirmation can cancel, escape, and confirm once (${language})`, async ({
+    page,
+  }) => {
+    const zh = language === 'zh';
+    await page.goto('/#/play?v=1&seed=cinder&rules=001');
+    await page.locator('[data-card-id="diamond-6"]').click();
+    await page.getByRole('button', { name: 'Equip weapon', exact: true }).click();
+    if (zh) {
+      await page.getByRole('button', { name: 'Settings', exact: true }).click();
+      await page.locator('#language').selectOption('zh');
+      await page.keyboard.press('Escape');
+    }
+    await page.getByRole('button', { name: zh ? '菜单' : 'Menu', exact: true }).click();
+    await saved(page);
+    const before = await storedRaw(page);
+    const newRun = page.getByRole('button', { name: zh ? '新游戏' : 'New run', exact: true });
+    await expect(page.locator('#replacement-note')).toHaveCount(0);
+    await newRun.click();
+    const cancel = page.getByRole('button', { name: zh ? '取消' : 'Cancel', exact: true });
+    await expect(cancel).toBeFocused();
+    await cancel.click();
+    expect(await storedRaw(page)).toBe(before);
+    await newRun.click();
+    await page.keyboard.press('Escape');
+    expect(await storedRaw(page)).toBe(before);
+    await page.getByRole('button', { name: zh ? '继续游戏' : 'Continue run', exact: true }).click();
+    await expect(
+      page.getByRole('heading', { name: zh ? '当前武器 · 6' : 'Your weapon · 6', exact: true }),
+    ).toBeVisible();
+    await page.getByRole('button', { name: zh ? '菜单' : 'Menu', exact: true }).click();
+    await page.getByRole('button', { name: zh ? '输入种子' : 'Enter seed', exact: true }).click();
+    await page.locator('#seed-input').fill('replacement-test');
+    await page
+      .getByRole('button', { name: zh ? '开始探索' : 'Start dungeon', exact: true })
+      .click();
+    await expect(page.getByRole('dialog')).toContainText(
+      zh ? '记为一次失败' : 'records it as a loss',
+    );
+    expect(await storedRaw(page)).toBe(before);
+    await page
+      .getByRole('button', { name: zh ? '开始新游戏' : 'Start new run', exact: true })
+      .click();
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+    await expect(page.locator('.seed-value')).toHaveText('replacement-test');
+    const after = await saved(page);
+    expect(after.session.runNumber).toBe(2);
+    expect(after.session.statistics.losses).toBe(1);
+    expect(after.session.history[0].reason).toBe('abandoned');
+    await page.reload();
+    expect((await saved(page)).session.statistics.losses).toBe(1);
+  });
+}

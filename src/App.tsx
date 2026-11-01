@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { translator, describeResult } from './i18n/translate';
 import { decodeReplay, encodeReplay, validateSeed } from './engine';
-import type { Action } from './engine';
+import type { Action, GameConfig } from './engine';
 import type { InitialSave } from './store/use-saved-game';
 import { useSavedGame } from './store/use-saved-game';
 import { StatsScreen } from './ui/StatsScreen';
@@ -20,10 +20,11 @@ export function App({ initial }: { initial: InitialSave }) {
   const { language, reducedMotion, config } = settings;
   const setLanguage = (value: typeof language) => preferences({ language: value });
   const setReducedMotion = (value: boolean) => preferences({ reducedMotion: value });
-  const [panel, setPanel] = useState<'settings' | 'about' | 'enterSeed'>('about');
+  const [panel, setPanel] = useState<'settings' | 'about' | 'enterSeed' | 'replaceRun'>('about');
   const [linkError, setLinkError] = useState(initialLinkError);
   const [seedInput, setSeedInput] = useState('');
   const [seedError, setSeedError] = useState(false);
+  const pendingRun = useRef<{ seed: string; rules: GameConfig } | null>(null);
   const main = useRef<HTMLElement>(null);
   const game = session.game;
   const onTitle = session.screen === 'title';
@@ -36,11 +37,23 @@ export function App({ initial }: { initial: InitialSave }) {
   const t = translator(locale);
   async function start(seed: string, rules = config) {
     validateSeed(seed);
+    if (game?.status === 'playing') {
+      pendingRun.current = { seed, rules };
+      setPanel('replaceRun');
+      if (!dialog.current?.open) dialog.current?.showModal();
+      return;
+    }
+    await beginRun(seed, rules);
+  }
+  async function beginRun(seed: string, rules: GameConfig) {
     if (!(await dispatch({ type: 'start', seed, config: rules }))) return;
     showHash(encodeReplay(seed, rules));
     setLinkError(false);
     dialog.current?.close();
   }
+  useEffect(() => {
+    if (panel === 'replaceRun') dialog.current?.querySelector('button')?.focus();
+  }, [panel]);
   function newRun() {
     start(crypto.getRandomValues(new Uint32Array(1))[0].toString(36));
   }
@@ -121,6 +134,7 @@ export function App({ initial }: { initial: InitialSave }) {
       <div
         className="shell"
         data-reduced-motion={reducedMotion}
+        data-playing={session.screen === 'play' && game?.status === 'playing'}
         data-save-status={isSaving ? 'saving' : problem ? 'unsaved' : 'saved'}
         inert={problem === 'conflict'}
       >
@@ -203,15 +217,9 @@ export function App({ initial }: { initial: InitialSave }) {
                   <button
                     className={game?.status === 'playing' ? 'wide' : 'primary wide'}
                     onClick={newRun}
-                    aria-describedby={game?.status === 'playing' ? 'replacement-note' : undefined}
                   >
                     {t('newRun')}
                   </button>
-                  {game?.status === 'playing' && (
-                    <p id="replacement-note" className="muted">
-                      {t('replacementNote')}
-                    </p>
-                  )}
                   <button className="wide" onClick={() => openPanel('enterSeed')}>
                     {t('enterSeed')}
                   </button>
@@ -283,19 +291,43 @@ export function App({ initial }: { initial: InitialSave }) {
         <p className="sr-only" role="status" aria-live="polite">
           {session.result && describeResult(session.result, t)}
         </p>
-        {session.screen !== 'play' && (
-          <footer className="footer">
-            <span>{t('credits')}</span>
-          </footer>
-        )}
-        <dialog ref={dialog} aria-labelledby="panel-title">
+        <dialog
+          ref={dialog}
+          aria-labelledby="panel-title"
+          aria-describedby={panel === 'replaceRun' ? 'replacement-note' : undefined}
+          onClose={() => {
+            pendingRun.current = null;
+          }}
+        >
           <div className="dialog-head">
             <h2 id="panel-title">{t(panel)}</h2>
-            <button autoFocus onClick={() => dialog.current?.close()}>
-              {t('close')}
-            </button>
+            {panel !== 'replaceRun' && (
+              <button autoFocus onClick={() => dialog.current?.close()}>
+                {t('close')}
+              </button>
+            )}
           </div>
-          {panel === 'enterSeed' ? (
+          {panel === 'replaceRun' ? (
+            <div className="preferences">
+              <p id="replacement-note">{t('replacementNote')}</p>
+              <div className="confirmation-actions">
+                <button autoFocus onClick={() => dialog.current?.close()}>
+                  {t('cancel')}
+                </button>
+                <button
+                  className="primary"
+                  onClick={() => {
+                    const request = pendingRun.current;
+                    if (!request) return;
+                    pendingRun.current = null;
+                    void beginRun(request.seed, request.rules);
+                  }}
+                >
+                  {t('confirmNewRun')}
+                </button>
+              </div>
+            </div>
+          ) : panel === 'enterSeed' ? (
             <form
               className="preferences"
               noValidate

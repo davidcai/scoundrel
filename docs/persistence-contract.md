@@ -22,7 +22,7 @@ Unreadable or unsupported envelopes are left unchanged; the app offers unsaved p
 
 ## Replay versus resume
 
-The browser history entry records its saved attempt number. Reloading that entry resumes the same matching seed/rules attempt. Opening a fresh external replay link starts a fresh attempt even if its seed matches the saved run. Invalid links preserve the existing run. History replay uses the recorded rules, while seed-only entry uses the current preferences.
+The browser history entry records its saved attempt number. Reloading that entry resumes the same matching seed/rules attempt. Opening a fresh external replay link starts a fresh attempt even if its seed matches the saved run. Invalid links preserve the existing run. New Run, valid seed entry, and history replay show a replacement confirmation when a run is active. Until confirmed, neither progress nor statistics change; Cancel or Escape discards the pending choice. History replay uses the recorded rules, while seed-only entry uses the current preferences.
 
 The session reducer applies the PRD's outcome, abandonment, score, history, and streak rules. Reloading reads already-counted results; it does not apply an outcome again. Menu, close, and reload preserve an unfinished run. Selection is not saved, and undo remains available after resume only while the run is active.
 

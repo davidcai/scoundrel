@@ -139,6 +139,41 @@ test('a full real-interface run can win, share, and replay with final undo block
   await page.goto('/' + encodeReplay(seed));
   for (const action of actions) await confirm(page, action);
   await expect(page.getByRole('heading', { name: 'You survived.', exact: true })).toBeVisible();
+  for (const language of ['en', 'zh']) {
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.locator('#language').selectOption(language);
+    await page.keyboard.press('Escape');
+    for (const width of [320, 600, 705, 885, 1000, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      const layout = await page.locator('.result-screen').evaluate((screen) => {
+        const items = Array.from(screen.children).filter(
+          (element) => element.getBoundingClientRect().height > 0,
+        );
+        const bounds = screen.getBoundingClientRect();
+        return {
+          oneColumn: items.every(
+            (item) =>
+              Math.abs(item.getBoundingClientRect().left - bounds.left) < 1 &&
+              Math.abs(item.getBoundingClientRect().right - bounds.right) < 1,
+          ),
+          ordered: items.every(
+            (item, i) =>
+              i === 0 ||
+              item.getBoundingClientRect().top >= items[i - 1].getBoundingClientRect().bottom,
+          ),
+          overflow: document.documentElement.scrollWidth > innerWidth,
+        };
+      });
+      expect(layout, `${language} ${width}px`).toEqual({
+        oneColumn: true,
+        ordered: true,
+        overflow: false,
+      });
+    }
+  }
+  await page.getByRole('button', { name: '设置', exact: true }).click();
+  await page.locator('#language').selectOption('en');
+  await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: 'Undo room', exact: true })).toHaveCount(0);
   await expect(page.locator('[data-save-status]')).toHaveAttribute('data-save-status', 'saved');
   await page.reload();

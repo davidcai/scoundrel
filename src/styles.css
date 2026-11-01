@@ -90,6 +90,9 @@ h2 {
   border-bottom: 1px solid var(--line);
   padding: 24px 0;
 }
+.shell[data-playing='true'] .topbar {
+  padding-block: 8px;
+}
 .wordmark {
   display: flex;
   align-items: center;
@@ -189,14 +192,6 @@ h2 {
     serif;
   margin-bottom: 8px;
 }
-.footer {
-  border-top: 1px solid var(--line);
-  padding: 24px 0;
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  color: var(--muted);
-}
 .skip {
   position: absolute;
   top: 8px;
@@ -227,6 +222,18 @@ dialog::backdrop {
   align-items: center;
   gap: 16px;
   margin-bottom: 24px;
+}
+.confirmation-actions {
+  display: flex;
+  gap: 12px;
+}
+.confirmation-actions button {
+  flex: 1;
+}
+@media (max-width: 400px) {
+  .confirmation-actions {
+    flex-direction: column;
+  }
 }
 .about {
   display: grid;
@@ -317,9 +324,6 @@ dialog::backdrop {
   .fan .three {
     transform: translateY(-20px) rotate(-2deg);
   }
-  .footer {
-    flex-wrap: wrap;
-  }
 }
 @media (min-width: 600px) and (max-width: 1000px) {
   .intro {
@@ -330,7 +334,7 @@ dialog::backdrop {
     row-gap: 0;
     align-items: center;
   }
-  .kicker {
+  .intro .kicker {
     grid-area: kicker;
   }
   .intro-copy {
@@ -455,6 +459,8 @@ input {
   border-bottom: 1px solid var(--line);
 }
 .health {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -467,6 +473,8 @@ input {
   white-space: nowrap;
 }
 meter {
+  flex: 0 1 140px;
+  min-width: 0;
   width: 140px;
   height: 12px;
   accent-color: var(--action);
@@ -492,6 +500,9 @@ meter {
     serif;
 }
 .run-seed {
+  font-size: 12px;
+  font-weight: 400;
+  color: #8a958e;
   display: flex;
   align-items: baseline;
   gap: 8px;
@@ -518,6 +529,13 @@ meter {
   gap: 16px;
   margin-bottom: 24px;
 }
+.room-status {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .room-title {
   font-size: 32px;
 }
@@ -527,9 +545,11 @@ meter {
   gap: 16px;
 }
 .card {
+  container-type: inline-size;
   min-width: 0;
 }
 .card button {
+  position: relative;
   border: 0;
   padding: 0;
   background: none;
@@ -554,15 +574,26 @@ meter {
   outline: 3px solid var(--action);
   outline-offset: 5px;
 }
-.card-name {
-  margin-top: 16px;
-  overflow-wrap: anywhere;
-}
-.card-kind {
-  margin-top: 4px;
+.card-caption {
+  margin-top: 18px;
+  font-size: clamp(10px, 8cqi, 14px);
+  line-height: 1.5;
+  text-align: center;
+  white-space: nowrap;
 }
 .carried {
-  margin-top: 8px;
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translate(-50%, 50%);
+  background: var(--table);
+  color: var(--action);
+  border-color: var(--action);
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+  pointer-events: none;
 }
 .preview {
   background: var(--table);
@@ -651,19 +682,11 @@ meter {
 .run-actions p {
   margin-top: 8px;
 }
-.play-help {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  color: var(--muted);
-  border-top: 1px solid var(--line);
-  padding: 24px 0;
-}
 .result-screen {
   max-width: 760px;
   margin: 48px auto;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
 }
 .result-screen h1 {
@@ -706,24 +729,25 @@ meter {
   gap: 12px;
 }
 @media (max-width: 1000px) {
-  .statusbar {
-    flex-wrap: wrap;
-  }
-  .status-items {
-    flex: 1;
-    justify-content: space-between;
-  }
-  .health {
-    flex-wrap: wrap;
-  }
   .board {
-    grid-template-columns: minmax(0, 1fr) 260px;
+    display: flex;
+    flex-direction: column;
     gap: 24px;
   }
-  .room-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .preview {
+    order: 1;
+    align-self: stretch;
+  }
+  .run-actions > div {
+    flex: 1;
+    min-width: 0;
+    max-width: none;
+  }
+  .run-actions button {
+    width: 100%;
   }
   .equipment {
+    order: 2;
     flex-wrap: wrap;
   }
   .equipment-cards {
@@ -737,15 +761,7 @@ meter {
     padding-top: 24px;
   }
   .room-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
-  }
-  .card-name {
-    font-size: 16px;
-    line-height: 1.4;
-  }
-  .card-kind {
-    overflow-wrap: anywhere;
   }
   .preview {
     order: 1;
@@ -756,10 +772,6 @@ meter {
     order: 2;
   }
   .statusbar {
-    display: block;
-  }
-  .status-items {
-    margin-top: 16px;
     gap: 12px;
   }
   .status-items strong {
@@ -767,10 +779,6 @@ meter {
   }
   .health {
     gap: 12px;
-  }
-  meter {
-    flex: 1;
-    min-width: 40px;
   }
   .room-head {
     flex-wrap: wrap;
@@ -937,5 +945,23 @@ meter {
   }
   .status-items strong {
     font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .health {
+    gap: 8px;
+  }
+  .health-value {
+    font-size: 24px;
+  }
+  .health meter {
+    display: none;
+  }
+}
+
+@media (max-width: 599px) {
+  .room-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

@@ -36,7 +36,7 @@ Players using a keyboard or small touchscreen can complete the game. Provide com
 <a id="req-001"></a>
 ### REQ-001: Start and resume
 
-The title screen offers New Run, Enter Seed, Stats, Settings, and About. Continue is prominent when an unfinished saved run exists. Returning players choose when to resume rather than being placed directly into a run. New Run starts a shuffled dungeon using the player's selected rule options. The game keeps one active run. Starting a fresh attempt through New Run, valid seed entry, history replay, or a valid shared link immediately replaces any unfinished run without confirmation. The replaced run cannot be resumed and is recorded as an abandoned loss under [REQ-013](#req-013).
+The title screen offers New Run, Enter Seed, Stats, Settings, and About. Continue is prominent when an unfinished saved run exists. Returning players choose when to resume rather than being placed directly into a run. New Run starts a shuffled dungeon using the player's selected rule options. The game keeps one active run. When an unfinished run exists, New Run, valid seed entry, and history replay ask for confirmation before replacing it. The dialog explains that replacement records a loss and offers Cancel and Start new run. Cancel or Escape preserves the current run, progress, and statistics; only confirmation starts the replacement. With no unfinished run, these actions start immediately. Opening a valid shared link continues to start a fresh attempt immediately. The replaced run cannot be resumed and is recorded as an abandoned loss under [REQ-013](#req-013).
 
 <a id="req-002"></a>
 ### REQ-002: Play by the selected rules

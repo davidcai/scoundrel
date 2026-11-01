@@ -78,12 +78,6 @@ export function PlayScreen({ game, selected, t, onSelect, onAct }: Props) {
             <span>{t('dungeon')}</span>
             <strong>{t('cardsRemaining', { count: b.dungeon.length })}</strong>
           </div>
-          <div>
-            <span>{t('potionsThisRoom')}</span>
-            <strong>
-              {b.potionsUsed} / {game.config.unlimitedPotions ? '∞' : 1}
-            </strong>
-          </div>
         </div>
       </section>
       <div className="board">
@@ -92,12 +86,15 @@ export function PlayScreen({ game, selected, t, onSelect, onAct }: Props) {
             <h1 className="room-title">
               {final ? t('finalRoom') : t('room', { room: b.highlights.roomsExplored })}
             </h1>
-            <span className="tag">
-              {t('resolvedCount', {
-                resolved: b.resolved,
-                total: final ? b.resolved + b.room.length : 3,
-              })}
-            </span>
+            <div className="room-status">
+              {b.potionsUsed > 0 && <span className="tag potion-used">{t('potionUsed')}</span>}
+              <span className="tag">
+                {t('resolvedCount', {
+                  resolved: b.resolved,
+                  total: final ? b.resolved + b.room.length : 3,
+                })}
+              </span>
+            </div>
           </div>
           <div className="room-grid" ref={room}>
             {b.room.map((id, index) => {
@@ -108,6 +105,7 @@ export function PlayScreen({ game, selected, t, onSelect, onAct }: Props) {
                     data-card-id={id}
                     disabled={complete}
                     aria-pressed={selected === id}
+                    aria-describedby={b.carriedCard === id ? `carried-${id}` : undefined}
                     aria-label={t('cardDescription', {
                       card: cardName(id, t),
                       kind: kindName(c.kind),
@@ -117,10 +115,15 @@ export function PlayScreen({ game, selected, t, onSelect, onAct }: Props) {
                     onKeyDown={(event) => cardKeys(event, index)}
                   >
                     <img src={cardImage(id)} alt="" width="1024" height="1536" />
+                    {b.carriedCard === id && (
+                      <span id={`carried-${id}`} className="carried">
+                        {t('carried')}
+                      </span>
+                    )}
                   </button>
-                  <p className="card-name">{cardName(id, t)}</p>
-                  <p className="muted card-kind">{kindName(c.kind)}</p>
-                  {b.carriedCard === id && <span className="carried">{t('carried')}</span>}
+                  <p className="card-caption">
+                    {cardName(id, t)} <span className="muted">· {kindName(c.kind)}</span>
+                  </p>
                 </article>
               );
             })}
@@ -261,23 +264,10 @@ export function PlayScreen({ game, selected, t, onSelect, onAct }: Props) {
           )}
         </div>
         <div>
-          <button
-            disabled={undo.type === 'invalid'}
-            onClick={() => onAct({ type: 'undo' })}
-            aria-describedby={undo.type === 'invalid' ? 'undo-reason' : undefined}
-          >
+          <button disabled={undo.type === 'invalid'} onClick={() => onAct({ type: 'undo' })}>
             {t('undo')}
           </button>
-          {undo.type === 'invalid' && (
-            <p id="undo-reason" className="muted">
-              {t(undo.reason)}
-            </p>
-          )}
         </div>
-      </div>
-      <div className="play-help">
-        <p>{final ? t('finalHelp') : t('roomHelp')}</p>
-        <p>{t('keyboardHelp')}</p>
       </div>
       <p className="run-seed muted">
         <span>{t('seed')}</span>
