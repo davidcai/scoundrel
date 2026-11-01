@@ -1,39 +1,9 @@
-# Scoundrel card game
+# Scoundrel
 
-Scoundrel — a 1-player roguelike dungeon-crawling card game played with a standard deck, implemented as a web app. The full rule set lives in `docs/rules.md` and is the source of truth for gameplay behavior; `docs/spec.md` is the implementation spec this app realizes.
+Scoundrel is a single-player roguelike dungeon-crawling card game. Players face monsters, equip weapons, and use potions as they work through a dungeon made from a standard deck.
 
-## The game
+This branch collects the game's artwork, rules, and product design documents. It does not contain a runnable game.
 
-Crawl a dungeon of 44 cards: clubs and spades are monsters, diamonds are weapons, hearts are potions. Each room deals 4 cards — resolve 3, carry the 4th. Defeat every room to win; your score is your remaining health.
-
-## Commands
-
-```sh
-pnpm install          # set up
-pnpm dev              # dev server
-pnpm build            # typecheck + production build (dist/)
-pnpm preview          # serve the production build
-pnpm lint             # ESLint
-pnpm format           # Prettier (write); pnpm format:check to verify
-pnpm typecheck        # tsc -b
-pnpm test             # Vitest: engine unit + RTL integration tests
-pnpm e2e              # Playwright e2e (run `pnpm build` first; serves dist/)
-```
-
-## Architecture
-
-- `src/engine/` — the pure TypeScript game engine: deck composition, mulberry32 seeded RNG, the reducer `(state, action) → { state, result }`, combat/weapon-degradation/potion/run-away rules, win/lose and scoring. Zero React, zero DOM — runs in Node.
-- `src/store/` — Zustand store wiring the engine to React, with transient card-selection UI state (kept out of engine truth), sharded versioned localStorage persistence (`scoundrel:settings`, `scoundrel:stats`, `scoundrel:run`), idempotent stats writes, and shareable run URL encoding (`#/play?seed=...&config=...`).
-- `src/ui/` — screens (title, play, stats, settings, about), card/HUD/weapon-stack components, ARIA live-region announcer and tooltips.
-- `src/game/` — the Phaser 4 layer for the play-screen card table: one board scene (room cards only) with tween choreography, filter/particle FX presets keyed by engine results, and a typed bridge to the store. The canvas renders zero text and never receives pointer events; `src/ui/PhaserBoard.tsx` mounts it behind a transparent DOM hit-layer positioned by a shared pure layout function (`board-layout.ts` + `board-metrics.ts`), so screen readers, keyboard nav, and tests keep working unchanged.
-- `src/i18n/` — typesafe-i18n dictionaries (`en.ts`, `zh.ts`) and typed translation setup; `src/i18n.ts` adds the zustand language store and `useT()`/`t()` helpers.
-- `assets/` — the 44 card artwork JPEGs; doubles as the Vite public dir (served at `/<suit>-<rank>.jpg`).
-- `e2e/` — Playwright black-box tests; seeded URLs (`#/play?seed=...`) make runs fully deterministic.
-
-## Rule house-rule toggles
-
-Settings exposes three house-rule toggles (run-away restriction, potions per room, weapon degradation) plus a reduced-motion accessibility setting. House-rule defaults follow `docs/rules.md` exactly.
-
-## Deploy
-
-Deploys via Vercel (previews on PRs, production from `main`). The Vite build reads the base path from the environment (`vite.config.ts`), and the hash router tolerates any base.
+- [Game rules](docs/rules.md) describe the deck, room and combat rules, and scoring.
+- [Product and design plan](docs/design-plan.md) describes the intended player experience, features, visual direction, and accessibility goals.
+- [Card artwork](assets/) contains the 44 card images used for the dungeon deck.
