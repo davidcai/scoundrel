@@ -8,6 +8,12 @@ Supports [DEC-001](prd.md#dec-001) and [REQ-016](prd.md#req-016).
 
 Use crisp typography, depth, shadow, and high contrast to give the interface a mysterious, adventurous atmosphere. Keep labels and controls distinct from decorative artwork so the dark theme remains readable.
 
+## Card artwork
+
+Supports [DEC-001](prd.md#dec-001).
+
+Use the 44 PNG card illustrations in [assets/](../assets/) and preserve their suit-and-rank filenames. The JPEG images in [assets-old/](../assets-old/) are archived references only: do not load, bundle, copy, or use them as fallback artwork in the product unless the user explicitly requests it.
+
 ## Card table and feedback
 
 Supports [REQ-003](prd.md#req-003), [REQ-004](prd.md#req-004), [REQ-005](prd.md#req-005), and [REQ-006](prd.md#req-006).

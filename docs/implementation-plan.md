@@ -4,7 +4,9 @@
 
 Planning draft. No implementation is authorized yet. This branch contains artwork and documents, not an application. This plan proposes how to build the product and does not claim any build, test, performance, or deployment result.
 
-The [PRD](prd.md#info-002) owns product scope, the [rules](rules.md) own default gameplay, and the [design plan](design-plan.md) owns presentation choices. This document owns delivery order, proposed technical boundaries, and verification. Resolve contradictions in the owning document rather than introducing a second ruleset here.
+Until implementation is authorized, change planning documents only. Do not scaffold an application, add dependencies, create source files, or write executable test code.
+
+The [PRD](prd.md#info-002) owns product scope, the [rules](rules.md) own default gameplay, and the [design plan](design-plan.md) owns presentation choices. This document owns delivery order, proposed technical boundaries, and verification. Resolve contradictions in the owning document rather than introducing a second ruleset here. Keep links, PRD references, and requirement coverage valid when editing these documents.
 
 Use only [assets/](../assets/) as runtime card artwork. Keep [assets-old/](../assets-old/) as archived reference; exclude it from future application outputs.
 
