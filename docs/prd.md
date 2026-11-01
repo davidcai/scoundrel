@@ -2,7 +2,7 @@
 
 ## How to use this document
 
-Each labeled item has a stable ID and link anchor. Use the ID when referencing a requirement or decision. Keep IDs when editing or moving an item; retire an ID rather than reusing it for a different meaning.
+Each labeled item has a stable ID and link anchor. Use the ID when referencing a requirement, decision, finding, or open question. Keep IDs when editing or moving an item; retire an ID rather than reusing it for a different meaning.
 
 <a id="info-001"></a>
 ### INFO-001: Product context
@@ -13,6 +13,17 @@ Scoundrel is a single-player dungeon-crawling card game for the web. This PRD de
 ### INFO-002: Document authority
 
 This PRD defines product goals, scope, and acceptance outcomes. The [game rules](rules.md) are authoritative for default gameplay and scoring. The [design plan](design-plan.md) specifies presentation decisions that satisfy the PRD. It references requirements here rather than maintaining a second feature list.
+
+## Research findings
+
+<a id="find-001"></a>
+### FIND-001: Tabletop rules scope
+
+The [game rules](rules.md) cite the authors' 2011 rulesheet, which defines rooms as four dealt cards, allows skipping a room by returning all four cards to the bottom of the dungeon, prohibits consecutive skips, and completes a normal turn after resolving three cards. The rulesheet does not define explored or cleared statistics or undo; those behaviors are application features owned by this PRD. Default gameplay, including loss scoring and weapon eligibility, remains authoritative in the [game rules](rules.md).
+
+## Open questions
+
+None at planning time. A question that affects scope, requirements, decisions, or acceptance checks is recorded here before those items change.
 
 ## Product goals
 

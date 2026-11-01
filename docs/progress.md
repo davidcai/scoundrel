@@ -40,4 +40,4 @@ Work and acceptance checks for each phase are defined in the [delivery plan](imp
 - Approve and record the written style guide in the design plan before the phase 3 design review.
 - Record the approved package manager and dependency versions when implementation starts.
 - Verify the phase-4 future-update saved-data format-change scenario when implementation begins.
-- Keep the Vercel hosting target, browser targets, and accessibility priorities recorded in the implementation plan; deployment still requires explicit authorization.
+- Keep the Vercel hosting target in the [implementation plan](implementation-plan.md) and the browser and accessibility requirements in the [PRD](prd.md#req-016); deployment still requires explicit authorization.

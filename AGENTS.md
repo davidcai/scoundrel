@@ -25,7 +25,7 @@
 
 ### Read before working
 
-Read [the PRD](docs/prd.md), [the game rules](docs/rules.md), [the design plan](docs/design-plan.md), and [the implementation plan](docs/implementation-plan.md), and check [development progress](docs/progress.md) for the current phase before working. The PRD owns product scope and numbered requirements; the rules own default gameplay and scoring; the design plan owns presentation; the implementation plan owns delivery order and technical boundaries. Reference PRD IDs when planning, implementing, or reviewing work. Keep IDs and their anchors stable.
+Read [the PRD](docs/prd.md), [the game rules](docs/rules.md), [the design plan](docs/design-plan.md), and [the implementation plan](docs/implementation-plan.md), and check [development progress](docs/progress.md) for the current phase before working. The PRD owns product requirements, decisions, open questions, and research findings; the rules own default gameplay and scoring; the design plan owns presentation; the implementation plan owns delivery order and technical boundaries. Reference PRD IDs when planning, implementing, or reviewing work. Keep IDs and their anchors stable.
 
 ### Phase and scope
 

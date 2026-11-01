@@ -4,9 +4,9 @@
 
 This plan proposes how to build the product and does not claim any build, test, performance, or deployment result. Current phase, status, and next actions are tracked in [progress.md](progress.md).
 
-The [PRD](prd.md#info-002) owns product scope, the [rules](rules.md) own default gameplay, and the [design plan](design-plan.md) owns presentation choices. This document owns delivery order, proposed technical boundaries, and verification. Resolve contradictions in the owning document rather than introducing a second ruleset here. Keep links, PRD references, and requirement coverage valid when editing these documents.
+The [PRD](prd.md#info-002) owns product requirements, decisions, open questions, research findings, and acceptance outcomes. The [rules](rules.md) own default gameplay and scoring; the [design plan](design-plan.md) owns presentation choices. This document owns delivery order, technical boundaries, and verification. Reference PRD items rather than restating them, resolve contradictions in the owning document, and keep links, PRD references, and requirement coverage valid when editing these documents.
 
-Use only [assets/](../assets/) as runtime card artwork. Keep [assets-old/](../assets-old/) as archived reference only; never load, bundle, or copy it into application outputs.
+Follow the [design plan](design-plan.md) for the card artwork rules, including which artwork sets may appear in application outputs.
 
 ## Approved implementation approach
 
@@ -24,39 +24,15 @@ Use regular HTML elements for cards, controls, labels, and contextual help in th
 
 Choose a state-management library only if the initial vertical slice needs it. The boundary matters more than the library. Plan rules operations around current game state plus a requested action producing a new state and a descriptive outcome. Preview and confirmation must use the same rule decisions. Resolve all random ordering from the run's seed so reproducing a dungeon does not depend on rendering or input timing.
 
-## Settled planning decisions
-
-- Escape is allowed only before the first card is resolved, regardless of the consecutive-room house-rule setting. Selecting or previewing a card does not resolve it. Escaping deals a new room and establishes that room's undo starting point; undo cannot return to the escaped room. See [REQ-007](prd.md#req-007) and [REQ-008](prd.md#req-008).
-- Room undo restores the full room-start state specified by [REQ-008](prd.md#req-008), including escape eligibility and run-highlight counters. Retrying a room must not accumulate duplicate highlights.
-- Plan a fresh release. Define save, preference, seed, and replay-link formats for this product. Data import and compatibility work are outside scope. See [DEC-003](prd.md#dec-003).
-
-- A win or loss is final. Undo is unavailable after either outcome, including after reloading the result screen. Retrying starts a fresh attempt. See [REQ-008](prd.md#req-008) and [REQ-009](prd.md#req-009).
-
-- Loss scoring counts only monsters remaining in the Dungeon draw pile; unresolved room cards are excluded. See the [rules](rules.md).
-
-- Escaped room cards return to the bottom of the Dungeon as one block in their current left-to-right order; the leftmost is dealt again first among them. See [REQ-007](prd.md#req-007).
-
 ## Initial hosting target
 
 Host the initial release on Vercel. Keep deployment configuration and build instructions in implementation documentation rather than the PRD. Hosting is settled; publishing a deployment is not authorized by this plan.
 
-When deployment is authorized, verify the deployed game loads its current artwork, supports opening and refreshing screens and replay links directly, and preserves saves, preferences, and statistics across reloads on the intended player-facing URL. If preview deployments are used, verify their replay links and asset paths too. Document that saved data belongs to the browser and site address where it was created; no cross-site or cross-device synchronization is in scope.
+When deployment is authorized, verify the deployed game loads its current artwork, supports opening and refreshing screens and replay links directly, and preserves saves, preferences, and statistics across reloads on the intended player-facing URL. If preview deployments are used, verify their replay links and asset paths too. Document that saved data belongs to the browser and site address where it was created; no cross-site or cross-device synchronization is in scope, consistent with [DEC-002](prd.md#dec-002).
 
-## Browser and accessibility targets
+## Browser and accessibility verification
 
-Follow [REQ-016](prd.md#req-016) and [REQ-017](prd.md#req-017). Verify the current and previous major versions of Chrome, Edge, Firefox, and Safari on desktop, plus current iOS Safari and Android Chrome; Chromium-based browsers and Safari are the primary verification targets, and Firefox gets a complete-flow smoke check. Verify applicable desktop and mobile use. Use Chromium and WebKit browser automation for broad checks, plus a real Safari smoke check; WebKit automation alone is not proof of Safari compatibility.
-
-Keyboard navigation and common accessibility practices are initial-release work. Use semantic controls, descriptive labels, visible focus, and readable contrast. Verify contrast against WCAG 2.2 AA (4.5:1 for normal text; 3:1 for large text and essential UI boundaries) and verify touch targets at least 24×24 CSS px, with 44×44 CSS px for primary card and action controls. Verify the complete flow without a pointer, including help and dialogs, with no focus traps. Keep basic screen-reader support, but formal audits, certification, and extensive screen-reader testing are lower-priority follow-ups rather than release blockers.
-
-## Statistics decisions
-
-Room counts, abandonment losses and scoring, consecutive-win streaks, and the newest-50-runs history limit are settled in [REQ-013](prd.md#req-013). Lifetime statistics persist independently of the retained history entries.
-
-## Rules research
-
-A [copy of the authors' 2011 rulesheet](https://aiscoundrel.com/Scoundrel.pdf) defines rooms as four dealt cards, allows skipping a room by returning all four cards to the bottom of the dungeon, prohibits consecutive skips, and completes a normal turn after resolving three cards. It does not define explored/cleared statistics or undo. Treat those as application features owned by the PRD rather than attributing their definitions to tabletop rules.
-
-Loss scoring follows the [rules](rules.md): only monsters remaining in the Dungeon draw pile count; unresolved room cards, including the carried card, are excluded. Keep that literal canonical rule unless the user changes it. Likewise, an equal-value monster is ineligible after a weapon's last kill because the rule requires a strictly lower value.
+Verify [REQ-016](prd.md#req-016) and [REQ-017](prd.md#req-017) with Chromium and WebKit browser automation, a real Safari smoke check, and a complete-flow Firefox smoke check, covering desktop and mobile widths, touch, keyboard-only operation, help and dialogs, focus behavior, and reduced motion. WebKit automation alone is not proof of Safari compatibility. Formal audits, certification, and extensive screen-reader testing remain the lower-priority follow-ups defined in [REQ-017](prd.md#req-017).
 
 ## Delivery plan
 
@@ -88,7 +64,7 @@ Acceptance check: seeded playthroughs reach both win and loss through real inter
 
 ### 4. Add continuity, history, and replay
 
-Save active runs including room undo, preferences, and completed outcomes. Keep active-run rules fixed when preferences change. Add aggregate statistics, recent history using the limit in [REQ-013](prd.md#req-013), replay from history, seed entry, and share links. Separate a fresh seeded attempt from resuming a saved run. Apply the single-active-run replacement policy in [REQ-001](prd.md#req-001) to every fresh-run entry point. Record abandoned runs as losses when replaced or explicitly discarded, preserving their abandoned status in history and applying the normal loss formula to the outgoing draw pile before replacing or removing the run. Record completed runs once even after reloads or when the same result is open in another tab, and preserve lifetime totals when recent history is trimmed.
+Add persistence, statistics, recent history, replay, seed entry, and share links for [REQ-001](prd.md#req-001), [REQ-010](prd.md#req-010), [REQ-013](prd.md#req-013), and [REQ-014](prd.md#req-014), including the replacement, abandonment, once-only recording, and history-trimming policies those requirements define.
 
 Requirements: [REQ-001](prd.md#req-001), [REQ-008](prd.md#req-008), [REQ-009](prd.md#req-009), [REQ-010](prd.md#req-010), [REQ-012](prd.md#req-012), [REQ-013](prd.md#req-013), and [REQ-014](prd.md#req-014).
 
