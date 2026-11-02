@@ -29,7 +29,7 @@ Read [the PRD](docs/prd.md), [the game rules](docs/rules.md), [the design plan](
 
 ### Phase and scope
 
-- This branch is in the planning phase. Until the user explicitly authorizes implementation, create and revise planning documents only; do not scaffold an application, add dependencies, create source files, or write executable test code. The [development progress](docs/progress.md) record tracks the current phase and next actions.
+- Implementation was authorized by the user on 2026-11-01. Build phases 1–5 per the [implementation plan](docs/implementation-plan.md#delivery-plan); Phase 1 owns foundation decisions, the minimal app, and verification tooling. Deployment, merging into `main`, and opening a merge request remain separately unauthorized. The [development progress](docs/progress.md) record tracks the current phase and next actions.
 - Treat this as a fresh release. Define this product's own save, preference, seed, and replay-link formats; data import and compatibility with other products are out of scope. See [DEC-003](docs/prd.md#dec-003).
 - Hosting is settled in the [implementation plan](docs/implementation-plan.md); the hosting choice alone does not authorize deployment.
 - The parent product branch is standalone and must not be merged into `main`. Do not merge or open a merge request for this branch without explicit instructions.
@@ -39,7 +39,7 @@ Read [the PRD](docs/prd.md), [the game rules](docs/rules.md), [the design plan](
 - Resolve gameplay ambiguities against the canonical documents before encoding them, and record approved clarifications in the owning document.
 - Update [development progress](docs/progress.md) when a phase starts, completes, or its status changes.
 - Keep game rules independent of presentation and saved-data handling; use one source for previews and confirmed outcomes.
-- Follow the [design plan](docs/design-plan.md) for card artwork and presentation; use the current PNG artwork only, never the archived JPEG set.
+- Follow the approved [design plan](docs/design-plan.md) for card artwork and presentation; use the current PNG artwork only, never the archived JPEG set. The style guide was approved on 2026-11-01; changes require a new recorded approval.
 - Follow [REQ-016](docs/prd.md#req-016) and [REQ-017](docs/prd.md#req-017) for browser and accessibility targets, plus the verification expectations in the [implementation plan](docs/implementation-plan.md).
 - Verify changes with checks appropriate to the work: for documents, links, PRD references, and requirement coverage; for code, the relevant behavioral checks before claiming it works.
 - When creating a branch and worktree, use a `codex/` branch name unless the user specifies another prefix, and place the worktree at `.worktrees/<kebab-cased-branch-name>`.
