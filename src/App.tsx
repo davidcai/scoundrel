@@ -426,10 +426,13 @@ export function App({ initial }: { initial: InitialSave }) {
               <p>{t('aboutEscape')}</p>
               <p>{t('credits')}</p>
               <p>
-                <a href="https://stfj.net/art/2011/Scoundrel.pdf">{t('originalRules')}</a>
-              </p>
-              <p>
-                <a href="https://github.com/davidcai/scoundrel">{t('sourceCode')}</a>
+                <a
+                  href="https://boardgamegeek.com/filepage/231361/scoundrel-rules"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t('originalRules')}
+                </a>
               </p>
             </div>
           )}
