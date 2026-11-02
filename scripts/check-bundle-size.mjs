@@ -4,7 +4,7 @@
  *
  * Measurement basis: gzip size (node:zlib level 9) of the built files in
  * `dist/`, because that approximates what a browser downloads for the static
- * build. Raw sizes are reported for context only.
+ * build. Only gzip sizes are gated; raw sizes are not reported or budgeted.
  *
  * The gate budgets code, not artwork: the 44 PNG illustrations are the known
  * dominant payload (~106 MB) and are covered by the asset-weight decision in

@@ -36,6 +36,19 @@ describe('current card artwork inventory', () => {
     expect(actual.filter((file) => /\.(jpe?g|webp|avif)$/i.test(file))).toEqual([]);
   });
 
+  it('contains only valid 1024x1536 PNG files', () => {
+    const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
+    for (const file of EXPECTED_CARDS) {
+      const buffer = readFileSync(join(assetsDir, file));
+
+      expect(buffer.subarray(0, 8).equals(pngSignature), `${file} has a PNG signature`).toBe(true);
+      expect(buffer.subarray(12, 16).toString('ascii'), `${file} starts with IHDR`).toBe('IHDR');
+      expect(buffer.readUInt32BE(16), `${file} width`).toBe(1024);
+      expect(buffer.readUInt32BE(20), `${file} height`).toBe(1536);
+    }
+  });
+
   it('does not reference archived artwork from application source', () => {
     for (const source of readSourceFiles()) {
       expect(source).not.toMatch(/assets-old/i);
