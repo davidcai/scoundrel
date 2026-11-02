@@ -413,6 +413,9 @@ dialog::backdrop {
   }
 }
 @media (max-width: 599px) {
+  .title-layout {
+    padding-top: 16px;
+  }
   .start {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

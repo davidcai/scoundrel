@@ -227,7 +227,10 @@ export function App({ initial }: { initial: InitialSave }) {
                       {t('discardRun')}
                     </button>
                   )}
-                  <button className="wide" onClick={() => openPanel('enterSeed')}>
+                  <button
+                    className={game?.status === 'playing' ? 'wide' : 'wide new-run-full'}
+                    onClick={() => openPanel('enterSeed')}
+                  >
                     {t('enterSeed')}
                   </button>
                   <nav className="title-links" aria-label={t('mainMenu')}>
