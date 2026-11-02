@@ -4,21 +4,21 @@ Tracks where development currently stands. The [implementation plan](implementat
 
 ## Current state
 
-- **Phase:** Phase 1 — Settle the foundation. Implementation was authorized by the user on 2026-11-01; application scaffolding and verification tooling may now be created.
+- **Phase:** Phase 2 — Prove the game rules. Phase 1 settled the foundation and was accepted on 2026-11-01 after independent verification.
 - **Last updated:** 2026-11-01.
 - **Branch:** standalone product branch; do not merge into `main` or open a merge request without explicit instructions.
 - **Design:** the written style guide in the [design plan](design-plan.md#design-approval-status) was approved by the user on 2026-11-01 as drafted (warm palette, serif display headings, no-badge card states, larger kill stack); the earlier withdrawn direction stays retired.
 
 ### Phase gate
 
-Implementation was authorized by the user on 2026-11-01 to begin Phase 1. Application scaffolding, dependencies, source files, and executable tests may now be created for phases 1–5 per the [implementation plan](implementation-plan.md#delivery-plan). Deployment, merging into `main`, and opening a merge request remain separately unauthorized. The written style guide was approved on 2026-11-01.
+Implementation was authorized by the user on 2026-11-01. Phase 1 was completed and accepted on 2026-11-01 after independent verification; Phase 2 (rules engine) is now in progress. Application scaffolding, dependencies, source files, and executable tests may be created for phases 1–5 per the [implementation plan](implementation-plan.md#delivery-plan). Deployment, merging into `main`, and opening a merge request remain separately unauthorized. The written style guide was approved on 2026-11-01.
 
 ## Phase status
 
 | Phase | Status | Notes |
 | --- | --- | --- |
-| 1. Settle the foundation | In progress | Foundation decisions recorded; minimal app, tests, CI workflow, bundle-size gate, and Vercel build config in place; independent acceptance verification pending. |
-| 2. Prove the game rules | Not started | |
+| 1. Settle the foundation | Complete | Accepted 2026-11-01 after independent verification; CI workflow green; foundation decisions, minimal app, bundle-size gate, and Vercel build config in place. |
+| 2. Prove the game rules | In progress | Pure seeded rules engine and focused behavioral tests (engine-dev). |
 | 3. Deliver a complete playable run | Not started | |
 | 4. Add continuity, history, and replay | Not started | |
 | 5. Verify product readiness | Not started | |
@@ -36,12 +36,13 @@ Work and acceptance checks for each phase are defined in the [delivery plan](imp
 - Phase 1 foundation decisions recorded in the implementation plan: pnpm and Node.js 22 targets, exact dependency pins, the 44-card inventory, seed/replay and rule-option encoding, build/routing, state-management deferral, saved-data versioning, and asset-weight strategy.
 - Minimal Vite + React + TypeScript scaffold created with the approved warm tokens, display serif, and one current-artwork card; smoke and asset-inventory tests added, and the production build displays the card without archived artwork. ESLint, Prettier, TypeScript, Vitest, and the production build were run with passing observed output.
 - Phase 1 CI workflow (Node 22 + pnpm, lint/format/typecheck/test/build/bundle-size), gzip bundle-size gate with recorded budgets, and Vercel build/caching config added; all gate commands verified locally, negative-tested, and recorded in the implementation plan.
-- Phase 1 independent acceptance review found no blockers or majors; the six minor findings (dependency inventory, gzip cross-check wording, bundle-gate comment, derived card radii, section-heading font, PNG dimensions test) were fixed in a follow-up commit.
+- Phase 1 independent acceptance review passed with no blockers or majors on 2026-11-01; the CI workflow ran green on `50734a0`, and acceptance evidence includes the 44/44 asset inventory, recorded foundation decisions, a production build that displays current artwork, and the bundle-size gate. The six minor review findings (dependency inventory, gzip cross-check wording, bundle-gate comment, derived card radii, section-heading font, PNG dimensions test) were fixed in `a66a923`.
+- Phase 1 milestone commits: `f964c3d` scaffold, `50734a0` CI workflow, bundle gate, and Vercel build config, `a66a923` acceptance-review fixes.
 - Adversarial document review fixed one high, seven medium, and eight low issues: design approval gate, loss scoring, escape return order, explicit discard, house-rule semantics, save and link recovery, future-update acceptance, measurable accessibility targets, final-room rule wording, wasted-potion definition, explored-versus-cleared counts, language fallback, archived-artwork exclusion, stable product-acceptance anchor, multi-tab recording, and statistics definitions.
 
 ## Next actions
 
-- Run the independent Phase 1 acceptance verification, then close the phase gate and start Phase 2 (rules engine).
+- Finish Phase 2: rules engine and its acceptance tests; then Phase 3 UI.
 - Use the approved style guide as the presentation source of truth; changes to it require a new recorded approval.
-- Verify the phase-4 future-update saved-data format-change scenario when implementation begins.
+- Verify the phase-4 future-update saved-data format-change scenario when Phase 4 begins.
 - Keep the Vercel hosting target in the [implementation plan](implementation-plan.md) and the browser and accessibility requirements in the [PRD](prd.md#req-016); deployment still requires explicit authorization.

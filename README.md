@@ -2,7 +2,7 @@
 
 Scoundrel is a single-player roguelike dungeon-crawling card game. Players face monsters, equip weapons, and use potions as they work through a dungeon made from a standard deck.
 
-This branch builds a fresh game release. Phase 1 adds a minimal Vite + React + TypeScript application that presents the approved warm visual direction and a current-artwork card; gameplay is not implemented yet. The parent product branch must not be merged into `main`.
+This branch builds a fresh game release. Phase 1 added a minimal Vite + React + TypeScript application that presents the approved warm visual direction and a current-artwork card; Phase 2 is in progress with the pure rules engine, so the game is not playable yet. The parent product branch must not be merged into `main`.
 
 ## Development
 
@@ -17,6 +17,7 @@ pnpm lint
 pnpm format:check
 pnpm typecheck
 pnpm test       # Vitest + Testing Library in jsdom
+pnpm bundle-size # gzip bundle-size gate (after a build)
 ```
 
 Application artwork comes only from [assets/](assets/), the current set of 44 PNG images. [Previous card artwork](assets-old/) preserves the earlier JPEG set for reference only; the application must never load or bundle it.
