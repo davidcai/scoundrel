@@ -234,7 +234,9 @@ export function App({ initial }: { initial: InitialSave }) {
                     {t('enterSeed')}
                   </button>
                   <nav className="title-links" aria-label={t('mainMenu')}>
-                    <button onClick={() => dispatch({ type: 'stats' })}>{t('stats')}</button>
+                    {session.history.length > 0 && (
+                      <button onClick={() => dispatch({ type: 'stats' })}>{t('stats')}</button>
+                    )}
                     <button onClick={() => openPanel('settings')}>{t('settings')}</button>
                     <button onClick={() => openPanel('about')}>{t('about')}</button>
                   </nav>
