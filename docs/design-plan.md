@@ -4,9 +4,9 @@ The [PRD](prd.md) owns product goals, requirements, scope, and acceptance outcom
 
 ## Design approval status
 
-Visual direction was approved by the user on 2026-11-01 from a throw-away style demo that is not part of this repository, and this written style guide was updated to that direction the same day. The written guide itself, including D1–D4 as now recorded, is still awaiting formal approval — **direction approved 2026-11-01 from the demo; written guide updated 2026-11-01; formal style-guide approval NOT yet given**: see [Proposed style guide (DRAFT — awaiting user approval)](#proposed-style-guide-draft).
+**Approved by the user on 2026-11-01 as drafted.** Scope: this written style guide, including the recorded D1–D4 values, typography, color tokens, spacing, component states, and the title/play/result compositions. The approval followed a 2026-11-01 direction review of a throw-away style demo that is not part of this repository. Independent contrast and accessibility checks (task-14 with its targeted task-16 re-check on the earlier revision; task-18 and task-20 on the warm-direction revision) found no blockers or majors, and every claimed contrast ratio recomputes exactly. See [Approved style guide](#proposed-style-guide-draft). Approval of this guide does not authorize implementation or deployment; those remain separate decisions.
 
-Before the phase 3 design review, the user formally approves a written style guide: typography, color tokens, spacing, component states, and the title/play-screen composition. Record the approval date and scope in this section, including the choices recorded for D1–D4 in the draft's "Decisions for the user". Until that written approval is recorded, do not claim an approved design, treat D1–D4 as final, or reintroduce the removed design references. The 2026-11-01 direction approval covers the look demonstrated in the throw-away demo; it is not the written-guide approval.
+The written style guide was approved on 2026-11-01 with the scope recorded above, satisfying the design gate required before the phase 3 design review. Any later change to the guide, its tokens, or its D1–D4 values requires a new approval recorded in this section and in §10; do not reintroduce the removed design references. The 2026-11-01 direction approval covers the look demonstrated in the throw-away demo and is subsumed by this written-guide approval.
 
 ## Visual treatment
 
@@ -37,11 +37,11 @@ Use contextual tooltips for card meanings, the weapon's degradation chain, and r
 
 <a id="proposed-style-guide-draft"></a>
 
-## Proposed style guide (DRAFT — awaiting user approval)
+## Approved style guide (2026-11-01)
 
-**Status: DRAFT updated 2026-11-01 to the user-approved warm direction — written style guide not formally approved.** Review target: the user. Independent check: `qa-verifier` (task-14; targeted re-check task-16); this warm-direction update gets a fresh independent check (task-18). The user approved the visual direction from a throw-away demo on 2026-11-01; this revision records that direction in the written guide and keeps the guide itself unapproved. The draft remains the written style guide required before the phase 3 design review; it records the title, play, and result presentation plus the small-screen and keyboard coverage called for by the phase 1 acceptance check. It adds no dependency, source file, or executable test, and it does not approve the design.
+**Status: approved by the user on 2026-11-01 as drafted.** Scope: the written style guide as recorded in this section, including D1–D4. Independent checks: `qa-verifier` re-ran contrast and accessibility checks (task-14 and targeted task-16 on the earlier revision; task-18 and task-20 on the warm-direction revision) with no blockers or majors, and the Lead applied the final minor wording clarifications afterwards. The guide records the title, play, and result presentation plus the small-screen and keyboard coverage called for by the phase 1 acceptance check. It adds no dependency, source file, or executable test, and it does not authorize implementation.
 
-**How to review:** read §1 for the approved direction and §10 for the recorded D1–D4 values. §2–§9 are build-ready detail. The direction was approved from the demo; to approve this written guide as recorded, reply "approved as drafted". To change a recorded D1–D4 value, name the decision and the change. Approval is then recorded in [Design approval status](#design-approval-status) with the date and scope. No implementation starts from this approval alone.
+**How to use this guide:** §1 records the direction, §2–§9 are build-ready detail, and §10 records the approved D1–D4 values. Implementation uses this guide as the presentation source of truth. Any change to the guide or to a recorded D1–D4 value requires a new recorded approval in [Design approval status](#design-approval-status); no implementation starts from this guide's approval alone.
 
 ### 1. Direction and principles
 
@@ -380,7 +380,7 @@ Rules: no hard-coded display strings — visible copy, `aria-label` text, live-r
 
 ### 9. Accessibility acceptance checklist
 
-This is the draft's self-check; the formal audit stays deferred per [REQ-017](prd.md#req-017).
+This is the guide's self-check; the formal audit stays deferred per [REQ-017](prd.md#req-017).
 
 - **Contrast:** every pair in §3 meets its threshold; focus ring, card frame, health bar, and card-state captions are re-checked against final surfaces ([REQ-017](prd.md#req-017), [AC-005](prd.md#ac-005)).
 - **Touch:** primary controls at least 44×44; secondary controls at least 24×24 with 8px separation ([REQ-016](prd.md#req-016)).
@@ -394,25 +394,19 @@ This is the draft's self-check; the formal audit stays deferred per [REQ-017](pr
 
 ### 10. Decisions for the user
 
-**Direction approved in principle; the written guide is still pending.** The user reviewed the throw-away demo on 2026-11-01 and approved its visual direction ("direction works"). The values below are the ones that direction fixes; formal approval of this written guide and of these recorded D1–D4 values is still pending and must be recorded in [Design approval status](#design-approval-status).
+**Approved as drafted on 2026-11-01.** The user approved the visual direction from a throw-away demo and then approved this written guide with the D1–D4 values below as recorded. The approval is recorded in [Design approval status](#design-approval-status); changes require a new recorded approval.
 
-**D1. Accent metal — warm antique brass (fixed by the approved direction).** `--gold #C9A15A`, `--gold-bright #E3BE7C`, `--gold-ink #1A1204`, and `--selection #E3BE7C`. Evidence: gold text 7.54:1 on `--surface-1` and 6.93:1 on `--surface-2`; ink on gold 7.71:1, on hover 10.53:1. The earlier cold-steel and aged-ember alternatives were dropped when the warm palette was fixed and are not offered as live options. The accent stays away from the card art: gold is never a text or border at the artwork edge (§3 non-uses).
+**D1. Accent metal — warm antique brass (approved 2026-11-01).** `--gold #C9A15A`, `--gold-bright #E3BE7C`, `--gold-ink #1A1204`, and `--selection #E3BE7C`. Evidence: gold text 7.54:1 on `--surface-1` and 6.93:1 on `--surface-2`; ink on gold 7.71:1, on hover 10.53:1. The earlier cold-steel and aged-ember alternatives were dropped when the warm palette was fixed and are not offered as live options. The accent stays away from the card art: gold is never a text or border at the artwork edge (§3 non-uses).
 
-**D2. Display typography — system display serif stack (fixed by the approved direction).** `"Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif SC", "Source Han Serif SC", "Songti SC", SimSun, serif` for the wordmark, screen titles, room and section headings, dialog titles, and the result headline, in normal case with no all-caps or uppercase letter-spacing; the UI sans stack covers body, data, labels, and buttons; mono covers the seed, replay link, and tabular figures (§2). The all-sans and self-hosted-display alternatives were dropped by the approved direction; a self-hosted display face remains a possible later enhancement, not part of this guide.
+**D2. Display typography — system display serif stack (approved 2026-11-01).** `"Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif SC", "Source Han Serif SC", "Songti SC", SimSun, serif` for the wordmark, screen titles, room and section headings, dialog titles, and the result headline, in normal case with no all-caps or uppercase letter-spacing; the UI sans stack covers body, data, labels, and buttons; mono covers the seed, replay link, and tabular figures (§2). The all-sans and self-hosted-display alternatives were dropped by the approved direction; a self-hosted display face remains a possible later enhancement, not part of this guide.
 
-**D3. Card framing — dark mat treatment (fixed by the approved direction).** Art on a `--bg-0` mat with a 1px `--border-2` frame, a 1px `--bg-0` inner separator, and `--shadow-1`; hover lifts 2px and adds `--shadow-2`; the selected state uses a 2px `--selection` ring at a 6px offset outside the mat with a `--surface-3` mat; focus uses the 2px `--focus` ring at a 2px offset; gold never touches the artwork edge, and card state is written in the caption line (§4, §5). The borderless-art and heavy-board-game-frame alternatives were dropped by the approved direction: borderless rings would sit on the art at 1.60:1, and the heavy frame over-decorates a four-up grid.
+**D3. Card framing — dark mat treatment (approved 2026-11-01).** Art on a `--bg-0` mat with a 1px `--border-2` frame, a 1px `--bg-0` inner separator, and `--shadow-1`; hover lifts 2px and adds `--shadow-2`; the selected state uses a 2px `--selection` ring at a 6px offset outside the mat with a `--surface-3` mat; focus uses the 2px `--focus` ring at a 2px offset; gold never touches the artwork edge, and card state is written in the caption line (§4, §5). The borderless-art and heavy-board-game-frame alternatives were dropped by the approved direction: borderless rings would sit on the art at 1.60:1, and the heavy frame over-decorates a four-up grid.
 
-**D4. Compact room layout — 2×2 card grid (fixed by the approved direction).** Below 768px, all four cards stay visible in a 2×2 grid at ≥132px wide with caption lines under each card; the horizontal-scrolling row and stacked-list alternatives were dropped by the approved direction because they hide cards or push play below the first view (§6).
+**D4. Compact room layout — 2×2 card grid (approved 2026-11-01).** Below 768px, all four cards stay visible in a 2×2 grid at ≥132px wide with caption lines under each card; the horizontal-scrolling row and stacked-list alternatives were dropped by the approved direction because they hide cards or push play below the first view (§6).
 
-**Approval block.** The direction was approved from the demo on 2026-11-01, but this written guide is not formally approved yet. The independent contrast/accessibility check is complete (task-18: safe, no blockers or majors; task-14 and its targeted re-check task-16 reviewed the earlier revision), and the draft is ready for the user's decision. Reply in chat with one of:
+**Approval record.** The user approved this written style guide as drafted on 2026-11-01, including the D1–D4 values recorded above. Scope: typography, color tokens, spacing, component states, and the title/play/result compositions. The independent contrast and accessibility checks were complete before approval (task-18: safe, no blockers or majors; task-14 and its targeted re-check task-16 reviewed the earlier revision). Changes to this guide require a new recorded approval in [Design approval status](#design-approval-status). Approval of this style guide does not authorize implementation or deployment; those remain separate decisions.
 
-- "Approved as drafted" — the written guide and D1–D4 as recorded.
-- "Approved with changes" — name the D1–D4 value or section to change.
-- "Revise" — name the section(s) and what to change.
-
-After the user replies, I will record the approval date and scope in [Design approval status](#design-approval-status). Approval of this style guide does not authorize implementation or deployment; those remain separate decisions.
-
-**Not covered by this draft (later steps):** final copy strings and translation review; a commissioned card-back illustration (none exists, so the dungeon pile is CSS-only for now); any later self-hosted display face; sound and haptics; and the statistics/settings visual layer, which follows step 2 of the [design handoff sequence](#design-handoff-sequence) after approval.
+**Not covered by this guide (later steps):** final copy strings and translation review; a commissioned card-back illustration (none exists, so the dungeon pile is CSS-only for now); any later self-hosted display face; sound and haptics; and the statistics/settings visual layer, which follows step 2 of the [design handoff sequence](#design-handoff-sequence) after approval.
 
 ## Design handoff sequence
 
