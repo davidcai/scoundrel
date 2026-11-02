@@ -48,8 +48,8 @@ test('previews do not commit; confirm, undo, room entry and escape use real rule
   await startCinder(page);
   await choose(page, 'heart-4');
   const potionButton = page.getByRole('button', { name: 'Drink potion', exact: true });
-  await expect(potionButton).toContainText('Restores 0 health');
-  await expect(potionButton).toHaveAccessibleDescription('Restores 0 health');
+  await expect(potionButton).toContainText('Restore 0 health');
+  await expect(potionButton).toHaveAccessibleDescription('Restore 0 health');
   await choose(page, 'spade-7');
   const weaponButton = page.getByRole('button', { name: 'Fight with weapon', exact: true });
   await expect(weaponButton).toBeDisabled();
@@ -71,7 +71,7 @@ test('previews do not commit; confirm, undo, room entry and escape use real rule
   await page.getByRole('link', { name: 'Skip to content' }).focus();
   await page.keyboard.press('Enter');
   expect(await page.evaluate(() => location.hash)).toBe(replayHash);
-  await expect(page.getByRole('heading', { name: 'Your weapon 6', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your equipped weapon 6', exact: true })).toBeVisible();
   await choose(page, 'spade-7');
   await expect(weaponButton).toBeEnabled();
   await expect(weaponButton).toContainText('Take 1 damage');
@@ -82,8 +82,8 @@ test('previews do not commit; confirm, undo, room entry and escape use real rule
   await page.getByRole('button', { name: 'Fight with weapon', exact: true }).click();
   await expect(page.locator('.health-value')).toHaveText('19 / 20');
   await choose(page, 'heart-4');
-  await expect(potionButton).toContainText('Restores 1 health');
-  await expect(potionButton).toHaveAccessibleDescription('Restores 1 health');
+  await expect(potionButton).toContainText('Restore 1 health');
+  await expect(potionButton).toHaveAccessibleDescription('Restore 1 health');
   await expect(page.getByRole('button', { name: 'Run away', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Undo room', exact: true }).click();
   await expect(page.locator('.health-value')).toHaveText('20 / 20');

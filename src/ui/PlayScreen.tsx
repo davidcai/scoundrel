@@ -137,7 +137,11 @@ export function PlayScreen({ game, selected, t, onSelect, onAct, onTitle }: Prop
                     )}
                   </button>
                   <p className="card-caption">
-                    {cardName(id, t)} <span className="muted">· {kindName(c.kind)}</span>
+                    <span className="card-name">{cardName(id, t)}</span>{' '}
+                    <span className="muted">
+                      <span className="card-divider">· </span>
+                      {kindName(c.kind)}
+                    </span>
                   </p>
                 </article>
               );
@@ -218,7 +222,7 @@ export function PlayScreen({ game, selected, t, onSelect, onAct, onTitle }: Prop
                     <p className="muted">{t('swapHelp')}</p>
                   )}
                   <button
-                    className="primary wide"
+                    className={`primary wide${card.kind === 'potion' ? ' potion-action' : ''}`}
                     disabled={item?.type === 'invalid'}
                     aria-label={t(card.kind === 'weapon' ? 'equip' : 'drink')}
                     aria-describedby={
@@ -303,7 +307,7 @@ export function PlayScreen({ game, selected, t, onSelect, onAct, onTitle }: Prop
                       ? t('lastKill', { value: getCard(lastKill).value })
                       : t('freshWeapon')}
                 </p>
-                <p className="muted">{t('swapHelp')}</p>
+                <p className="muted equipment-swap-help">{t('swapHelp')}</p>
               </div>
             </>
           ) : (
@@ -315,7 +319,7 @@ export function PlayScreen({ game, selected, t, onSelect, onAct, onTitle }: Prop
         </section>
       </div>
       <p className="run-seed muted">
-        <span>{t('seed')}</span>
+        <span>{t('seed')}:</span>
         <span className="seed-value">{game.seed}</span>
       </p>
     </>

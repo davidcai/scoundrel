@@ -549,6 +549,7 @@ input {
   font-family: Baskerville, Georgia, serif;
 }
 .health-value {
+  margin-left: -8px;
   font:
     32px Baskerville,
     Georgia,
@@ -563,6 +564,7 @@ meter {
   accent-color: var(--action);
 }
 .status-items {
+  margin-left: 8px;
   flex: none;
   display: flex;
   gap: 32px;
@@ -1038,14 +1040,157 @@ meter {
   .status-items strong {
     font-size: 14px;
   }
-  .health meter {
-    display: none;
-  }
 }
 
 @media (max-width: 599px) {
+  .statusbar {
+    gap: 8px;
+    font-size: 12px;
+    padding-block: 2px;
+  }
+  .status-menu {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+  .health {
+    flex: 0 1 260px;
+    display: flex;
+    gap: 6px;
+  }
+  .health-value {
+    margin-left: 0;
+    font-size: 20px;
+  }
+  .health meter {
+    display: block;
+    flex: 1 1 120px;
+    width: 120px;
+    min-width: 20px;
+    height: 12px;
+  }
+  .status-items {
+    margin-left: 4px;
+  }
+  .status-items > div {
+    gap: 4px;
+  }
+  .status-items strong {
+    font-size: 14px;
+  }
+  .play-screen .board {
+    gap: 12px;
+    padding-top: 12px;
+  }
+  .room-head {
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+  .room-title {
+    font-size: 26px;
+  }
+  .room-status {
+    gap: 4px;
+  }
+  .room-status .tag {
+    font-size: 12px;
+    padding: 3px 6px;
+  }
   .room-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .card.selected button {
+    outline-offset: 2px;
+  }
+  .card img {
+    box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.3);
+  }
+  .card-caption {
+    margin-top: 14px;
+    font-size: 12px;
+  }
+  .card-name,
+  .card-divider {
+    display: none;
+  }
+  .carried {
+    font-size: 10px;
+    padding: 2px 4px;
+  }
+  .preview {
+    padding: 12px;
+    gap: 10px;
+    font-size: 14px;
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .preview > * {
+    grid-column: 1 / -1;
+  }
+  .preview > .combat-action {
+    grid-column: auto;
+  }
+  .preview h2 {
+    font-size: 20px;
+  }
+  .preview button {
+    min-height: 44px;
+    padding: 8px;
+  }
+  .combat-action {
+    flex-direction: column;
+    gap: 2px;
+    font-size: 14px;
+  }
+  .combat-action > span[aria-hidden] {
+    display: none;
+  }
+  .room-controls {
+    margin-top: 2px;
+    padding-top: 10px;
+    gap: 6px;
+  }
+  .room-controls-title {
+    display: none;
+  }
+  #escape-reason {
+    font-size: 12px;
+  }
+  .run-actions {
+    gap: 8px;
+  }
+  .equipment {
+    flex-wrap: nowrap;
+    gap: 12px;
+    padding-top: 12px;
+    align-items: flex-start;
+  }
+  .equipment-cards {
+    gap: 8px;
+    max-width: 50%;
+  }
+  .equipment-cards > img {
+    width: 72px;
+  }
+  .kill-stack img {
+    width: 64px;
+  }
+  .kill-stack span + span {
+    margin-left: -44px;
+  }
+  .equipment h2 {
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+  .equipment p {
+    font-size: 13px;
+  }
+  .equipment-swap-help {
+    display: none;
+  }
+  .play-meta {
+    margin-top: 12px;
   }
 }
 
@@ -1070,5 +1215,46 @@ meter {
     grid-row: 2;
     order: 0;
     align-self: start;
+  }
+}
+
+@media (max-width: 599px) and (max-height: 700px) {
+  .play-screen .board {
+    gap: 8px;
+    padding-top: 8px;
+  }
+  .room-head {
+    margin-bottom: 8px;
+  }
+  .preview {
+    padding: 10px;
+    gap: 8px;
+  }
+  .combat-action {
+    font-size: 12px;
+  }
+  .room-controls {
+    padding-top: 8px;
+  }
+  .equipment {
+    padding-top: 8px;
+  }
+  .equipment-cards > img {
+    width: 56px;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 1000px) {
+  .combat-action {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .combat-action > span[aria-hidden],
+  .potion-action > span[aria-hidden] {
+    display: none;
+  }
+  .potion-action #potion-healing {
+    display: block;
+    margin-top: 4px;
   }
 }

@@ -14,7 +14,7 @@ test('reload and reopening restore progress at title, including room undo', asyn
   await page.reload();
   await page.getByRole('button', { name: 'Continue run', exact: true }).click();
   await expect(page.locator('.health-value')).toHaveText('19 / 20');
-  await expect(page.getByRole('heading', { name: 'Your weapon 6', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your equipped weapon 6', exact: true })).toBeVisible();
   await saved(page);
   await page.close();
   const reopened = await context.newPage();
@@ -171,7 +171,7 @@ test('quota failure is visible and retry saves the latest state without duplicat
   await page.evaluate(() => sessionStorage.setItem('test:fail-write', '1'));
   await page.locator('[data-card-id="diamond-6"]').click();
   await page.getByRole('button', { name: 'Equip weapon', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Your weapon 6', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your equipped weapon 6', exact: true })).toBeVisible();
   await expect(page.getByRole('alert')).toContainText('could not be saved');
   expect(await storedRaw(page)).toBe(original);
   await page.evaluate(() => sessionStorage.removeItem('test:fail-write'));
@@ -181,7 +181,7 @@ test('quota failure is visible and retry saves the latest state without duplicat
   await saved(page);
   await page.reload();
   await page.getByRole('button', { name: 'Continue run', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Your weapon 6', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your equipped weapon 6', exact: true })).toBeVisible();
 });
 
 test('simultaneous tabs cannot both replace the same saved revision', async ({ page, context }) => {
@@ -279,7 +279,7 @@ for (const language of ['en', 'zh'] as const) {
     expect(await storedRaw(page)).toBe(before);
     await page.getByRole('button', { name: zh ? '继续游戏' : 'Continue run', exact: true }).click();
     await expect(
-      page.getByRole('heading', { name: zh ? '当前武器 6' : 'Your weapon 6', exact: true }),
+      page.getByRole('heading', { name: zh ? '当前武器 6' : 'Your equipped weapon 6', exact: true }),
     ).toBeVisible();
     await page.getByRole('button', { name: zh ? '菜单' : 'Menu', exact: true }).click();
     await page.getByRole('button', { name: zh ? '输入种子' : 'Enter seed', exact: true }).click();

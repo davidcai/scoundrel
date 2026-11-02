@@ -96,7 +96,7 @@ export const en = {
   weaponPower: 'of power {value}',
   equip: 'Equip weapon',
   drink: 'Drink potion',
-  heals: 'Restores {healed} health',
+  heals: 'Restore {healed} health',
   wastedPotion: 'This potion restores no health.',
   swapHelp: 'Equipping discards your current weapon and its defeated-monster stack.',
   yourWeapon: 'Your equipped weapon {value}',
