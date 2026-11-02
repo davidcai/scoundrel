@@ -67,6 +67,20 @@ export function PlayScreen({ game, selected, t, onSelect, onAct, onTitle }: Prop
   return (
     <>
       <section className="statusbar" aria-label={t('runInProgress')}>
+        <button className="status-menu" onClick={onTitle} aria-label={t('menu')} title={t('menu')}>
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M3.5 11.5 12 4.5l8.5 7" />
+            <path d="M5.75 10.25v9h12.5v-9M10 19.25V14h4v5.25" />
+          </svg>
+        </button>
         <div className="health">
           <span>{t('health')}</span>
           <strong className="health-value">
@@ -80,9 +94,6 @@ export function PlayScreen({ game, selected, t, onSelect, onAct, onTitle }: Prop
             <strong>{t('cardsRemaining', { count: b.dungeon.length })}</strong>
           </div>
         </div>
-        <button className="status-menu" onClick={onTitle}>
-          {t('menu')}
-        </button>
       </section>
       <div className="board">
         <section className="room-area" aria-label={t('room', { room: b.highlights.roomsExplored })}>
@@ -148,41 +159,50 @@ export function PlayScreen({ game, selected, t, onSelect, onAct, onTitle }: Prop
             </>
           ) : card ? (
             <>
-              <p className="preview-label">{t('selectedCard')}</p>
-              <h2 id="preview-heading">{cardName(card.id, t)}</h2>
+              <h2 id="preview-heading" className="sr-only">
+                {cardName(card.id, t)}
+              </h2>
               {card.kind === 'monster' ? (
                 <>
                   {weapon?.type === 'fought' ? (
-                    <div className="outcome">
-                      <div className="damage-row">
-                        <span>{t('damage')}</span>
-                        <strong className="damage">{weapon.damage}</strong>
-                      </div>
-                      <p className="muted">
-                        {t('damageMath', {
-                          monster: card.value,
-                          weapon: b.weapon ? getCard(b.weapon).value : 0,
-                        })}
-                      </p>
-                      <p>{t('healthAfter', { health: weapon.healthAfter })}</p>
-                    </div>
+                    <p className="muted">
+                      {t('damageMath', {
+                        monster: card.value,
+                        weapon: b.weapon ? getCard(b.weapon).value : 0,
+                      })}
+                    </p>
                   ) : (
                     <p className="muted">{invalidText(weapon)}</p>
                   )}
                   <button
-                    className="primary wide"
+                    className="primary wide combat-action"
                     disabled={weapon?.type !== 'fought'}
+                    aria-label={t('fightWeapon')}
+                    aria-describedby={weapon?.type === 'fought' ? 'weapon-damage' : undefined}
                     onClick={() => confirm(weaponAction)}
                   >
-                    {t('fightWeapon')}
+                    <span>{t('fightWeapon')}</span>
+                    {weapon?.type === 'fought' && (
+                      <>
+                        <span aria-hidden="true">·</span>
+                        <span id="weapon-damage">
+                          {t('damageReceived', { damage: weapon.damage })}
+                        </span>
+                      </>
+                    )}
                   </button>
                   {bare?.type === 'fought' && (
                     <>
-                      <p className="muted">{t('bareDamage', { damage: bare.damage })}</p>
-                      <button className="wide" onClick={() => confirm(bareAction)}>
-                        {t('fightBare')}
+                      <button
+                        className="wide combat-action"
+                        aria-label={t('fightBare')}
+                        aria-describedby="bare-damage"
+                        onClick={() => confirm(bareAction)}
+                      >
+                        <span>{t('fightBare')}</span>
+                        <span aria-hidden="true">·</span>
+                        <span id="bare-damage">{t('damageReceived', { damage: bare.damage })}</span>
                       </button>
-                      <p>{t('healthAfter', { health: bare.healthAfter })}</p>
                     </>
                   )}
                 </>
@@ -190,8 +210,8 @@ export function PlayScreen({ game, selected, t, onSelect, onAct, onTitle }: Prop
                 <>
                   {item?.type === 'drank' && (
                     <div className="outcome">
-                      <p>{item.wasted ? t('wastedPotion') : t('heals', { healed: item.healed })}</p>
-                      <p>{t('healthAfter', { health: item.healthAfter })}</p>
+                      {item.wasted && <p>{t('wastedPotion')}</p>}
+                      <p className="muted">{t('healthAfter', { health: item.healthAfter })}</p>
                     </div>
                   )}
                   {item?.type === 'equipped' && b.weapon && (
@@ -200,9 +220,29 @@ export function PlayScreen({ game, selected, t, onSelect, onAct, onTitle }: Prop
                   <button
                     className="primary wide"
                     disabled={item?.type === 'invalid'}
+                    aria-label={t(card.kind === 'weapon' ? 'equip' : 'drink')}
+                    aria-describedby={
+                      card.kind === 'weapon'
+                        ? 'weapon-power'
+                        : item?.type === 'drank'
+                          ? 'potion-healing'
+                          : undefined
+                    }
                     onClick={() => confirm(itemAction)}
                   >
                     {t(card.kind === 'weapon' ? 'equip' : 'drink')}
+                    {card.kind === 'weapon' && (
+                      <>
+                        {' '}
+                        <span id="weapon-power">{t('weaponPower', { value: card.value })}</span>
+                      </>
+                    )}
+                    {item?.type === 'drank' && (
+                      <>
+                        <span aria-hidden="true"> · </span>
+                        <span id="potion-healing">{t('heals', { healed: item.healed })}</span>
+                      </>
+                    )}
                   </button>
                 </>
               )}
@@ -213,6 +253,28 @@ export function PlayScreen({ game, selected, t, onSelect, onAct, onTitle }: Prop
               <p className="muted">{t('selectHelp')}</p>
             </>
           )}
+          <div className="room-controls" role="group" aria-labelledby="room-actions-label">
+            <p id="room-actions-label" className="room-controls-title muted">
+              {t('roomActions')}
+            </p>
+            {escape.type === 'invalid' && (
+              <p id="escape-reason" className="muted">
+                {t(escape.reason)}
+              </p>
+            )}
+            <div className="run-actions">
+              <button
+                disabled={escape.type === 'invalid'}
+                onClick={() => onAct({ type: 'escape' })}
+                aria-describedby={escape.type === 'invalid' ? 'escape-reason' : undefined}
+              >
+                {t('escape')}
+              </button>
+              <button disabled={undo.type === 'invalid'} onClick={() => onAct({ type: 'undo' })}>
+                {t('undo')}
+              </button>
+            </div>
+          </div>
         </aside>
         <section className="equipment" aria-label={t('weapon')}>
           {b.weapon ? (
@@ -251,27 +313,6 @@ export function PlayScreen({ game, selected, t, onSelect, onAct, onTitle }: Prop
             </div>
           )}
         </section>
-      </div>
-      <div className="run-actions">
-        <div>
-          <button
-            disabled={escape.type === 'invalid'}
-            onClick={() => onAct({ type: 'escape' })}
-            aria-describedby={escape.type === 'invalid' ? 'escape-reason' : undefined}
-          >
-            {t('escape')}
-          </button>
-          {escape.type === 'invalid' && (
-            <p id="escape-reason" className="muted">
-              {t(escape.reason)}
-            </p>
-          )}
-        </div>
-        <div>
-          <button disabled={undo.type === 'invalid'} onClick={() => onAct({ type: 'undo' })}>
-            {t('undo')}
-          </button>
-        </div>
       </div>
       <p className="run-seed muted">
         <span>{t('seed')}</span>

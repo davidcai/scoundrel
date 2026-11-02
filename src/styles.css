@@ -60,6 +60,12 @@ button.primary:hover:not(:disabled) {
   background: #e5f3b3;
   border-color: #e5f3b3;
 }
+button.primary:disabled {
+  background: var(--table);
+  border-color: var(--line);
+  color: var(--muted);
+  opacity: 1;
+}
 h1,
 h2,
 p {
@@ -226,6 +232,7 @@ h2 {
   z-index: 2;
 }
 .skip:focus {
+  z-index: 4;
   transform: none;
 }
 dialog {
@@ -502,11 +509,15 @@ input {
   color: var(--muted);
 }
 .statusbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--coal);
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 24px;
-  padding: 24px 0;
+  padding: 8px 0;
   border-bottom: 1px solid var(--line);
 }
 .health {
@@ -542,9 +553,6 @@ meter {
   gap: 8px;
   white-space: nowrap;
 }
-.status-items span {
-  color: var(--muted);
-}
 .status-items strong {
   font:
     24px Baskerville,
@@ -553,12 +561,23 @@ meter {
 }
 .status-menu {
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+}
+.status-menu svg {
+  width: 24px;
+  height: 24px;
 }
 .run-seed {
   font-size: 12px;
   font-weight: 400;
   color: #8a958e;
   display: flex;
+  justify-content: flex-end;
   align-items: baseline;
   gap: 8px;
   padding-bottom: 24px;
@@ -655,37 +674,26 @@ meter {
   padding: 24px;
   border-top: 3px solid var(--action);
   align-self: start;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
   grid-column: 2;
   grid-row: 1 / span 2;
   min-width: 0;
 }
+.combat-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .preview h2 {
   overflow-wrap: anywhere;
 }
-.preview-label {
-  color: var(--action);
-}
 .outcome {
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  padding: 16px 0;
   display: grid;
   gap: 12px;
-}
-.damage-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-.damage {
-  color: var(--damage);
-  font:
-    48px Baskerville,
-    Georgia,
-    serif;
 }
 .equipment {
   grid-column: 1;
@@ -725,17 +733,27 @@ meter {
 .kill-stack span:last-child {
   margin-right: 0;
 }
+.room-controls {
+  display: grid;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.room-controls-title {
+  font-family: Baskerville, Georgia, serif;
+  font-size: inherit;
+  font-weight: 400;
+}
 .run-actions {
-  display: flex;
-  align-items: start;
-  gap: 24px;
-  margin: 32px 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
-.run-actions > div {
-  max-width: 360px;
-}
-.run-actions p {
-  margin-top: 8px;
+.run-actions button {
+  min-width: 0;
+  width: 100%;
+  padding-inline: 8px;
 }
 .result-screen {
   max-width: 760px;
@@ -793,14 +811,6 @@ meter {
     order: 1;
     align-self: stretch;
   }
-  .run-actions > div {
-    flex: 1;
-    min-width: 0;
-    max-width: none;
-  }
-  .run-actions button {
-    width: 100%;
-  }
   .equipment {
     order: 2;
     flex-wrap: wrap;
@@ -837,17 +847,6 @@ meter {
   }
   .room-head {
     flex-wrap: wrap;
-  }
-  .run-actions {
-    gap: 16px;
-  }
-  .run-actions > div {
-    flex: 1;
-    min-width: 0;
-  }
-  .run-actions button {
-    width: 100%;
-    padding-inline: 8px;
   }
   .result-screen {
     margin: 32px 0;
@@ -1008,9 +1007,6 @@ meter {
     gap: 8px;
     font-size: 14px;
   }
-  .status-menu {
-    padding-inline: 8px;
-  }
   .health {
     gap: 8px;
   }
@@ -1028,5 +1024,32 @@ meter {
 @media (max-width: 599px) {
   .room-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .equipment-cards > img {
+    width: 104px;
+  }
+}
+
+@media (min-width: 600px) {
+  .board {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+  .room-area {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  .preview {
+    grid-column: 1;
+    grid-row: 2;
+    order: 0;
+    align-self: stretch;
+  }
+  .equipment {
+    grid-column: 2;
+    grid-row: 2;
+    order: 0;
+    align-self: start;
   }
 }

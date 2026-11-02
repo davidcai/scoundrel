@@ -46,20 +46,44 @@ test('previews do not commit; confirm, undo, room entry and escape use real rule
   page,
 }) => {
   await startCinder(page);
+  await choose(page, 'heart-4');
+  const potionButton = page.getByRole('button', { name: 'Drink potion', exact: true });
+  await expect(potionButton).toContainText('Restores 0 health');
+  await expect(potionButton).toHaveAccessibleDescription('Restores 0 health');
   await choose(page, 'spade-7');
+  const weaponButton = page.getByRole('button', { name: 'Fight with weapon', exact: true });
+  await expect(weaponButton).toBeDisabled();
+  await expect(weaponButton).toHaveCSS('background-color', 'rgb(28, 37, 37)');
+  await expect(page.getByRole('button', { name: 'Fight barehanded', exact: true })).toContainText(
+    'Take 7 damage',
+  );
+  await expect(
+    page.getByRole('button', { name: 'Fight barehanded', exact: true }),
+  ).toHaveAccessibleDescription('Take 7 damage');
   await expect(page.locator('.health-value')).toHaveText('20 / 20');
   await expect(page.getByRole('button', { name: 'Run away', exact: true })).toBeEnabled();
   await choose(page, 'diamond-6');
-  await page.getByRole('button', { name: 'Equip weapon', exact: true }).click();
+  const equipButton = page.getByRole('button', { name: 'Equip weapon', exact: true });
+  await expect(equipButton).toContainText('of power 6');
+  await expect(equipButton).toHaveAccessibleDescription('of power 6');
+  await equipButton.click();
   const replayHash = await page.evaluate(() => location.hash);
   await page.getByRole('link', { name: 'Skip to content' }).focus();
   await page.keyboard.press('Enter');
   expect(await page.evaluate(() => location.hash)).toBe(replayHash);
-  await expect(page.getByRole('heading', { name: 'Your weapon · 6', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your weapon 6', exact: true })).toBeVisible();
   await choose(page, 'spade-7');
-  await expect(page.locator('.damage')).toHaveText('1');
+  await expect(weaponButton).toBeEnabled();
+  await expect(weaponButton).toContainText('Take 1 damage');
+  await expect(weaponButton).toHaveAccessibleDescription('Take 1 damage');
+  await expect(
+    page.locator('.preview').getByText('Health after action:', { exact: false }),
+  ).toHaveCount(0);
   await page.getByRole('button', { name: 'Fight with weapon', exact: true }).click();
   await expect(page.locator('.health-value')).toHaveText('19 / 20');
+  await choose(page, 'heart-4');
+  await expect(potionButton).toContainText('Restores 1 health');
+  await expect(potionButton).toHaveAccessibleDescription('Restores 1 health');
   await expect(page.getByRole('button', { name: 'Run away', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Undo room', exact: true }).click();
   await expect(page.locator('.health-value')).toHaveText('20 / 20');
@@ -75,6 +99,17 @@ test('previews do not commit; confirm, undo, room entry and escape use real rule
   await expect(
     page.getByText('You cannot escape two rooms in a row.', { exact: true }),
   ).toBeVisible();
+});
+
+test('weapon fight shows zero damage when the weapon blocks the full attack', async ({ page }) => {
+  await page.goto('/' + encodeReplay('pvz28b'));
+  await choose(page, 'diamond-7');
+  await page.getByRole('button', { name: 'Equip weapon', exact: true }).click();
+  await choose(page, 'club-4');
+  const weaponButton = page.getByRole('button', { name: 'Fight with weapon', exact: true });
+  await expect(weaponButton).toBeEnabled();
+  await expect(weaponButton).toContainText('Take 0 damage');
+  await expect(weaponButton).toHaveAccessibleDescription('Take 0 damage');
 });
 
 test('seed input validates without replacing the run; rules freeze at start; keyboard selection works', async ({
