@@ -31,7 +31,7 @@ Progress, room undo, preferences, statistics, and the newest 30 completed runs a
 
 Progress is saved automatically without a routine status message; gameplay omits the footer. If saving fails, keep the tab open and use Retry saving. A stale tab cannot overwrite another tab's progress; Reload saved game opens the latest saved run. Saves belong to this browser and site address, including its port. Corrupt or unsupported saves are preserved while unsaved play remains available. See [the persistence contract](docs/persistence-contract.md).
 
-All 44 current illustrations are available to the game; archived artwork is excluded from the build. Run `pnpm test` for engine/session and save-envelope tests. The [rules-layer contract](docs/engine-contract.md) defines the API and versioned seed/replay behavior.
+The 44 original PNG illustrations remain in `assets/`. `pnpm dev` and `pnpm build` generate lossless WebP delivery files in `.generated/card-artwork/` before Vite reads the artwork inventory. Generation preserves dimensions and checks decoded pixel equality on every run; unchanged cards reuse a content-addressed cache. Generated files are ignored by Git. Production includes all 44 WebPs without duplicate PNGs; archived artwork remains excluded. Run `pnpm test` for engine/session and save-envelope tests. The [rules-layer contract](docs/engine-contract.md) defines the API and versioned seed/replay behavior.
 
 For production browser checks:
 

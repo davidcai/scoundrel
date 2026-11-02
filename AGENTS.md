@@ -6,7 +6,7 @@ Read [the PRD](docs/prd.md), [the game rules](docs/rules.md), and [the design pl
 
 ## Artwork
 
-Use the 44 PNG card images in [assets/](assets/) for the game's artwork. Preserve their suit-and-rank filenames. The JPEG images in [assets-old/](assets-old/) are archived references only. Do not load, bundle, copy, or use them as fallback artwork in the game unless the user explicitly requests it.
+Use the 44 PNG card images in [assets/](assets/) for the game's artwork. Preserve their suit-and-rank filenames. Serve generated lossless WebP derivatives from `.generated/card-artwork/`; `pnpm dev` and `pnpm build` generate and verify them automatically. Keep source PNGs intact, and do not commit generated output. The JPEG images in [assets-old/](assets-old/) are archived references only. Do not load, bundle, copy, or use them as fallback artwork in the game unless the user explicitly requests it.
 
 ## Current phase: implementation started
 

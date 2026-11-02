@@ -165,9 +165,16 @@ test('responsive English and Chinese play layouts have loaded images and no hori
       );
       await expect
         .poll(() =>
-          page
-            .locator('.card img')
-            .evaluateAll((images) => images.every((i) => (i as HTMLImageElement).naturalWidth > 0)),
+          page.locator('.card img').evaluateAll((images) =>
+            images.every((element) => {
+              const image = element as HTMLImageElement;
+              return (
+                image.naturalWidth === 1024 &&
+                image.naturalHeight === 1536 &&
+                new URL(image.currentSrc).pathname.endsWith('.webp')
+              );
+            }),
+          ),
         )
         .toBe(true);
     }

@@ -8,16 +8,17 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
+    "dev": "pnpm artwork:generate && vite --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
-    "build": "pnpm typecheck && vite build && node scripts/check-artwork.mjs",
+    "build": "pnpm artwork:generate && pnpm typecheck && vite build && node scripts/check-artwork.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "format": "prettier --write src scripts e2e tests playwright.config.ts vitest.config.ts package.json tsconfig.json vite.config.ts index.html eslint.config.js .github/workflows/ci.yml",
     "format:check": "prettier --check src scripts e2e tests playwright.config.ts vitest.config.ts package.json tsconfig.json vite.config.ts index.html eslint.config.js .github/workflows/ci.yml",
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "lint": "eslint . --max-warnings 0"
+    "lint": "eslint . --max-warnings 0",
+    "artwork:generate": "node scripts/generate-artwork.mjs"
   },
   "dependencies": {
     "react": "19.3.0",
@@ -37,6 +38,7 @@
     "eslint": "9.39.5",
     "@eslint/js": "9.39.5",
     "typescript-eslint": "8.70.0",
-    "globals": "16.5.0"
+    "globals": "16.5.0",
+    "sharp": "0.35.5"
   }
 }
