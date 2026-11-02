@@ -1,19 +1,16 @@
 /**
- * Interface preferences for Phase 3: language and reduced motion.
+ * Interface preferences: language and reduced motion.
  *
- * Requested language and motion preference are remembered in memory only;
- * Phase 4 owns persistence (implementation-plan phase 4).
+ * Both preferences live in the persisted settings shard (Phase 4, REQ-010,
+ * REQ-012) and are updated through the ScoundrelStore. The in-app reduced-motion
+ * setting can follow the system preference (`null`) until the player chooses.
  */
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { createTranslator, resolveLocale, type Locale, type Translate } from '../i18n';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext } from 'react';
+import { createTranslator, type Locale, type Translate } from '../i18n';
+import { useScoundrelSnapshot, useScoundrelStore } from './useScoundrelStore';
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
-
-function getInitialLocale(): Locale {
-  if (typeof navigator === 'undefined') return 'en';
-  const languages = navigator.languages.length > 0 ? navigator.languages : [navigator.language];
-  return resolveLocale(languages);
-}
 
 function getSystemReducedMotion(): boolean {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
@@ -33,8 +30,10 @@ export interface PreferencesApi {
 const PreferencesContext = createContext<PreferencesApi | null>(null);
 
 export function PreferencesProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<Locale>(getInitialLocale);
-  const [reducedMotionSetting, setReducedMotionSetting] = useState<boolean | null>(null);
+  const store = useScoundrelStore();
+  const snapshot = useScoundrelSnapshot();
+  const locale = snapshot.settings.locale;
+  const reducedMotionSetting = snapshot.settings.reducedMotion;
   const [systemReducedMotion, setSystemReducedMotion] = useState<boolean>(getSystemReducedMotion);
 
   useEffect(() => {
@@ -55,6 +54,20 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     document.documentElement.dataset.motion = reducedMotion ? 'reduced' : 'full';
   }, [locale, reducedMotion]);
 
+  const setLocale = useCallback(
+    (next: Locale) => {
+      store.updateSettings({ locale: next });
+    },
+    [store],
+  );
+
+  const setReducedMotion = useCallback(
+    (value: boolean | null) => {
+      store.updateSettings({ reducedMotion: value });
+    },
+    [store],
+  );
+
   const t = useMemo(() => createTranslator(locale), [locale]);
   const value = useMemo<PreferencesApi>(
     () => ({
@@ -63,9 +76,9 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
       reducedMotion,
       systemReducedMotion,
       setLocale,
-      setReducedMotion: setReducedMotionSetting,
+      setReducedMotion,
     }),
-    [locale, t, reducedMotion, systemReducedMotion],
+    [locale, t, reducedMotion, systemReducedMotion, setLocale, setReducedMotion],
   );
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;

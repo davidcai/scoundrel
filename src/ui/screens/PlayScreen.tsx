@@ -38,6 +38,8 @@ import { useMediaQuery } from '../hooks/useMediaQuery';
 export interface PlayScreenProps {
   session: UiSession;
   dispatch: Dispatch<UiAction>;
+  /** True when this session cannot be persisted (storage unavailable or a bad run shard). */
+  sessionOnly?: boolean;
 }
 
 /**
@@ -48,13 +50,14 @@ export interface PlayScreenProps {
  * its first card on wider layouts; clearing a room focuses the enabled "Enter
  * next room"; undo focuses the restored selection.
  */
-export function PlayScreen({ session, dispatch }: PlayScreenProps) {
+export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScreenProps) {
   const { t } = usePreferences();
   const announce = useAnnounce();
   const compact = useMediaQuery('(max-width: 767px)');
   const [helpOpen, setHelpOpen] = useState(false);
   const [actionBarHeight, setActionBarHeight] = useState(0);
 
+  const contentRef = useRef<HTMLDivElement>(null);
   const firstCardRef = useRef<HTMLButtonElement>(null);
   const enterButtonRef = useRef<HTMLButtonElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -244,78 +247,83 @@ export function PlayScreen({ session, dispatch }: PlayScreenProps) {
       className="play-screen"
       style={{ '--action-bar-height': `${actionBarHeight}px` } as CSSProperties}
     >
-      <a
-        className="skip-link"
-        href={`#${skipTargetId}`}
-        onClick={(event) => {
-          event.preventDefault();
-          firstCardRef.current?.focus();
-        }}
-      >
-        {t('app.skipLink')}
-      </a>
+      <div className="play-screen__content" ref={contentRef}>
+        <a
+          className="skip-link"
+          href={`#${skipTargetId}`}
+          onClick={(event) => {
+            event.preventDefault();
+            firstCardRef.current?.focus();
+          }}
+        >
+          {t('app.skipLink')}
+        </a>
 
-      <header className="play-header">
-        <HealthMeter health={health.health} max={health.max} />
-        <div className="play-header__center">
-          <span className="play-header__room">
-            {formatRoomLabel(t, roomNumber, state.finalRoom)}
-          </span>
-          <span
-            className="dungeon-chip"
-            aria-label={t('a11y.dungeonCount', { count: dungeonCount })}
-          >
-            <span aria-hidden="true">{dungeonCount}</span>
-          </span>
-          <PotionIndicator status={potion} />
-        </div>
-        <div className="play-header__right">
-          <SeedDisplay seed={state.seed} />
-          <Button variant="ghost" onClick={() => setHelpOpen(true)}>
-            {t('play.help')}
-          </Button>
-        </div>
-      </header>
-
-      <main className="play-main">
-        <div className="play-main__weapon">
-          <WeaponRail view={weapon} />
-        </div>
-
-        <section className="play-main__room" aria-labelledby={roomHeadingId}>
-          <h1 className="room-title" id={roomHeadingId} tabIndex={-1} ref={headingRef}>
-            {formatRoomLabel(t, roomNumber, state.finalRoom)}
-          </h1>
-          <p className="room-hint" id={roomHintId}>
-            {state.roomCleared ? t('play.roomHintCleared') : t('play.roomHint')}
-          </p>
-          <div
-            className="room-grid-wrap"
-            id={skipTargetId}
-            tabIndex={-1}
-            aria-describedby={roomHintId}
-          >
-            <RoomGrid views={cardViews} onSelect={handleSelect} firstCardRef={firstCardRef} />
+        <header className="play-header">
+          <HealthMeter health={health.health} max={health.max} />
+          <div className="play-header__center">
+            <span className="play-header__room">
+              {formatRoomLabel(t, roomNumber, state.finalRoom)}
+            </span>
+            <span
+              className="dungeon-chip"
+              aria-label={t('a11y.dungeonCount', { count: dungeonCount })}
+            >
+              <span aria-hidden="true">{dungeonCount}</span>
+            </span>
+            <PotionIndicator status={potion} />
           </div>
-          {!compact ? <div className="play-main__preview">{preview}</div> : null}
-        </section>
+          <div className="play-header__right">
+            {sessionOnly ? (
+              <span className="play-header__unsaved">{t('play.sessionOnly')}</span>
+            ) : null}
+            <SeedDisplay seed={state.seed} />
+            <Button variant="ghost" onClick={() => setHelpOpen(true)}>
+              {t('play.help')}
+            </Button>
+          </div>
+        </header>
 
-        <div className="play-main__dungeon">
-          <DungeonPile count={dungeonCount} />
-        </div>
-      </main>
+        <main className="play-main">
+          <div className="play-main__weapon">
+            <WeaponRail view={weapon} />
+          </div>
 
-      <StatusLine text={statusText} />
+          <section className="play-main__room" aria-labelledby={roomHeadingId}>
+            <h1 className="room-title" id={roomHeadingId} tabIndex={-1} ref={headingRef}>
+              {formatRoomLabel(t, roomNumber, state.finalRoom)}
+            </h1>
+            <p className="room-hint" id={roomHintId}>
+              {state.roomCleared ? t('play.roomHintCleared') : t('play.roomHint')}
+            </p>
+            <div
+              className="room-grid-wrap"
+              id={skipTargetId}
+              tabIndex={-1}
+              aria-describedby={roomHintId}
+            >
+              <RoomGrid views={cardViews} onSelect={handleSelect} firstCardRef={firstCardRef} />
+            </div>
+            {!compact ? <div className="play-main__preview">{preview}</div> : null}
+          </section>
 
-      <ActionBar
-        ref={actionBarRef}
-        enterButtonRef={enterButtonRef}
-        availability={availability}
-        onEnterNextRoom={() => dispatch({ type: 'enterNextRoom' })}
-        onRunAway={() => dispatch({ type: 'runAway' })}
-        onUndo={() => dispatch({ type: 'undoRoom' })}
-        onHelp={() => setHelpOpen(true)}
-      />
+          <div className="play-main__dungeon">
+            <DungeonPile count={dungeonCount} />
+          </div>
+        </main>
+
+        <StatusLine text={statusText} />
+
+        <ActionBar
+          ref={actionBarRef}
+          enterButtonRef={enterButtonRef}
+          availability={availability}
+          onEnterNextRoom={() => dispatch({ type: 'enterNextRoom' })}
+          onRunAway={() => dispatch({ type: 'runAway' })}
+          onUndo={() => dispatch({ type: 'undoRoom' })}
+          onHelp={() => setHelpOpen(true)}
+        />
+      </div>
 
       {compact && session.selectedCard !== null ? (
         <Dialog
@@ -323,6 +331,7 @@ export function PlayScreen({ session, dispatch }: PlayScreenProps) {
           titleId={previewTitleId}
           onClose={handleCancel}
           closeLabel={t('preview.close')}
+          backgroundRef={contentRef}
           className="dialog__panel--sheet"
         >
           {preview}

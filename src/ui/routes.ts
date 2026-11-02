@@ -2,22 +2,32 @@
  * Minimal hash router (implementation-plan foundation decision: hash routing
  * keeps every route on index.html, so no server rewrites are required).
  *
- * Phase 3 routes:
+ * Routes:
  * - `#/`                                   title
- * - `#/play?seed=<seed>&config=<0–7>`      play a run (also serves the future replay link)
+ * - `#/play?seed=<seed>&config=<0–7>`      play a run (also the replay/share link)
+ * - `#/stats`                              lifetime statistics and run history
+ * - `#/settings`                           language and motion preferences
  *
- * Result is an in-session screen; reload restoration arrives with Phase 4.
+ * The result screen is not a separate route: a completed saved result is
+ * restored on the play route after reload (REQ-009).
  */
 import { formatRuleConfig, parseRuleConfig, parseSeed, type RuleConfig } from '../engine';
 
 export type Route =
   | { readonly name: 'title' }
-  | { readonly name: 'play'; readonly seed: string; readonly config: RuleConfig };
+  | { readonly name: 'play'; readonly seed: string; readonly config: RuleConfig }
+  | { readonly name: 'stats' }
+  | { readonly name: 'settings' };
 
 const PLAY_PREFIX = '/play';
+export const STATS_PATH = '/stats';
+export const SETTINGS_PATH = '/settings';
 
 export function parseRoute(hash: string): Route {
   const path = hash.replace(/^#/, '');
+  if (path === STATS_PATH) return { name: 'stats' };
+  if (path === SETTINGS_PATH) return { name: 'settings' };
+
   // Exact route match: '#/playground?...' must not be treated as '#/play'.
   const isPlayRoute = path === PLAY_PREFIX || path.startsWith(`${PLAY_PREFIX}?`);
   if (!isPlayRoute) return { name: 'title' };

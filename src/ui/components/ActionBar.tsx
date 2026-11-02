@@ -35,7 +35,9 @@ export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function Act
     state.enabled || state.reason === null ? [] : [{ label, text: rejectionText(t, state.reason) }],
   );
   const hasReasons = unavailable.length > 0;
-  const describedBy = hasReasons ? helperId : undefined;
+  // Only a button that is actually unavailable describes itself with the helper.
+  const describedBy = (enabled: boolean): string | undefined =>
+    hasReasons && !enabled ? helperId : undefined;
 
   return (
     <div ref={containerRef} className="action-bar" role="group" aria-label={t('play.actionBar')}>
@@ -44,7 +46,7 @@ export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function Act
           ref={enterButtonRef}
           variant="primary"
           aria-disabled={availability.enterNextRoom.enabled ? undefined : true}
-          aria-describedby={describedBy}
+          aria-describedby={describedBy(availability.enterNextRoom.enabled)}
           onClick={availability.enterNextRoom.enabled ? onEnterNextRoom : undefined}
         >
           {t('play.enterNextRoom')}
@@ -52,7 +54,7 @@ export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function Act
         <Button
           variant="secondary"
           aria-disabled={availability.runAway.enabled ? undefined : true}
-          aria-describedby={describedBy}
+          aria-describedby={describedBy(availability.runAway.enabled)}
           onClick={availability.runAway.enabled ? onRunAway : undefined}
         >
           {t('play.runAway')}
@@ -60,7 +62,7 @@ export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function Act
         <Button
           variant="ghost"
           aria-disabled={availability.undoRoom.enabled ? undefined : true}
-          aria-describedby={describedBy}
+          aria-describedby={describedBy(availability.undoRoom.enabled)}
           onClick={availability.undoRoom.enabled ? onUndo : undefined}
         >
           {t('play.undo')}
@@ -71,9 +73,8 @@ export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function Act
       </div>
       {hasReasons ? (
         <p className="action-bar__helper" id={helperId} data-testid="action-reasons">
-          {unavailable.map((entry, index) => (
+          {unavailable.map((entry) => (
             <span key={entry.label} className="action-bar__reason">
-              {index > 0 ? ' ' : ''}
               {t('play.disabledAction', { action: entry.label, reason: entry.text })}
             </span>
           ))}

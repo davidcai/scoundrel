@@ -85,6 +85,24 @@ export function createSession(seed: string, config: RuleConfig): UiSession {
   };
 }
 
+/**
+ * Restore an interface session from a saved engine state (reload, Continue, or
+ * a run refreshed from another tab). Selection is interface-only, so it starts
+ * empty; the caller may select a card again after mounting.
+ */
+export function createSessionFromState(state: GameState): UiSession {
+  return {
+    runId: nextRunId++,
+    state,
+    selectedCard: null,
+    lastSelection: null,
+    preview: null,
+    previewRejection: null,
+    notice: null,
+    noticeSeq: 0,
+  };
+}
+
 function buildPreview(
   state: GameState,
   card: CardId,

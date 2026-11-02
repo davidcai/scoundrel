@@ -1,8 +1,8 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { RunResult } from '../../src/engine';
 import { createTranslator } from '../../src/i18n';
-import { ResultScreen } from '../../src/ui/screens/ResultScreen';
+import { ResultScreen, type ResultScreenProps } from '../../src/ui/screens/ResultScreen';
 import { renderWithProviders } from '../helpers/render';
 
 const t = createTranslator('en');
@@ -35,11 +35,21 @@ const wonResult: RunResult = {
   },
 };
 
+function renderResult(result: RunResult, overrides: Partial<ResultScreenProps> = {}) {
+  return renderWithProviders(
+    <ResultScreen
+      result={result}
+      onNewRun={vi.fn()}
+      onBackToTitle={vi.fn()}
+      onViewStatistics={vi.fn()}
+      {...overrides}
+    />,
+  );
+}
+
 describe('result screen', () => {
   it('summarizes a lost run with its score, seed, and highlights', () => {
-    renderWithProviders(
-      <ResultScreen result={lostResult} onNewRun={vi.fn()} onBackToTitle={vi.fn()} />,
-    );
+    renderResult(lostResult);
 
     const heading = screen.getByRole('heading', { level: 1, name: t('result.lostTitle') });
     expect(heading).toBeInTheDocument();
@@ -51,9 +61,7 @@ describe('result screen', () => {
   });
 
   it('summarizes a won run with surviving health as the score', () => {
-    renderWithProviders(
-      <ResultScreen result={wonResult} onNewRun={vi.fn()} onBackToTitle={vi.fn()} />,
-    );
+    renderResult(wonResult);
 
     expect(
       screen.getByRole('heading', { level: 1, name: t('result.wonTitle') }),
@@ -65,14 +73,7 @@ describe('result screen', () => {
 
   it('clamps fatal health to zero and shows the remaining monsters', () => {
     const fatal = { ...lostResult, health: -5 };
-    renderWithProviders(
-      <ResultScreen
-        result={fatal}
-        remainingMonsters={4}
-        onNewRun={vi.fn()}
-        onBackToTitle={vi.fn()}
-      />,
-    );
+    renderResult(fatal, { remainingMonsters: 4 });
 
     const healthRow = screen.getByText(t('result.healthLabel')).closest('.result-panel__row');
     expect(healthRow).toHaveTextContent('0');
@@ -85,9 +86,7 @@ describe('result screen', () => {
   });
 
   it('omits the remaining-monsters row for a win', () => {
-    renderWithProviders(
-      <ResultScreen result={wonResult} onNewRun={vi.fn()} onBackToTitle={vi.fn()} />,
-    );
+    renderResult(wonResult);
 
     expect(screen.queryByText(t('result.remainingMonsters'))).not.toBeInTheDocument();
   });
@@ -95,14 +94,53 @@ describe('result screen', () => {
   it('calls the result actions', () => {
     const onNewRun = vi.fn();
     const onBackToTitle = vi.fn();
-    renderWithProviders(
-      <ResultScreen result={lostResult} onNewRun={onNewRun} onBackToTitle={onBackToTitle} />,
-    );
+    const onViewStatistics = vi.fn();
+    renderResult(lostResult, { onNewRun, onBackToTitle, onViewStatistics });
 
     fireEvent.click(screen.getByRole('button', { name: t('result.newRun') }));
+    fireEvent.click(screen.getByRole('button', { name: t('result.viewStatistics') }));
     fireEvent.click(screen.getByRole('button', { name: t('result.backToTitle') }));
 
     expect(onNewRun).toHaveBeenCalledTimes(1);
+    expect(onViewStatistics).toHaveBeenCalledTimes(1);
     expect(onBackToTitle).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a replay link that reproduces the seed and rules', () => {
+    renderResult(lostResult);
+
+    const input = screen.getByRole('textbox', { name: t('result.replayLinkLabel') });
+    expect(input).toHaveAttribute('readonly');
+    expect((input as HTMLInputElement).value).toContain('#/play?seed=result-seed&config=0');
+  });
+
+  it('copies the replay link and announces the result', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    });
+
+    renderResult(wonResult);
+    fireEvent.click(screen.getByRole('button', { name: t('result.copyLink') }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('copy-state')).toHaveTextContent(t('result.linkCopied')),
+    );
+    expect(writeText).toHaveBeenCalledWith(expect.stringContaining('seed=victory-seed'));
+    expect(screen.getByTestId('live-polite').textContent).toContain(t('result.linkCopied'));
+  });
+
+  it('reports a failed copy without a clipboard', () => {
+    Object.defineProperty(navigator, 'clipboard', {
+      value: undefined,
+      configurable: true,
+    });
+
+    renderResult(wonResult);
+    fireEvent.click(screen.getByRole('button', { name: t('result.copyLink') }));
+
+    expect(screen.getByTestId('copy-state')).toHaveTextContent(t('result.linkCopyFailed'));
+    expect(screen.getByTestId('live-assertive').textContent).toContain(t('result.linkCopyFailed'));
   });
 });

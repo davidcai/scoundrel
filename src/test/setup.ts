@@ -66,6 +66,7 @@ afterEach(() => {
   if (typeof window === 'undefined') return;
   cleanup();
   window.history.replaceState(null, '', '#/');
+  window.localStorage.clear();
   document.documentElement.lang = 'en';
   delete document.documentElement.dataset.motion;
 });

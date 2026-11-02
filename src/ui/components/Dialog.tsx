@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
 import { cn } from '../cn';
 import { Button } from './Button';
 
@@ -12,15 +12,29 @@ export interface DialogProps {
   onClose: () => void;
   /** When provided, renders the 44px close control in the panel corner. */
   closeLabel?: string;
+  /**
+   * Content that stays visually behind the modal but must not receive pointer
+   * or assistive input while it is open (the compact preview sheet sits above a
+   * fixed action bar). The element is marked `inert` for the dialog's lifetime.
+   */
+  backgroundRef?: RefObject<HTMLElement | null>;
   children: ReactNode;
 }
 
 /**
  * Minimal accessible modal: labelled panel, focus trap, Escape to close, and
- * focus restored to the trigger. Used for help/about and for the compact
- * selected-card sheet.
+ * focus restored to the trigger. Used for help/about, run confirmation, and
+ * the compact selected-card sheet.
  */
-export function Dialog({ open, titleId, className, onClose, closeLabel, children }: DialogProps) {
+export function Dialog({
+  open,
+  titleId,
+  className,
+  onClose,
+  closeLabel,
+  backgroundRef,
+  children,
+}: DialogProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
@@ -33,6 +47,11 @@ export function Dialog({ open, titleId, className, onClose, closeLabel, children
 
     triggerRef.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    // Keep the visible background out of the pointer and accessibility trees.
+    const background = backgroundRef?.current ?? null;
+    const backgroundWasInert = background?.hasAttribute('inert') ?? false;
+    if (background !== null && !backgroundWasInert) background.setAttribute('inert', '');
 
     const focusable = (): HTMLElement[] =>
       Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
@@ -69,9 +88,10 @@ export function Dialog({ open, titleId, className, onClose, closeLabel, children
     document.addEventListener('keydown', onKeyDown);
     return () => {
       document.removeEventListener('keydown', onKeyDown);
+      if (background !== null && !backgroundWasInert) background.removeAttribute('inert');
       triggerRef.current?.focus();
     };
-  }, [open]);
+  }, [open, backgroundRef]);
 
   if (!open) return null;
 

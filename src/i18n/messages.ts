@@ -20,7 +20,7 @@ import {
   type RuleOptionName,
   type RuleConfig,
 } from '../engine';
-import { formatList, type Locale, type MessageKey, type Translate } from './index';
+import { LOCALE_TAGS, formatList, type Locale, type MessageKey, type Translate } from './index';
 
 export const REJECTION_KEYS: Readonly<Record<RejectionReason, MessageKey>> = {
   'run-over': 'rejection.run-over',
@@ -279,4 +279,79 @@ export function formatRoomLabel(t: Translate, roomsExplored: number, finalRoom: 
 /** Health bar text used for the visible label and the accessible value. */
 export function formatHealth(t: Translate, health: number): string {
   return t('a11y.healthBar', { health, max: MAX_HEALTH });
+}
+
+/** Reasons a saved-run start can fail; mapped to player-facing explanations. */
+export type StartFailureReason =
+  | 'invalid-seed'
+  | 'invalid-config'
+  | 'invalid-link'
+  | 'history-run-missing'
+  | 'seed-unavailable'
+  | 'write-failed'
+  | 'discard-failed';
+
+export function startFailureText(t: Translate, reason: StartFailureReason): string {
+  switch (reason) {
+    case 'invalid-seed':
+      return t('error.invalidSeed');
+    case 'invalid-config':
+      return t('error.invalidConfig');
+    case 'invalid-link':
+      return t('error.invalidLink');
+    case 'history-run-missing':
+      return t('error.historyRunMissing');
+    case 'seed-unavailable':
+      return t('error.seedUnavailable');
+    case 'write-failed':
+      return t('error.writeFailed');
+    case 'discard-failed':
+      return t('error.discardFailed');
+  }
+}
+
+/** Reasons an in-progress save can fail; mapped to player-facing explanations. */
+export type SaveFailureReason =
+  'invalid-state' | 'run-replaced' | 'run-completed' | 'state-mismatch';
+
+export function saveFailureText(t: Translate, reason: SaveFailureReason): string {
+  switch (reason) {
+    case 'run-replaced':
+      return t('error.runReplaced');
+    case 'run-completed':
+      return t('error.runCompleted');
+    case 'state-mismatch':
+      return t('error.stateMismatch');
+    case 'invalid-state':
+      return t('error.saveFailed');
+  }
+}
+
+/** History outcome label, distinguishing abandoned runs from played losses. */
+export function historyOutcomeText(
+  t: Translate,
+  outcome: 'won' | 'lost',
+  abandoned: boolean,
+): string {
+  if (abandoned) return t('stats.outcomeAbandoned');
+  return outcome === 'won' ? t('stats.outcomeWon') : t('stats.outcomeLost');
+}
+
+/** Win-rate value: an em dash before the first completed run (REQ-013). */
+export function formatWinRate(t: Translate, percent: number | null): string {
+  return percent === null ? t('stats.none') : t('stats.winRateValue', { percent });
+}
+
+/** History timestamps are stored as UTC ISO strings and shown in local time. */
+export function formatHistoryDate(locale: Locale, isoTimestamp: string): string {
+  const date = new Date(isoTimestamp);
+  if (Number.isNaN(date.getTime())) return isoTimestamp;
+  try {
+    return new Intl.DateTimeFormat(LOCALE_TAGS[locale], {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(date);
+  } catch {
+    return isoTimestamp;
+  }
 }

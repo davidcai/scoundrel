@@ -17,6 +17,7 @@ import {
   type RuleConfig,
 } from '../../src/engine';
 import { createTranslator } from '../../src/i18n';
+import type { ScoundrelStore } from '../../src/store';
 import { playPath } from '../../src/ui/routes';
 
 /** One decision the interface can perform (used to drive UI clicks and engine replay). */
@@ -175,9 +176,9 @@ function confirmLabel(step: Extract<UiStep, { kind: 'resolve' }>): string {
 }
 
 /** Render the app at a play route (direct hash-link path). */
-export function openRun(seed: string, config: RuleConfig): void {
+export function openRun(seed: string, config: RuleConfig, store?: ScoundrelStore): void {
   window.history.replaceState(null, '', `#${playPath(seed, config)}`);
-  render(<App />);
+  render(store === undefined ? <App /> : <App store={store} />);
 }
 
 /** Perform one engine decision through real interface clicks, then replay it in the engine. */
@@ -211,8 +212,9 @@ export function playThroughUi(
   config: RuleConfig,
   policy: Policy,
   maxSteps = 300,
+  store?: ScoundrelStore,
 ): GameState {
-  openRun(seed, config);
+  openRun(seed, config, store);
   let state = createInitialState(seed, config);
   for (let step = 0; step < maxSteps && state.status === 'playing'; step += 1) {
     state = applyStepThroughUi(policy(state), state);

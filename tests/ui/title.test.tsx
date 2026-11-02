@@ -11,18 +11,20 @@ function renderTitle(): void {
 }
 
 describe('title screen', () => {
-  it('offers only Phase 3 controls', () => {
+  it('offers the Phase 4 entry points and no Continue while nothing is saved', () => {
     renderTitle();
 
     expect(screen.getByRole('button', { name: t('title.newRun') })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: t('title.rulesHelp') })).toBeInTheDocument();
-    // Phase 4 controls are deliberately absent, not dead buttons.
-    expect(screen.queryByRole('button', { name: /continue/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /statistics|stats/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /settings/i })).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: /enter seed|replay link/i }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: t('title.statistics') })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: t('title.settings') })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: t('title.enterSeed') })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: t('title.replayLink') })).toBeInTheDocument();
+
+    // Nothing is saved yet, so there is nothing to continue or discard.
+    expect(screen.queryByRole('button', { name: t('title.continue') })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: t('title.discardRun') })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: t('title.lastResult') })).not.toBeInTheDocument();
   });
 
   it('shows the three house-rule options, unchecked by default', () => {
