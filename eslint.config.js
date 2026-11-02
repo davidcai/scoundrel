@@ -35,10 +35,24 @@ export default tseslint.config(
     },
   },
   {
-    files: ['vite.config.ts', 'vitest.config.ts', 'tests/**/*.{ts,tsx}', 'src/test/**/*.{ts,tsx}'],
+    files: [
+      'vite.config.ts',
+      'vitest.config.ts',
+      'playwright.config.ts',
+      'tests/**/*.{ts,tsx}',
+      'src/test/**/*.{ts,tsx}',
+      'e2e/**/*.{ts,tsx}',
+      'scripts/**/*.mjs',
+    ],
     languageOptions: {
       ecmaVersion: 2022,
       globals: globals.node,
     },
+  },
+  {
+    // Playwright requires a destructured fixtures argument even when a hook
+    // uses no fixtures, so the empty pattern is intentional in the e2e suite.
+    files: ['e2e/**/*.ts'],
+    rules: { 'no-empty-pattern': 'off' },
   },
 );

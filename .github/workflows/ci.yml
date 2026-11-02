@@ -55,3 +55,50 @@ jobs:
 
       - name: Bundle size budget
         run: pnpm bundle-size
+
+  # Browser checks run against the production build. Playwright is installed
+  # here (not in `ci`) so the fast gate stays independent of browser downloads.
+  e2e:
+    runs-on: ubuntu-latest
+    needs: ci
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-1.64.1-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium webkit firefox
+
+      - name: Build production bundle
+        run: pnpm build
+
+      - name: Run end-to-end checks
+        run: pnpm e2e
+
+      - name: Upload Playwright reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
