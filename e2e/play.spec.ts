@@ -71,7 +71,9 @@ test('previews do not commit; confirm, undo, room entry and escape use real rule
   await page.getByRole('link', { name: 'Skip to content' }).focus();
   await page.keyboard.press('Enter');
   expect(await page.evaluate(() => location.hash)).toBe(replayHash);
-  await expect(page.getByRole('heading', { name: 'Your equipped weapon 6', exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Your equipped weapon 6', exact: true }),
+  ).toBeVisible();
   await choose(page, 'spade-7');
   await expect(weaponButton).toBeEnabled();
   await expect(weaponButton).toContainText('Take 1 damage');

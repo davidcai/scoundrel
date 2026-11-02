@@ -12,11 +12,12 @@
     "typecheck": "tsc --noEmit",
     "build": "pnpm typecheck && vite build && node scripts/check-artwork.mjs",
     "preview": "vite preview --host 127.0.0.1",
-    "format": "prettier --write src scripts e2e tests playwright.config.ts vitest.config.ts package.json tsconfig.json vite.config.ts index.html",
-    "format:check": "prettier --check src scripts e2e tests playwright.config.ts vitest.config.ts package.json tsconfig.json vite.config.ts index.html",
+    "format": "prettier --write src scripts e2e tests playwright.config.ts vitest.config.ts package.json tsconfig.json vite.config.ts index.html eslint.config.js .github/workflows/ci.yml",
+    "format:check": "prettier --check src scripts e2e tests playwright.config.ts vitest.config.ts package.json tsconfig.json vite.config.ts index.html eslint.config.js .github/workflows/ci.yml",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
     "react": "19.3.0",
@@ -31,7 +32,11 @@
     "@vitejs/plugin-react": "4.7.0",
     "prettier": "3.9.6",
     "typescript": "5.8.3",
-    "vite": "6.4.3",
-    "vitest": "3.2.7"
+    "vite": "6.4.5",
+    "vitest": "4.1.12",
+    "eslint": "9.39.5",
+    "@eslint/js": "9.39.5",
+    "typescript-eslint": "8.70.0",
+    "globals": "16.5.0"
   }
 }

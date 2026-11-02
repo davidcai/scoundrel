@@ -27,7 +27,7 @@ pnpm dev
 
 New Run starts a random seeded dungeon; Enter Seed and versioned replay links start a reproducible one. Play uses current card artwork with previews, separate confirmations, equipment, potion feedback, room progression, escape, and room undo. Results show scores and highlights, allow replay, and expose a copyable replay link.
 
-Progress, room undo, preferences, statistics, and the newest 50 completed runs are saved in this browser. Reloading an unfinished run returns to the title; Continue restores it. Menu and closing the page preserve the run. Starting a new run, entering a valid seed, or replaying history asks for confirmation when a run is active. Confirming replaces it and records one abandoned loss; Cancel or Escape preserves it. Fresh shared links start immediately. Stats shows lifetime totals and recent runs, with replay using each run's original rules. Completed result screens survive reload without recounting the outcome.
+Progress, room undo, preferences, statistics, and the newest 30 completed runs are saved in this browser. Reloading an unfinished run returns to the title; Continue restores it. Menu and closing the page preserve the run. Starting a new run, entering a valid seed, or replaying history asks for confirmation when a run is active. Confirming replaces it and records one abandoned loss; Cancel or Escape preserves it. Fresh shared links start immediately. Stats shows lifetime totals and recent runs, with replay using each run's original rules. Completed result screens survive reload without recounting the outcome.
 
 Progress is saved automatically without a routine status message; gameplay omits the footer. If saving fails, keep the tab open and use Retry saving. A stale tab cannot overwrite another tab's progress; Reload saved game opens the latest saved run. Saves belong to this browser and site address, including its port. Corrupt or unsupported saves are preserved while unsaved play remains available. See [the persistence contract](docs/persistence-contract.md).
 
@@ -42,3 +42,7 @@ pnpm e2e
 ```
 
 Browser tests cover real seeded win/loss runs, previews and undo, carryover and escape, seed validation, keyboard selection, English/Chinese layouts, save/resume, durable preferences, statistics/history, simultaneous tabs, and save-failure recovery. No state is injected into the app to reach results.
+
+## Continuous integration
+
+Pull requests run Node 22 checks for formatting, ESLint, TypeScript, unit tests, and a production build with artwork validation. A separate job builds the app and runs Playwright in Chromium, uploading failure artifacts. Use `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and `pnpm e2e` for the same checks locally.

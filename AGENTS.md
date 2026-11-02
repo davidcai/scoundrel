@@ -35,6 +35,8 @@ Initial hosting is Vercel. Follow the hosting verification in [the implementatio
 Use Node 22 (`.nvmrc`) and pnpm 11.7.0. This worktree has its own pnpm workspace and lockfile; run commands from its project root.
 
 - `pnpm install --frozen-lockfile` installs the locked dependencies.
+- `pnpm lint` runs ESLint with zero warnings allowed.
+- `pnpm typecheck` checks TypeScript without emitting files.
 - `pnpm test` runs engine, session, and persistence-envelope behavioral tests; `pnpm test:watch` watches it.
 - `pnpm dev` starts the local development server.
 - `pnpm build` typechecks, builds `dist/`, and verifies the artwork inventory and archive exclusion.
