@@ -1,0 +1,199 @@
+/*
+ * Approved style-guide tokens (docs/design-plan.md §3–§4). Any change to these
+ * values requires a new recorded design approval.
+ */
+:root {
+  color-scheme: dark;
+
+  --bg-0: #0a0805;
+  --bg-1: #110e09;
+  --surface-1: #1a150e;
+  --surface-2: #241d13;
+  --surface-3: #2e2619;
+  --border-1: #3e3526;
+  --border-2: #7a6a50;
+  --text-1: #f2ead8;
+  --text-2: #d8ccb4;
+  --text-muted: #a99c84;
+  --text-disabled: #978d78;
+  --gold: #c9a15a;
+  --gold-bright: #e3be7c;
+  --gold-ink: #1a1204;
+  --focus: #e9dcc0;
+  --selection: #e3be7c;
+  --health: #7dbe88;
+  --health-track: #2b2318;
+  --damage: #d4816b;
+  --weapon-ok: #a9b57e;
+  --weapon-no: #9a8f78;
+  --heal: #8fbf8f;
+  --wasted: #d9a45b;
+  --scrim: rgb(8 5 3 / 72%);
+  --art-paper: #f7f4ec;
+
+  --font-display:
+    'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Noto Serif SC',
+    'Source Han Serif SC', 'Songti SC', SimSun, serif;
+  --font-ui:
+    'Inter', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, 'Noto Sans SC',
+    'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+  --font-mono:
+    'JetBrains Mono', 'Cascadia Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --text-display: clamp(2.25rem, 6vw, 2.75rem);
+  --text-h1: 2rem;
+  --text-h2: 1.5rem;
+  --text-body: 1rem;
+  --text-small: 0.875rem;
+  --text-caption: 0.75rem;
+
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2.5rem;
+  --space-10: 4rem;
+
+  --radius-2: 8px;
+  --radius-3: 12px;
+  --radius-11: 11px;
+  --radius-10: 10px;
+
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 45%);
+  --shadow-2: 0 8px 24px rgb(0 0 0 / 45%);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--bg-0);
+  background-image:
+    radial-gradient(1200px 600px at 50% -10%, rgb(201 161 90 / 10%), transparent 65%),
+    radial-gradient(900px 500px at 50% 110%, rgb(201 161 90 / 6%), transparent 60%);
+  background-attachment: fixed;
+  color: var(--text-1);
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  line-height: 1.6;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  padding: var(--space-10) var(--space-6);
+}
+
+.masthead {
+  max-width: 720px;
+  text-align: center;
+}
+
+.wordmark {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--gold-bright);
+}
+
+.premise {
+  margin: var(--space-4) 0 0;
+  font-size: var(--text-body);
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+.preview {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.card-demo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  background: var(--surface-1);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-3);
+  box-shadow: var(--shadow-2);
+}
+
+.card-demo-title {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--text-h2);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text-2);
+}
+
+.card-figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card-frame {
+  padding: 1px;
+  background: var(--border-2);
+  border-radius: var(--radius-3);
+  box-shadow: var(--shadow-1);
+}
+
+.card-mat {
+  padding: 1px;
+  background: var(--bg-0);
+  border-radius: var(--radius-11);
+}
+
+.card-art {
+  display: block;
+  width: clamp(160px, 14vw, 200px);
+  height: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-10);
+}
+
+.card-caption {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-small);
+  line-height: 1.5;
+  color: var(--text-2);
+  text-align: center;
+}
+
+.card-note {
+  margin: 0;
+  max-width: 460px;
+  font-size: var(--text-small);
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .app {
+    padding: var(--space-6) var(--space-4);
+    gap: var(--space-6);
+  }
+
+  .card-demo {
+    padding: var(--space-4);
+  }
+}

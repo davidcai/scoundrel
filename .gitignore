@@ -1,2 +1,21 @@
 # macOS Finder metadata
 .DS_Store
+
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+
+# Browser-test artifacts (Playwright is introduced in a later phase)
+playwright-report/
+test-results/
+
+# Local verification artifacts
+.artifacts/
+
+# Hosting and local environment files
+.vercel/
+.env
+.env.*
+!.env.example
+*.local

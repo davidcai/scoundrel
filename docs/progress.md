@@ -17,7 +17,7 @@ Implementation was authorized by the user on 2026-11-01 to begin Phase 1. Applic
 
 | Phase | Status | Notes |
 | --- | --- | --- |
-| 1. Settle the foundation | In progress | Foundation decisions, minimal app scaffold, and verification tooling. |
+| 1. Settle the foundation | In progress | Foundation decisions recorded; minimal app scaffold and verification tooling verified. CI/build-deployment files remain. |
 | 2. Prove the game rules | Not started | |
 | 3. Deliver a complete playable run | Not started | |
 | 4. Add continuity, history, and replay | Not started | |
@@ -33,12 +33,13 @@ Work and acceptance checks for each phase are defined in the [delivery plan](imp
 - Design mockups removed and their references scrubbed; artwork rules moved into the design plan. The earlier approved visual direction was withdrawn with those references.
 - Written style guide updated to the approved warm direction and approved by the user as drafted on 2026-11-01 after two independent contrast/accessibility re-checks; recorded in the design plan and committed to the branch.
 - Implementation authorized by the user on 2026-11-01; Phase 1 started.
+- Phase 1 foundation decisions recorded in the implementation plan: pnpm and Node.js 22 targets, exact dependency pins, the 44-card inventory, seed/replay and rule-option encoding, build/routing, state-management deferral, saved-data versioning, and asset-weight strategy.
+- Minimal Vite + React + TypeScript scaffold created with the approved warm tokens, display serif, and one current-artwork card; smoke and asset-inventory tests added, and the production build displays the card without archived artwork. ESLint, Prettier, TypeScript, Vitest, and the production build were run with passing observed output.
 - Adversarial document review fixed one high, seven medium, and eight low issues: design approval gate, loss scoring, escape return order, explicit discard, house-rule semantics, save and link recovery, future-update acceptance, measurable accessibility targets, final-room rule wording, wasted-potion definition, explored-versus-cleared counts, language fallback, archived-artwork exclusion, stable product-acceptance anchor, multi-tab recording, and statistics definitions.
-- No implementation checks have run because implementation has not begun.
 
 ## Next actions
 
-- Build the Phase 1 foundation: record the package manager and dependency versions, the 44-card asset inventory, the seed/replay contract, and the build/routing decisions; scaffold the minimum app and verification tooling; prove it builds and displays a current-artwork card.
+- Complete the remaining Phase 1 items — CI, build, and deployment configuration — and close the phase gate.
 - Use the approved style guide as the presentation source of truth; changes to it require a new recorded approval.
 - Verify the phase-4 future-update saved-data format-change scenario when implementation begins.
 - Keep the Vercel hosting target in the [implementation plan](implementation-plan.md) and the browser and accessibility requirements in the [PRD](prd.md#req-016); deployment still requires explicit authorization.

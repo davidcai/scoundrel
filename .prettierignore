@@ -1,0 +1,10 @@
+assets
+assets-old
+coverage
+dist
+docs
+node_modules
+playwright-report
+pnpm-lock.yaml
+test-results
+*.md

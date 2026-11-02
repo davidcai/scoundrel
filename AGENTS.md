@@ -43,3 +43,19 @@ Read [the PRD](docs/prd.md), [the game rules](docs/rules.md), [the design plan](
 - Follow [REQ-016](docs/prd.md#req-016) and [REQ-017](docs/prd.md#req-017) for browser and accessibility targets, plus the verification expectations in the [implementation plan](docs/implementation-plan.md).
 - Verify changes with checks appropriate to the work: for documents, links, PRD references, and requirement coverage; for code, the relevant behavioral checks before claiming it works.
 - When creating a branch and worktree, use a `codex/` branch name unless the user specifies another prefix, and place the worktree at `.worktrees/<kebab-cased-branch-name>`.
+
+### Commands
+
+Run these from the repository root with pnpm 11.7.0 and Node.js 22.13 or later (pinned in `package.json`):
+
+- `pnpm install` — install the exact pinned dependencies from `pnpm-lock.yaml`.
+- `pnpm dev` — start the Vite development server.
+- `pnpm build` — type-check and build the production bundle into `dist/`.
+- `pnpm preview` — serve the production build locally.
+- `pnpm lint` — run ESLint.
+- `pnpm format` / `pnpm format:check` — write / check Prettier formatting.
+- `pnpm typecheck` — run the TypeScript no-emit check.
+- `pnpm test` — run the Vitest suite in jsdom.
+
+If `pnpm install` resolves projects outside this worktree, pass `--ignore-workspace`; this checkout is nested under a parent pnpm workspace in the current environment.
+
