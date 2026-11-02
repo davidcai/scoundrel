@@ -1,13 +1,13 @@
 # Release readiness — Phase 5 verification
 
-Status: **verified; release is gated on the real-Safari manual check and explicit deployment
-authorization.** This report records observed evidence only — nothing here is marked passed from
-an assumption.
+Status: **verified, including CI confirmation; release is gated on the real-Safari manual check and
+explicit deployment authorization.** This report records observed evidence only — nothing here is
+marked passed from an assumption.
 
-Verified tree: ui-dev's design-handoff/accessibility commit `454c4cd6` plus the uncommitted Phase 5
-tooling and report change described under [Files for the Phase 5 commit](#files-for-the-phase-5-commit).
-The design handoff step-2 record and the accepted deviation below live in `docs/design-plan.md`
-and are part of the same follow-up commit.
+Verified tree: ui-dev's design-handoff/accessibility commit `454c4cd6`, the Phase 5 tooling and this
+report committed as `d71e7d80`, and the design handoff step-2 record in `7d0db026`. A docs-only
+progress commit `6811b8c1` follows them without code changes. Commit and CI details are under
+[CI confirmation](#ci-confirmation).
 
 ## Verification environment
 
@@ -18,7 +18,7 @@ and are part of the same follow-up commit.
 | Playwright | `@playwright/test` 1.64.1 — Chromium 1248, WebKit 27.2 (Playwright build), Firefox 157.0 |
 | Accessibility | `@axe-core/playwright` 4.14.0, WCAG tags 2.0 A/AA, 2.1 A/AA, 2.2 AA |
 | Production build | `pnpm build` served by `vite preview` on `http://127.0.0.1:4173` |
-| CI | `.github/workflows/ci.yml`: existing `ci` job plus the new `e2e` job (uncommitted, runs after `ci`) |
+| CI | `.github/workflows/ci.yml`: `ci` job plus the new `e2e` job (committed in `d71e7d80`, runs after `ci`); both green in [run 41412783455](https://github.com/davidcai/scoundrel/actions/runs/41412783455) |
 
 Local browser cache note: the sandbox cannot write `~/Library/Caches/ms-playwright`, so local runs
 use `PLAYWRIGHT_BROWSERS_PATH=<worktree>/.artifacts/ms-playwright`. CI uses the default cache path
@@ -37,12 +37,29 @@ Evidence: `.artifacts/task39/gate-*.log`.
 | Production build | `pnpm build` | pass — entry JS 330.62 kB (98.34 kB gzip), CSS 29.36 kB (5.82 kB gzip), built 82 ms |
 | Bundle budgets | `pnpm bundle-size` | pass — entry JS 94.97/250 KiB, total JS 94.97/350 KiB, total CSS 5.64/50 KiB |
 | Release assets | `pnpm check:release-assets` | pass — 47 dist files, 44/44 current PNGs with verified hashes, 105.76 MiB artwork, `vercel.json` static-safe |
-| Browser e2e | `pnpm exec playwright test --project=<project>` | per-project results below; Firefox blocked locally |
+| Browser e2e | `pnpm e2e` (matrix; CI and local) | per-project results below; full matrix green in CI, Firefox blocked locally by the sandbox |
 | Accessibility scans | part of `pnpm e2e` (strict axe, no allowlist) | pass — zero WCAG 2.2 AA violations |
+
+## CI confirmation
+
+The pushed tooling tree `d71e7d80` was verified by GitHub Actions **run
+[41412783455](https://github.com/davidcai/scoundrel/actions/runs/41412783455)** (push event, completed
+**success**, 2026-11-02T08:24:04Z–08:29:06Z, Node 22, frozen pnpm install):
+
+- `ci` job — success: install, lint, formatting, typecheck, unit/integration tests (47 files, 492
+  tests), production build, bundle-size budget.
+- `e2e` job — success: Playwright browser cache and install (Chromium, WebKit, Firefox), production
+  build, full `pnpm e2e` matrix (all projects, including Firefox), and Playwright report artifact
+  upload.
+
+This is the observed Firefox-on-Ubuntu confirmation. The local sandbox Firefox limitation described
+below is an environment note only. The later docs-only commit `6811b8c1` had no observed CI run when
+this report was updated, so it is not claimed here.
 
 ## Browser and viewport coverage
 
-Evidence: `.artifacts/task39/e2e-<project>.log`. All runs use the production build served by
+Local evidence: `.artifacts/task39/e2e-<project>.log`; CI evidence: the `e2e` job in run 41412783455.
+All runs use the production build served by
 `pnpm preview`; strict axe scans have **no known-violation allowlist** — any violation fails the
 run.
 
@@ -54,7 +71,7 @@ run.
 | chromium-compact (390×844, touch) | full touch flow, visual evidence | **2 passed** |
 | webkit-compact (390×844, touch) | touch smoke | **1 passed** |
 | chromium-narrow (320×568) | reflow and metadata fallback, visual evidence | **1 passed** |
-| firefox-wide (1440×900) | complete-flow smoke | **blocked locally** — 17 failed / 7 skipped because the browser process exits `Could not find profile folder`; the new CI e2e job must confirm Firefox on Ubuntu |
+| firefox-wide (1440×900) | complete-flow smoke | **pass in CI** (Ubuntu, run 41412783455); **blocked locally** — 17 failed / 7 skipped because the sandbox browser process exits `Could not find profile folder` (environment note, not a release condition) |
 | chrome-wide-local (branded Chrome 156) | optional local smoke | added as an optional project; not run in this pass |
 
 Per-project coverage: complete-run (winning fixture replay and doomed-policy loss through the real
@@ -127,7 +144,7 @@ explicitly unverified item for release sign-off.
 | REQ-013 statistics and history | `tests/stats.test.tsx`, store stats tests, e2e abandonment/once-only/history | automated — passing (51-run trim unit-tested only) |
 | REQ-014 share and replay | share tests, e2e replay link round-trip | automated — passing (same-profile edge noted below) |
 | REQ-015 contextual help | help tests, e2e axe scans | automated — passing |
-| REQ-016 browsers and layouts | matrix above | Chromium/WebKit/medium/compact/narrow pass; Firefox pending CI; real Safari manual pending |
+| REQ-016 browsers and layouts | matrix above | Chromium/WebKit/medium/compact/narrow pass locally; Firefox confirmed in CI; real Safari manual pending |
 | REQ-017 accessibility | strict axe WCAG 2.2 AA scans, keyboard and touch checks | automated scans pass; manual Safari/AT spot checks pending |
 
 DEC-001 (browser/platform scope) is reflected in the matrix and Safari limitation above. DEC-003
@@ -192,9 +209,9 @@ authorized** and were not performed.
 
 ## Known limitations and open items
 
-- **Firefox**: local runs are blocked by the sandbox (`Could not find profile folder` on every
-  launch, also outside the worktree with overridden HOME/TMPDIR). The new CI e2e job must confirm
-  Firefox on Ubuntu before release.
+- **Firefox**: confirmed green in CI on Ubuntu (run 41412783455). Local runs remain blocked by the
+  staging sandbox (`Could not find profile folder` on every launch, also outside the worktree with
+  overridden HOME/TMPDIR) — an environment note only, not a release condition.
 - **Real Safari**: blocked until the user enables Develop ▸ Allow Remote Automation; the manual
   checklist above must be completed and recorded. WebKit automation is not a Safari substitute.
 - **Physical devices**: iOS Safari and Android Chrome are unavailable and remain unverified.
@@ -215,17 +232,19 @@ authorized** and were not performed.
 ## Phase 5 verdict
 
 **Ready for release once the real-Safari manual check is completed and recorded, and deployment is
-explicitly authorized.** The automated gates, strict accessibility scans, and every locally
-runnable browser lane pass on the final tree; the Firefox CI run and the remaining manual items are
-release conditions, not open product work.
+explicitly authorized.** The automated gates, strict accessibility scans, the locally runnable
+browser lanes, and the full CI matrix (including Firefox on Ubuntu, run 41412783455) pass on the
+committed tree. The remaining release conditions are the real-Safari manual check, the
+physical-device decision, acceptance of the asset weight, and explicit deployment/merge
+authorization — not open product work.
 
 ## Sign-off checklist
 
 - [x] Typecheck, lint, formatting, unit/integration tests, build, bundle budgets, release assets pass.
 - [x] Strict axe WCAG 2.2 AA scans pass with no allowlist (Chromium and WebKit).
-- [x] Chromium/WebKit/medium/compact/narrow lanes pass locally.
+- [x] Chromium/WebKit/medium/compact/narrow lanes pass locally; Firefox lane passes in CI.
 - [x] Design handoff step 2 recorded; accepted potion-wording deviation documented.
-- [ ] Firefox CI lane green on push (environment limitation locally).
+- [x] Full CI matrix green on push, including Firefox on Ubuntu (run 41412783455).
 - [ ] Real Safari manual smoke completed and recorded.
 - [ ] Physical iOS/Android spot check (or explicitly accepted as unverified).
 - [ ] Asset-weight limitation accepted for hosting.
@@ -233,8 +252,10 @@ release conditions, not open product work.
 
 ## Files for the Phase 5 commit
 
-The Phase 5 tooling and this report are uncommitted on top of `454c4cd6`; they must be committed
-together so CI can run the new e2e job:
+The Phase 5 tooling and this report were committed as `d71e7d80` on top of `454c4cd6` (design
+handoff step-2 record in `7d0db026`; docs-only status update in `6811b8c1`). This CI-evidence
+revision of the report is the only uncommitted change. Files that make up the Phase 5 commit, for
+traceability:
 
 - `package.json`, `pnpm-lock.yaml` (Playwright/axe devDependencies and e2e scripts)
 - `playwright.config.ts`
