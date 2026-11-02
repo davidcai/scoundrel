@@ -128,6 +128,7 @@ h2 {
   min-width: 48px;
 }
 .title-layout {
+  padding-top: 32px;
   min-height: 690px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -138,6 +139,7 @@ h2 {
   max-width: 480px;
 }
 .kicker {
+  font-family: Baskerville, Georgia, serif;
   letter-spacing: 0.12em;
 }
 .intro h1 {
@@ -170,6 +172,7 @@ h2 {
   display: block;
 }
 .game-description {
+  font-family: Baskerville, Georgia, serif;
   margin-top: 24px;
   font-size: 14px;
 }
@@ -538,6 +541,10 @@ input {
   align-items: center;
   gap: 16px;
 }
+.health > span,
+.status-items > div > span {
+  font-family: Baskerville, Georgia, serif;
+}
 .health-value {
   font:
     32px Baskerville,
@@ -546,10 +553,10 @@ input {
   white-space: nowrap;
 }
 meter {
-  flex: 0 1 140px;
+  flex: 0 1 340px;
   min-width: 0;
-  width: 140px;
-  height: 12px;
+  width: 340px;
+  height: 20px;
   accent-color: var(--action);
 }
 .status-items {
@@ -732,6 +739,9 @@ meter {
   aspect-ratio: 2/3;
   border-radius: 4px;
   display: block;
+}
+.equipment-cards > img {
+  width: 104px;
 }
 .kill-stack {
   display: flex;
@@ -1032,9 +1042,6 @@ meter {
 @media (max-width: 599px) {
   .room-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .equipment-cards > img {
-    width: 104px;
   }
 }
 

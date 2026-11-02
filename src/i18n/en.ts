@@ -119,7 +119,7 @@ export const en = {
   'weapon-degraded': 'Your weapon can only fight a monster below its last kill.',
   'room-complete': 'This room is already cleared.',
   'room-incomplete': 'Resolve the required cards first.',
-  'escape-after-resolution': 'You can only escape before resolving the first card.',
+  'escape-after-resolution': 'You can only run away before resolving the first card.',
   'consecutive-escape': 'You cannot escape two rooms in a row.',
   'final-room': 'You cannot escape the final room.',
   'nothing-to-undo': 'Undo is available after a card is resolved.',
