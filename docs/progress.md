@@ -4,14 +4,14 @@ Tracks where development currently stands. The [implementation plan](implementat
 
 ## Current state
 
-- **Phase:** Phase 4 — Add continuity, history, and replay. Phases 1–3 are complete and accepted on 2026-11-01/2026-11-02; Phase 4 is in progress.
-- **Last updated:** 2026-11-01.
+- **Phase:** Phase 5 — Verify product readiness. Phases 1–4 are complete and accepted; Phase 5 verification is substantially complete, with final status pending external conditions (CI Firefox/Ubuntu confirmation, real-Safari manual check, deployment authorization).
+- **Last updated:** 2026-11-02.
 - **Branch:** standalone product branch; do not merge into `main` or open a merge request without explicit instructions.
-- **Design:** the written style guide in the [design plan](design-plan.md#design-approval-status) was approved by the user on 2026-11-01 as drafted (warm palette, serif display headings, no-badge card states, larger kill stack); the earlier withdrawn direction stays retired.
+- **Design:** the written style guide in the [design plan](design-plan.md#design-approval-status) was approved by the user on 2026-11-01 as drafted (warm palette, serif display headings, no-badge card states, larger kill stack); design-handoff step 2 (statistics, settings, result scorecard) was recorded complete on 2026-11-02 with the accepted potions-wasted wording deviation. The earlier withdrawn direction stays retired.
 
 ### Phase gate
 
-Implementation was authorized by the user on 2026-11-01. Phases 1–3 are complete and accepted: Phase 1 after independent verification, Phase 2 after an independent engine review, and Phase 3 after two independent UI review rounds. Phase 4 is in progress: the persisted store layer is committed and UI integration is underway. Deployment, merging into `main`, and opening a merge request remain separately unauthorized. The written style guide was approved on 2026-11-01.
+Implementation was authorized by the user on 2026-11-01. Phases 1–4 are complete and accepted: Phase 1 after independent verification, Phase 2 after an independent engine review, Phase 3 after two independent UI review rounds, and Phase 4 after independent store/UI reviews plus the design-handoff step 2 record. Phase 5 verification is substantially complete: strict typecheck/lint/format/test/build/bundle-size and release-asset gates pass, strict axe scans report zero WCAG 2.2 AA violations in Chromium and WebKit, and the locally runnable Playwright projects are green. Final status is pending CI confirmation of Firefox on Ubuntu, the real-Safari manual checklist, and explicit deployment authorization. Deployment, merging into `main`, and opening a merge request remain separately unauthorized. The written style guide was approved on 2026-11-01; changes require a new recorded approval.
 
 ## Phase status
 
@@ -20,8 +20,8 @@ Implementation was authorized by the user on 2026-11-01. Phases 1–3 are comple
 | 1. Settle the foundation | Complete | Accepted 2026-11-01 after independent verification; CI workflow green; foundation decisions, minimal app, bundle-size gate, and Vercel build config in place. |
 | 2. Prove the game rules | Complete | Accepted after independent engine review; 147 engine tests at acceptance; pure seeded rules engine with strict purity and determinism. |
 | 3. Deliver a complete playable run | Complete | Accepted after two independent UI review rounds; 218 UI/integration tests at acceptance; seeded win and loss flows through the real UI, keyboard/compact-screen/both languages/reduced motion; Safari checks deferred to Phase 5. |
-| 4. Add continuity, history, and replay | In progress | Phase 4a persisted store layer committed at `063b7952`; Phase 4b UI integration in progress. |
-| 5. Verify product readiness | Not started | |
+| 4. Add continuity, history, and replay | Complete | Accepted after independent store/UI reviews and the design-handoff step 2 record; Phase 4a store layer `063b7952` (211 store tests), Phase 4b UI `bc43bb88` (484 tests), step-2/axe fixes `454c4cd6` (492 tests), step-2 completion recorded in `docs/design-plan.md` (`7d0db026`). |
+| 5. Verify product readiness | In progress | Verification substantially complete: strict gates green (47 files/492 tests; 94.97/250 KiB entry; 44 current PNGs/105.76 MiB with matching hashes); strict axe WCAG 2.2 AA zero violations in Chromium/WebKit; release-readiness report committed. Awaiting CI Firefox confirmation, real-Safari manual check, and deployment authorization. |
 
 Work and acceptance checks for each phase are defined in the [delivery plan](implementation-plan.md#delivery-plan). Update the status and notes columns when a phase starts, changes, or completes.
 
@@ -40,13 +40,16 @@ Work and acceptance checks for each phase are defined in the [delivery plan](imp
 - Phase 1 milestone commits: `f964c3d` scaffold, `50734a0` CI workflow, bundle gate, and Vercel build config, `a66a923` acceptance-review fixes.
 - Phase 2 rules engine delivered as a pure TypeScript layer with the recorded seed/replay contract and gameplay rulings in the [rules document](rules.md); independent engine review passed; 147 engine tests at acceptance. Milestone commit `2cbc748e`.
 - Phase 3 playable run delivered: title/play/result screens on the approved warm visual direction, English and Simplified Chinese, keyboard and compact-screen behavior, reduced motion, and seeded win and loss flows through the real UI; 218 UI/integration tests at acceptance. Two independent UI review rounds found one major and twelve minor issues, all fixed and re-verified; real-Safari verification is deferred to Phase 5. Milestone commit `713f1ac4`.
-- Phase 4a persisted store layer delivered: versioned save/preferences/statistics with recovery choices, a single active run, once-only outcome recording, and history/replay/share links; 211 store tests at acceptance and independent store reviews. Milestone commit `063b7952`; Phase 4b UI wiring is in progress.
+- Phase 4 complete and accepted: Phase 4a persisted store layer (versioned save/preferences/statistics with recovery choices, single active run, once-only outcome recording, history/replay/share; 211 store tests and independent store reviews, `063b7952`); Phase 4b persistence/title/statistics/history/replay UI (`bc43bb88`, 484 tests); design-handoff step-2 and axe accessibility fixes (`454c4cd6`, 492 tests); step-2 completion recorded in the [design plan](design-plan.md#design-handoff-status) (`7d0db026`).
+- Phase 5 verification substantially complete: Playwright 1.64.1 and @axe-core/playwright 4.14.0 with 8 e2e specs and a CI e2e job (`d71e7d80`); strict typecheck/lint/format/build and 47-file/492-test suite green; bundle 94.97/250 KiB entry; release-asset audit 47 dist files, 44/44 current PNGs, 105.76 MiB with matching hashes; strict axe WCAG 2.2 AA scans report zero violations across title/help/statistics/settings/play/selected/result in Chromium and WebKit; locally runnable Playwright projects green (chromium-wide 23/1 skip, webkit-wide 18/6 skip, chromium-medium 6, chromium-compact 2, webkit-compact 1, chromium-narrow 1); the release-readiness report is committed at [docs/release-readiness.md](release-readiness.md).
+- Phase 5 external conditions and accepted limitations recorded: Firefox local runs are blocked by the sandbox profile issue and are being confirmed by CI run 41412783455 on `d71e7d80`; real-Safari smoke awaits the user enabling Safari remote automation; iOS Safari/Android physical devices are unverified; the ~106 MiB current-artwork payload needs owner acceptance; the potions-wasted wording deviation is recorded in the design plan; cross-tab and 51-run-trim e2e gaps are covered by unit tests.
 - Adversarial document review fixed one high, seven medium, and eight low issues: design approval gate, loss scoring, escape return order, explicit discard, house-rule semantics, save and link recovery, future-update acceptance, measurable accessibility targets, final-room rule wording, wasted-potion definition, explored-versus-cleared counts, language fallback, archived-artwork exclusion, stable product-acceptance anchor, multi-tab recording, and statistics definitions.
 
 ## Next actions
 
-- Finish Phase 4b UI integration and its independent review.
-- Then run Phase 5 verification: Playwright/WebKit/real-Safari/Firefox checks, accessibility review, bundle-size and asset-weight checks, and the release-readiness report, against [REQ-016](prd.md#req-016) and [REQ-017](prd.md#req-017).
-- Deployment and merging remain separately unauthorized and require explicit user authorization; keep the Vercel hosting target in the [implementation plan](implementation-plan.md). Safari remote automation is currently disabled and must be enabled by the user ("Allow remote automation") for the real-Safari smoke check.
+- Confirm the CI e2e job, including Firefox on Ubuntu, is green on `d71e7d80` (run 41412783455).
+- The user must enable Safari remote automation (Safari → Settings → Advanced → "Show features for web developer", then Develop → "Allow Remote Automation") and complete the manual real-Safari checklist recorded in [the release-readiness report](release-readiness.md); WebKit automation is not a Safari substitute.
+- The user must explicitly authorize deployment (Vercel preview or production) and provide the project target/access; deployment, merging into `main`, and opening a merge request remain unauthorized.
+- The user should accept or revise the ~106 MiB current-artwork payload limitation (largest room card 1314.73 KiB dominates first-room transfer) before deployment.
+- Optional: run a physical iOS Safari/Android Chrome spot-check, or explicitly accept the unverified-device limitation.
 - Use the approved style guide as the presentation source of truth; changes to it require a new recorded approval.
-- Verify the future-update saved-data format-change scenario during Phase 4/5 acceptance.
