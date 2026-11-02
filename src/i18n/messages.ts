@@ -100,7 +100,10 @@ export function formatCardCaption(
   return pieces.join(t('card.captionSeparator'));
 }
 
-/** Accessible name: identity, kind, availability state, and card position. */
+/**
+ * Accessible name: starts with the visible caption verbatim (WCAG 2.5.3 Label
+ * in Name), then the card identity and kind.
+ */
 export function formatCardAccessibleName(
   t: Translate,
   parts: {
@@ -112,19 +115,10 @@ export function formatCardAccessibleName(
     readonly reason?: RejectionReason | null;
   },
 ): string {
-  const state =
-    parts.reason != null
-      ? t('card.state.notUsable', { reason: rejectionText(t, parts.reason) })
-      : parts.selected === true
-        ? t('card.state.selected')
-        : parts.carried === true
-          ? t('card.state.carried')
-          : t('card.state.available');
   return t('a11y.cardLabel', {
+    caption: formatCardCaption(t, parts),
     cardName: formatCardName(t, parts.card),
     kind: formatCardKind(t, cardKind(parts.card)),
-    state,
-    caption: t('card.captionIndex', { index: parts.index, total: parts.total }),
   });
 }
 

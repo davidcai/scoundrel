@@ -100,7 +100,7 @@ export function StatsScreen({ onBackToTitle, onReplay }: StatsScreenProps) {
                 aria-label={t('stats.historyTitle')}
                 tabIndex={0}
               >
-                <table className="history-table">
+                <table className="data-table history-table">
                   <caption className="visually-hidden">{t('stats.historyCaption')}</caption>
                   <thead>
                     <tr>
@@ -118,7 +118,9 @@ export function StatsScreen({ onBackToTitle, onReplay }: StatsScreenProps) {
                   <tbody>
                     {history.map((entry) => (
                       <tr key={entry.runId} data-run-id={entry.runId}>
-                        <td>{formatHistoryDate(locale, entry.finishedAt)}</td>
+                        <td className="history-table__date">
+                          {formatHistoryDate(locale, entry.finishedAt)}
+                        </td>
                         <td className="history-table__seed">
                           <code>{entry.seed}</code>
                         </td>
@@ -131,10 +133,12 @@ export function StatsScreen({ onBackToTitle, onReplay }: StatsScreenProps) {
                             {historyOutcomeText(t, entry.outcome, entry.abandoned)}
                           </span>
                         </td>
-                        <td className="history-table__score">
+                        <td className="history-table__score data-table__numeric">
                           {formatNumber(locale, entry.score)}
                         </td>
-                        <td>{formatNumber(locale, entry.roomsCleared)}</td>
+                        <td className="data-table__numeric">
+                          {formatNumber(locale, entry.roomsCleared)}
+                        </td>
                         <td>
                           <Button
                             variant="ghost"

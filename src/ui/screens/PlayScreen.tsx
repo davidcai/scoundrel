@@ -267,6 +267,7 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
             </span>
             <span
               className="dungeon-chip"
+              role="img"
               aria-label={t('a11y.dungeonCount', { count: dungeonCount })}
             >
               <span aria-hidden="true">{dungeonCount}</span>

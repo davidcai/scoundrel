@@ -162,7 +162,7 @@ export function TitleScreen({
                   seed: activeRun.state.seed,
                 })}
               </p>
-              <Button variant="ghost" onClick={() => setDiscardOpen(true)}>
+              <Button variant="danger" onClick={() => setDiscardOpen(true)}>
                 {t('title.discardRun')}
               </Button>
             </div>
@@ -331,7 +331,7 @@ export function TitleScreen({
           <Button variant="secondary" onClick={() => setDiscardOpen(false)}>
             {t('title.discardCancel')}
           </Button>
-          <Button variant="primary" onClick={handleDiscardConfirm}>
+          <Button variant="danger" onClick={handleDiscardConfirm}>
             {t('title.discardConfirm')}
           </Button>
         </div>

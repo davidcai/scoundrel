@@ -83,6 +83,19 @@ describe('message helpers', () => {
       total: 4,
     });
     expect(accessible).toContain(formatCardName(enT, 'club-a'));
+    // WCAG 2.5.3: the visible caption must appear verbatim in the name.
+    expect(accessible).toContain(formatCardCaption(enT, { index: 1, total: 4 }));
+
+    const selectedName = formatCardAccessibleName(enT, {
+      card: 'heart-4',
+      index: 3,
+      total: 4,
+      selected: true,
+    });
+    expect(selectedName).toContain(formatCardCaption(enT, { index: 3, total: 4, selected: true }));
+    expect(
+      selectedName.indexOf(formatCardCaption(enT, { index: 3, total: 4, selected: true })),
+    ).toBe(0);
   });
 
   it('covers every rejection reason exactly once', () => {

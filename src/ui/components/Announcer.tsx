@@ -50,6 +50,7 @@ export function AnnouncerProvider({ children }: { children: ReactNode }) {
       <div
         className="visually-hidden"
         data-testid="live-polite"
+        role="status"
         aria-live="polite"
         aria-atomic="true"
         aria-label={t('a11y.livePolite')}
@@ -59,6 +60,7 @@ export function AnnouncerProvider({ children }: { children: ReactNode }) {
       <div
         className="visually-hidden"
         data-testid="live-assertive"
+        role="alert"
         aria-live="assertive"
         aria-atomic="true"
         aria-label={t('a11y.liveAssertive')}

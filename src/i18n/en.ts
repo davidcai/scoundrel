@@ -147,6 +147,8 @@ export const en = {
   'result.seedLabel': 'Seed',
   'result.rulesLabel': 'Rules',
   'result.highlightsTitle': 'Run highlights',
+  'result.tableDetail': 'Detail',
+  'result.tableValue': 'Value',
   'result.monstersDefeated': 'Monsters defeated',
   'result.potionsWasted': 'Potions wasted',
   'result.roomsExplored': 'Rooms explored',
@@ -184,7 +186,7 @@ export const en = {
 
   'a11y.healthBar': 'Health {health} / {max}',
   'a11y.roomCards': 'Room cards',
-  'a11y.cardLabel': '{cardName}, {kind}, {state}, {caption}',
+  'a11y.cardLabel': '{caption}, {cardName}, {kind}',
   'a11y.killStack': 'Kill stack of the equipped weapon',
   'a11y.dungeon': 'Dungeon',
   'a11y.dungeonCount': 'Dungeon, {count} cards remaining',
@@ -291,7 +293,6 @@ export const en = {
   'storage.resetStats': 'Reset statistics',
   'storage.resetSettings': 'Reset settings',
   'storage.dismiss': 'Dismiss',
-  'storage.sessionOnly': 'Not saving: progress will be lost on reload.',
 
   'play.sessionOnly': 'Not saving',
 } as const;

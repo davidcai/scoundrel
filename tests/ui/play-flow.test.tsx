@@ -30,7 +30,13 @@ describe('play flow', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: t('result.lostTitle') }),
     ).toBeInTheDocument();
-    expect(screen.getByText(t('result.outcomeLost'))).toBeInTheDocument();
+    // §6 removed the duplicate "Outcome" row: the outcome lives in the heading
+    // and its icon, and the breakdown is a table.
+    expect(screen.queryByText(t('result.outcomeLost'))).not.toBeInTheDocument();
+    expect(screen.getByRole('region', { name: t('result.highlightsTitle') })).toBeInTheDocument();
+    expect(
+      screen.getByRole('rowheader', { name: t('result.remainingMonsters') }),
+    ).toBeInTheDocument();
   }, 60_000);
 
   it('starts another run from the result screen', () => {

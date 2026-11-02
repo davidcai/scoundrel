@@ -145,6 +145,8 @@ export const zhHans = {
   'result.seedLabel': '种子',
   'result.rulesLabel': '规则',
   'result.highlightsTitle': '本局统计',
+  'result.tableDetail': '项目',
+  'result.tableValue': '数值',
   'result.monstersDefeated': '击败怪物',
   'result.potionsWasted': '浪费药水',
   'result.roomsExplored': '探索房间',
@@ -178,7 +180,7 @@ export const zhHans = {
 
   'a11y.healthBar': '生命值 {health} / {max}',
   'a11y.roomCards': '房间卡牌',
-  'a11y.cardLabel': '{cardName}，{kind}，{state}，{caption}',
+  'a11y.cardLabel': '{caption}，{cardName}，{kind}',
   'a11y.killStack': '当前武器的击杀堆',
   'a11y.dungeon': '地牢',
   'a11y.dungeonCount': '地牢，剩余 {count} 张牌',
@@ -282,7 +284,6 @@ export const zhHans = {
   'storage.resetStats': '重置统计',
   'storage.resetSettings': '重置设置',
   'storage.dismiss': '忽略',
-  'storage.sessionOnly': '未保存：刷新页面后进度会丢失。',
 
   'play.sessionOnly': '未保存',
 } satisfies Record<MessageKey, string>;

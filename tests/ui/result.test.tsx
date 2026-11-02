@@ -75,13 +75,15 @@ describe('result screen', () => {
     const fatal = { ...lostResult, health: -5 };
     renderResult(fatal, { remainingMonsters: 4 });
 
-    const healthRow = screen.getByText(t('result.healthLabel')).closest('.result-panel__row');
+    const healthRow = screen
+      .getByRole('rowheader', { name: t('result.healthLabel') })
+      .closest('tr');
     expect(healthRow).toHaveTextContent('0');
     expect(healthRow).not.toHaveTextContent('-5');
 
     const remainingRow = screen
-      .getByText(t('result.remainingMonsters'))
-      .closest('.result-panel__row');
+      .getByRole('rowheader', { name: t('result.remainingMonsters') })
+      .closest('tr');
     expect(remainingRow).toHaveTextContent('4');
   });
 
@@ -89,6 +91,34 @@ describe('result screen', () => {
     renderResult(wonResult);
 
     expect(screen.queryByText(t('result.remainingMonsters'))).not.toBeInTheDocument();
+  });
+
+  it('orders the result actions per the approved design', () => {
+    renderResult(lostResult);
+
+    const actions = Array.from(
+      document.querySelectorAll<HTMLButtonElement>('.result-panel__actions .button'),
+    ).map((button) => ({
+      label: button.textContent,
+      variant: Array.from(button.classList).find((name) => name.startsWith('button--')),
+    }));
+
+    expect(actions).toEqual([
+      { label: t('result.newRun'), variant: 'button--primary' },
+      { label: t('result.backToTitle'), variant: 'button--secondary' },
+      { label: t('result.viewStatistics'), variant: 'button--ghost' },
+    ]);
+  });
+
+  it('renders the breakdown as a table with right-aligned values', () => {
+    renderResult(lostResult);
+
+    const table = screen.getByRole('table');
+    expect(table).toHaveClass('data-table', 'result-table');
+    expect(screen.getAllByRole('rowheader').length).toBeGreaterThan(2);
+    for (const cell of table.querySelectorAll('td')) {
+      expect(cell).toHaveClass('data-table__numeric');
+    }
   });
 
   it('calls the result actions', () => {
