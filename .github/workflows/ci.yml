@@ -1,0 +1,57 @@
+# Continuous integration for the standalone Scoundrel delivery branch.
+# This workflow only verifies the build; it never deploys. Publishing requires
+# explicit authorization separately from the hosting decision.
+name: CI
+
+on:
+  push:
+    branches: [ds/game-implementation]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # pnpm 11.7.0 and Node.js 22 come from package.json "packageManager"
+      # and "engines"; the branch is verified on the supported Node.js 22 LTS.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Unit and integration tests
+        run: pnpm test
+
+      # `pnpm build` also type-checks, so a broken build fails before the gate.
+      - name: Build production bundle
+        run: pnpm build
+
+      - name: Bundle size budget
+        run: pnpm bundle-size

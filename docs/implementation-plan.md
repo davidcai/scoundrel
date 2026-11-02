@@ -38,16 +38,46 @@ Phase 1 records these implementation decisions. They choose tooling and formats;
 | Deterministic ordering | Hash the seed's UTF-8 bytes with 32-bit FNV-1a to obtain a uint32 seed, then generate the deck order with mulberry32. Shuffle the canonical deck order (clubs A–K, spades A–K, diamonds 2–10, hearts 2–10) with a Fisher–Yates pass from the last index down, selecting `Math.floor(next() * (i + 1))`. No `Math.random` may affect a run; previews and confirmed outcomes use the same ordered deck. |
 | Replay-link shape | Hash routing keeps every route on `index.html`, so hosted refreshes never need server rewrites. Play routes have the shape `#/play?seed=<seed>&config=<hex>`. A replay link always carries both values; entering a seed manually without `config` uses the player's currently selected rule options, per [REQ-014](prd.md#req-014). Invalid seed or link values are explained without replacing the active run or statistics. |
 | Rule-option encoding | The three house rules in [REQ-011](prd.md#req-011) are a 3-bit mask written as one lowercase hexadecimal digit, `config=0` through `config=7`. Bit 0 (value 1) allows running away from consecutive rooms; bit 1 (value 2) allows unlimited healing potions per room; bit 2 (value 4) turns weapon degradation off. Defaults are `config=0`; invalid masks are rejected as invalid links. |
-| Build and routing | Vite `base: process.env.BASE_URL ?? '/'` is captured at build time, and asset URLs derive from the Vite base. The app uses hash routes, so the Vercel target only needs to serve the static build and never rewrites deep links. Deployment configuration stays out of Phase 1 and is owned by the later build/deployment task. |
+| Build and routing | Vite `base: process.env.BASE_URL ?? '/'` is captured at build time, and asset URLs derive from the Vite base. The app uses hash routes, so the Vercel target only needs to serve the static build and never rewrites deep links. The build gate and the Vercel configuration are recorded under Build verification and hosting configuration below; publishing remains owned by the later deployment task. |
 | State management | No state-management library in Phase 1. The rules layer stays independent and pure; screens use React state and hooks until a vertical slice demonstrates a need for more. Revisit with a recorded decision if that need appears. |
 | Saved-data versioning | Saved runs, preferences, and statistics are separate versioned JSON payloads under the product's own storage namespace, each carrying an integer `schemaVersion`. Reads validate the payload before use; supported older versions migrate through ordered migration functions; corrupt or unsupported payloads are preserved rather than overwritten, with the recovery choices in [REQ-010](prd.md#req-010). Implementation follows in Phase 4; no cross-product import or compatibility work is in scope ([DEC-003](prd.md#dec-003)). |
-| Asset weight | `assets/` totals about 106 MB, so the 44 PNGs are the release's dominant payload. Phase 1 imports only the artwork a screen uses and never bundles `assets-old/`; later screens import only their needed cards and lazy-load artwork where practical. Do not compress, convert, re-encode, or replace the artwork without a recorded design decision that also re-checks its contrast and legibility rules. Flag deploy-weight risk to the hosting task: static bandwidth, preview-deploy size, and cache headers need an explicit decision. |
+| Asset weight | `assets/` totals about 106 MB, so the 44 PNGs are the release's dominant payload. Phase 1 imports only the artwork a screen uses and never bundles `assets-old/`; later screens import only their needed cards and lazy-load artwork where practical. Do not compress, convert, re-encode, or replace the artwork without a recorded design decision that also re-checks its contrast and legibility rules. Flag deploy-weight risk to the hosting task: static bandwidth, preview-deploy size, and cache headers are recorded under Build verification and hosting configuration. |
 
 ## Initial hosting target
 
 Host the initial release on Vercel. Keep deployment configuration and build instructions in implementation documentation rather than the PRD. Hosting is settled; publishing a deployment is not authorized by this plan.
 
 When deployment is authorized, verify the deployed game loads its current artwork, supports opening and refreshing screens and replay links directly, and preserves saves, preferences, and statistics across reloads on the intended player-facing URL. If preview deployments are used, verify their replay links and asset paths too. Document that saved data belongs to the browser and site address where it was created; no cross-site or cross-device synchronization is in scope, consistent with [DEC-002](prd.md#dec-002).
+
+## Build verification and hosting configuration (recorded 2026-11-01)
+
+Phase 1 records the verification gate and the Vercel build configuration. This section configures builds; it does not authorize a deployment, a Vercel project connection, or publishing.
+
+### Continuous integration
+
+`.github/workflows/ci.yml` runs on pushes to `ds/game-implementation` and on manual `workflow_dispatch`. It has no `pull_request` trigger because this standalone branch does not open merge requests, and it has no deploy job. The workflow uses Node.js 22 with pnpm 11.7.0 read from `packageManager`, installs with `pnpm install --frozen-lockfile`, and then runs `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and `pnpm bundle-size` in that order. Browser automation joins CI in a later phase when Playwright is installed; Phase 1 CI verifies only these steps.
+
+### Bundle-size gate
+
+`scripts/check-bundle-size.mjs`, run as `pnpm bundle-size` after `pnpm build`, reads the production output in `dist/` and measures gzip size with `node:zlib` level 9, because gzip approximates the bytes a browser downloads. Raw sizes are not budgeted. The script identifies entry chunks from `dist/index.html` and tolerates a non-root `BASE_URL`. The gate fails with a non-zero exit and a clear message when a budget is exceeded. The environment variables `BUNDLE_ENTRY_JS_GZIP_MAX_KB`, `BUNDLE_TOTAL_JS_GZIP_MAX_KB`, and `BUNDLE_TOTAL_CSS_GZIP_MAX_KB` override a budget in KiB for deliberate negative testing only and are never set in CI.
+
+| Budget | Limit (gzip) | Phase 1 measured |
+| --- | --- | --- |
+| Entry JS (scripts referenced by `dist/index.html`) | 250 KiB | 66.51 KiB |
+| Total JS (all emitted JS chunks) | 350 KiB | 66.51 KiB |
+| Total CSS (all emitted CSS) | 50 KiB | 1.29 KiB |
+
+Vite reports the same baseline in decimal kB (220.57 kB raw / 68.99 kB gzip JS, 3.29 kB / 1.33 kB gzip CSS), which is the equivalent measurement in different units. The limits let phases 2–5 add the rules layer, screens, translation, and persistence while still catching an accidental large dependency; revisit them at the Phase 5 readiness review with measured evidence. The gate budgets code only. The 44 PNG illustrations are the dominant payload and are excluded on purpose; their decision is recorded below and under Asset weight.
+
+### Vercel configuration and caching
+
+`vercel.json` selects the Vite framework, installs with `pnpm install --frozen-lockfile`, builds with `pnpm build`, and publishes `dist/`. Hashed build files under `/assets/*` receive `Cache-Control: public, max-age=31536000, immutable`; HTML is deliberately left without a long-lived cache rule so a later deployment can be picked up on reload. Hash routing means every route is served from `index.html`, so no catch-all rewrite is needed and direct route refreshes work once deployed.
+
+`BASE_URL` remains a build-time override with default `/`. A non-root base changes emitted asset URLs, so the `/assets/*` header path must be updated with it. Preview and production deployments use the same `vercel.json`, but Vercel previews and the production domain are different origins, so saves, preferences, statistics, and replay links do not cross between them (data belongs to the browser and site address where it was created, per [DEC-002](prd.md#dec-002)). Persistence and direct-link checks must therefore run on the intended player-facing URL. No Vercel project is created or linked in Phase 1, and creating or promoting a deployment still requires the explicit authorization recorded in [progress.md](progress.md).
+
+### Artwork payload and caching decision
+
+`assets/` totals about 106 MB across the 44 current PNGs, so artwork is the release's dominant download. Decision: do not compress, convert, re-encode, or replace the artwork; the approved design and the Asset weight decision above still apply, and no file from `assets-old/` is bundled. Hashed artwork receives the same immutable `/assets/*` caching, so repeats do not re-download it within a deployment. Phases 3–5 import only the cards a screen uses and lazy-load artwork where practical. Static bandwidth, preview-deploy size, and the first-load cost of screens showing many cards remain known hosting risks; changing the artwork format or delivery would need a recorded product decision and is not assumed by this configuration.
 
 ## Browser and accessibility verification
 

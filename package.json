@@ -16,7 +16,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "bundle-size": "node scripts/check-bundle-size.mjs"
   },
   "dependencies": {
     "react": "19.3.1",

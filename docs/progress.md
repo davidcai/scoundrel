@@ -17,7 +17,7 @@ Implementation was authorized by the user on 2026-11-01 to begin Phase 1. Applic
 
 | Phase | Status | Notes |
 | --- | --- | --- |
-| 1. Settle the foundation | In progress | Foundation decisions recorded; minimal app scaffold and verification tooling verified. CI/build-deployment files remain. |
+| 1. Settle the foundation | In progress | Foundation decisions recorded; minimal app, tests, CI workflow, bundle-size gate, and Vercel build config in place; independent acceptance verification pending. |
 | 2. Prove the game rules | Not started | |
 | 3. Deliver a complete playable run | Not started | |
 | 4. Add continuity, history, and replay | Not started | |
@@ -35,11 +35,12 @@ Work and acceptance checks for each phase are defined in the [delivery plan](imp
 - Implementation authorized by the user on 2026-11-01; Phase 1 started.
 - Phase 1 foundation decisions recorded in the implementation plan: pnpm and Node.js 22 targets, exact dependency pins, the 44-card inventory, seed/replay and rule-option encoding, build/routing, state-management deferral, saved-data versioning, and asset-weight strategy.
 - Minimal Vite + React + TypeScript scaffold created with the approved warm tokens, display serif, and one current-artwork card; smoke and asset-inventory tests added, and the production build displays the card without archived artwork. ESLint, Prettier, TypeScript, Vitest, and the production build were run with passing observed output.
+- Phase 1 CI workflow (Node 22 + pnpm, lint/format/typecheck/test/build/bundle-size), gzip bundle-size gate with recorded budgets, and Vercel build/caching config added; all gate commands verified locally, negative-tested, and recorded in the implementation plan.
 - Adversarial document review fixed one high, seven medium, and eight low issues: design approval gate, loss scoring, escape return order, explicit discard, house-rule semantics, save and link recovery, future-update acceptance, measurable accessibility targets, final-room rule wording, wasted-potion definition, explored-versus-cleared counts, language fallback, archived-artwork exclusion, stable product-acceptance anchor, multi-tab recording, and statistics definitions.
 
 ## Next actions
 
-- Complete the remaining Phase 1 items — CI, build, and deployment configuration — and close the phase gate.
+- Run the independent Phase 1 acceptance verification, then close the phase gate and start Phase 2 (rules engine).
 - Use the approved style guide as the presentation source of truth; changes to it require a new recorded approval.
 - Verify the phase-4 future-update saved-data format-change scenario when implementation begins.
 - Keep the Vercel hosting target in the [implementation plan](implementation-plan.md) and the browser and accessibility requirements in the [PRD](prd.md#req-016); deployment still requires explicit authorization.

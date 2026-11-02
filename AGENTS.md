@@ -56,6 +56,7 @@ Run these from the repository root with pnpm 11.7.0 and Node.js 22.13 or later (
 - `pnpm format` / `pnpm format:check` — write / check Prettier formatting.
 - `pnpm typecheck` — run the TypeScript no-emit check.
 - `pnpm test` — run the Vitest suite in jsdom.
+- `pnpm bundle-size` — verify the production bundle against the documented gzip budgets (run after `pnpm build`).
 
 If `pnpm install` resolves projects outside this worktree, pass `--ignore-workspace`; this checkout is nested under a parent pnpm workspace in the current environment.
 
