@@ -1,6 +1,7 @@
 /*
- * Approved style-guide tokens (docs/design-plan.md §3–§4). Any change to these
- * values requires a new recorded design approval.
+ * Approved style-guide tokens (docs/design-plan.md §3–§4) extended with the
+ * component layer for Phase 3. Approved token values must not change without a
+ * new recorded design approval.
  */
 :root {
   color-scheme: dark;
@@ -43,25 +44,53 @@
   --text-display: clamp(2.25rem, 6vw, 2.75rem);
   --text-h1: 2rem;
   --text-h2: 1.5rem;
+  --text-h3: 1.125rem;
   --text-body: 1rem;
+  --text-body-strong: 1rem;
   --text-small: 0.875rem;
+  --text-label: 0.875rem;
+  --text-card-value: 1.25rem;
+  --text-card-meta: 0.875rem;
+  --text-score: 2.5rem;
   --text-caption: 0.75rem;
 
+  --space-1: 4px;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
+  --space-5: 20px;
   --space-6: 1.5rem;
+  --space-7: 32px;
   --space-8: 2.5rem;
+  --space-9: 48px;
   --space-10: 4rem;
+  --space-11: 80px;
 
+  --radius-1: 4px;
   --radius-2: 8px;
   --radius-3: 12px;
+  --radius-4: 16px;
+  --radius-pill: 999px;
   /* Inner card radii are derived from the approved 12px card radius. */
   --radius-card-inner-frame: calc(var(--radius-3) - 1px);
   --radius-card-inner: calc(var(--radius-3) - 2px);
 
   --shadow-1: 0 1px 2px rgb(0 0 0 / 45%);
   --shadow-2: 0 8px 24px rgb(0 0 0 / 45%);
+  --shadow-3: 0 24px 64px rgb(0 0 0 / 55%);
+  --shadow-pressed: inset 0 2px 0 rgb(0 0 0 / 35%);
+  --focus-halo: 0 0 0 4px rgb(233 220 192 / 22%);
+
+  /* Approved card track sizes (design plan §4/§6). */
+  --card-track-wide: clamp(160px, 14vw, 200px);
+  --card-track-medium: clamp(140px, 30vw, 180px);
+  --card-track-compact: clamp(132px, 40vw, 168px);
+
+  --motion-1: 120ms;
+  --motion-2: 200ms;
+  --motion-3: 280ms;
+  --ease-enter: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --ease-exit: ease-out;
 }
 
 *,
@@ -84,122 +113,1232 @@ body {
   line-height: 1.6;
 }
 
-.app {
+h1,
+h2,
+h3 {
+  margin: 0;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+button {
+  font: inherit;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Buttons ---------- */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 var(--space-5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-2);
+  background: transparent;
+  color: var(--text-1);
+  font-family: var(--font-ui);
+  font-size: var(--text-label);
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-1) var(--ease-enter),
+    border-color var(--motion-1) var(--ease-enter),
+    color var(--motion-1) var(--ease-enter),
+    transform var(--motion-1) var(--ease-enter);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-2);
+}
+
+.button--primary {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--gold-ink);
+}
+
+.button--secondary {
+  background: var(--surface-2);
+  border-color: var(--border-2);
+  color: var(--text-1);
+}
+
+.button--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-2);
+}
+
+.button:not([aria-disabled='true']):hover {
+  background: var(--gold-bright);
+  border-color: var(--gold-bright);
+}
+
+.button--secondary:not([aria-disabled='true']):hover,
+.button--ghost:not([aria-disabled='true']):hover {
+  background: var(--surface-3);
+  border-color: var(--border-2);
+  color: var(--text-1);
+}
+
+.button--ghost:not([aria-disabled='true']):hover {
+  border-color: transparent;
+}
+
+.button:not([aria-disabled='true']):active {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-pressed);
+}
+
+.button[aria-disabled='true'] {
+  background: var(--surface-2);
+  border-color: var(--border-1);
+  color: var(--text-disabled);
+  cursor: default;
+}
+
+/* ---------- Title screen ---------- */
+
+.title-screen {
+  position: relative;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Decorative fan of current PNG artwork, kept outside the 720px text column
+   at 20% opacity. Below that width the plain wash is the fallback. */
+.title-screen__art {
+  display: none;
+}
+
+@media (min-width: 1200px) {
+  .title-screen__art {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .title-screen__art-card {
+    position: absolute;
+    width: clamp(160px, 14vw, 240px);
+    height: auto;
+    border-radius: var(--radius-3);
+    box-shadow: var(--shadow-2);
+    opacity: 0.16;
+  }
+
+  .title-screen__art-card--1 {
+    top: 12vh;
+    left: 1.5vw;
+    transform: rotate(-8deg);
+  }
+
+  .title-screen__art-card--2 {
+    top: 18vh;
+    right: 1.5vw;
+    transform: rotate(7deg);
+  }
+
+  .title-screen__art-card--3 {
+    bottom: 8vh;
+    left: 4vw;
+    transform: rotate(5deg);
+  }
+}
+
+.title-screen__main {
+  position: relative;
+  z-index: 1;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-8);
-  padding: var(--space-10) var(--space-6);
-}
-
-.masthead {
+  gap: var(--space-6);
+  width: 100%;
   max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-10) var(--space-6);
   text-align: center;
 }
 
-.wordmark {
-  margin: 0;
+.title-screen__wordmark {
   font-family: var(--font-display);
-  text-wrap: balance;
   font-size: var(--text-display);
   font-weight: 700;
   line-height: 1.05;
   color: var(--gold-bright);
 }
 
-.premise {
-  margin: var(--space-4) 0 0;
-  text-wrap: pretty;
-  font-size: var(--text-body);
-  line-height: 1.6;
+.title-screen__wordmark:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: var(--space-3);
+  border-radius: var(--radius-1);
+}
+
+.title-screen__premise {
+  max-width: 46ch;
   color: var(--text-2);
 }
 
-.preview {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
-.card-demo {
+.title-screen__actions {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-6);
-  background: var(--surface-1);
+  gap: var(--space-3);
+  width: min(100%, 320px);
+}
+
+.language-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: center;
+  padding: 2px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-2);
+}
+
+.title-screen__rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 480px;
+  margin: 0;
+  padding: var(--space-4);
   border: 1px solid var(--border-2);
   border-radius: var(--radius-3);
-  box-shadow: var(--shadow-2);
+  background: var(--surface-1);
+  text-align: left;
 }
 
-.card-demo-title {
-  margin: 0;
-  font-family: var(--font-display);
-  text-wrap: balance;
-  font-size: var(--text-h2);
-  font-weight: 600;
-  line-height: 1.25;
+.title-screen__rules-title {
+  padding: 0 var(--space-2);
   color: var(--text-2);
+  font-size: var(--text-label);
+  font-weight: 600;
 }
 
-.card-figure {
+.rule-option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  align-items: start;
+  padding: var(--space-2);
+  border-radius: var(--radius-2);
+  cursor: pointer;
+}
+
+.rule-option:hover {
+  background: var(--surface-2);
+}
+
+.rule-option input {
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  accent-color: var(--gold);
+}
+
+.rule-option input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.rule-option__label {
+  color: var(--text-1);
+  font-size: var(--text-body-strong);
+  font-weight: 600;
+}
+
+.rule-option__hint {
+  grid-column: 2;
+  color: var(--text-muted);
+  font-size: var(--text-small);
+}
+
+.title-screen__footer {
+  padding: var(--space-4) var(--space-6);
+  color: var(--text-muted);
+  font-size: var(--text-caption);
+  text-align: center;
+}
+
+/* ---------- Play screen ---------- */
+
+.play-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: var(--space-4);
+  z-index: 100;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-2);
+  background: var(--gold);
+  color: var(--gold-ink);
+  font-size: var(--text-label);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: var(--space-4);
+}
+
+.play-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 64px;
+  padding: var(--space-2) var(--space-5);
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border-2);
+}
+
+.play-header__center {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.play-header__room {
+  color: var(--text-1);
+  font-size: var(--text-small);
+  font-weight: 600;
+}
+
+.play-header__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* Medium and compact keep the dungeon count in the header, not a rail. */
+.dungeon-chip {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 24px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-2);
+  background: var(--gold-bright);
+  color: var(--gold-ink);
+  font-size: var(--text-small);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1199px) {
+  .dungeon-chip {
+    display: inline-flex;
+  }
+}
+
+.health {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 150px;
+}
+
+.health__label {
+  color: var(--text-1);
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+
+.health__track {
+  height: 12px;
+  overflow: hidden;
+  background: var(--health-track);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-pill);
+}
+
+.health__fill {
+  display: block;
+  height: 100%;
+  background: var(--health);
+  border-radius: var(--radius-pill);
+  transition: width var(--motion-2) var(--ease-enter);
+}
+
+.potion {
+  color: var(--text-2);
+  font-size: var(--text-small);
+}
+
+.potion--used {
+  color: var(--wasted);
+}
+
+.seed {
+  display: inline-flex;
+  align-items: baseline;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+}
+
+.seed__value {
+  word-break: break-all;
+}
+
+.play-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr) minmax(140px, 200px);
+  gap: var(--space-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--space-6);
+}
+
+@media (max-width: 1199px) {
+  .play-main {
+    grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+  }
+
+  .play-main__dungeon {
+    display: none;
+  }
+}
+
+.play-main__room {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.room-title {
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text-1);
+}
+
+.room-hint {
+  color: var(--text-2);
+  font-size: var(--text-small);
+}
+
+.room-grid-wrap {
+  padding: var(--space-2);
+}
+
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, var(--card-track-wide)));
+  justify-content: start;
+  gap: var(--space-4);
+}
+
+/* Approved card track sizes (design plan §4/§6): cards never exceed 200px on
+   wide, fall back to 2×2 when the center column cannot hold four, and use the
+   medium/compact clamps at their breakpoints. */
+@container (max-width: 699px) {
+  .room-grid {
+    grid-template-columns: repeat(2, minmax(0, var(--card-track-medium)));
+  }
+}
+
+.room-grid > .card {
+  width: 100%;
+}
+
+.rail-title {
   margin: 0;
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.rail-caption {
+  color: var(--text-2);
+  font-size: var(--text-small);
+}
+
+.rail-caption--warning {
+  color: var(--damage);
+}
+
+.rail-hint {
+  color: var(--text-muted);
+  font-size: var(--text-small);
+}
+
+.weapon-rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.weapon,
+.kill-stack,
+.dungeon {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.weapon__empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.weapon__empty-slot {
+  display: block;
+  width: 140px;
+  aspect-ratio: 2 / 3;
+  border: 1px dashed var(--border-1);
+  border-radius: var(--radius-3);
+  background: var(--surface-1);
+}
+
+.weapon__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.kill-stack__thumbs {
+  display: flex;
+  align-items: flex-start;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kill-stack__thumb {
+  position: relative;
+  flex: 0 0 96px;
+  width: 96px;
+}
+
+/* ---------- Cards ---------- */
+
+.card {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.card-frame {
-  padding: 1px;
-  background: var(--border-2);
+  gap: var(--space-3);
+  min-width: 44px;
+  padding: 0;
+  border: 0;
   border-radius: var(--radius-3);
-  box-shadow: var(--shadow-1);
+  background: transparent;
+  color: var(--text-1);
+  font-family: var(--font-ui);
+  text-align: center;
+  cursor: pointer;
 }
 
-.card-mat {
+.card__frame {
+  position: relative;
+  display: block;
+  width: 100%;
   padding: 1px;
-  background: var(--bg-0);
+  border-radius: var(--radius-3);
+  background: var(--border-2);
+  box-shadow: var(--shadow-1);
+  transition:
+    transform var(--motion-1) var(--ease-enter),
+    box-shadow var(--motion-1) var(--ease-enter);
+}
+
+.card__mat {
+  display: block;
+  padding: 1px;
+  overflow: hidden;
   border-radius: var(--radius-card-inner-frame);
+  background: var(--bg-0);
 }
 
 .card-art {
   display: block;
-  width: clamp(160px, 14vw, 200px);
+  width: 100%;
   height: auto;
   aspect-ratio: 2 / 3;
   object-fit: cover;
   border-radius: var(--radius-card-inner);
+  background: var(--surface-2);
 }
 
-.card-caption {
-  margin: var(--space-3) 0 0;
-  text-wrap: pretty;
-  font-size: var(--text-small);
-  line-height: 1.5;
+.card__caption {
   color: var(--text-2);
+  font-size: var(--text-small);
+  line-height: 1.4;
+}
+
+/* Broken weapon: 3px damage strip in the mat margin, outside the fixed frame
+   and never over the artwork (design plan §4/§5). */
+.card__damage {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -3px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--damage);
+}
+
+/* Metadata rows are the fallback below 132px-wide cards (design plan §4). */
+.card__meta {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-1);
+  text-align: left;
+}
+
+.card__meta-name {
+  color: var(--text-1);
+  font-size: var(--text-body-strong);
+  font-weight: 600;
+}
+
+.card__meta-detail {
+  color: var(--text-2);
+  font-size: var(--text-small);
+}
+
+/* Visible selection ring sits outside the card mat, per the style guide. */
+.card--selected .card__frame {
+  outline: 2px solid var(--selection);
+  outline-offset: 6px;
+}
+
+.card--selected .card__mat {
+  background: var(--surface-3);
+}
+
+.card--ineligible .card__frame {
+  background: var(--border-1);
+  box-shadow: none;
+}
+
+.card--ineligible .card-art {
+  filter: grayscale(0.55) brightness(0.82);
+}
+
+.card--ineligible .card__caption {
+  color: var(--weapon-no);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.card:not([aria-disabled='true']):hover .card__frame {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+}
+
+/* Weapon and kill-stack cards are presentation only. */
+.weapon__card .card__frame,
+.kill-stack__thumb .card__frame {
+  width: 100%;
+}
+
+/* ---------- Dungeon ---------- */
+
+.dungeon__stack {
+  position: relative;
+  width: 96px;
+  aspect-ratio: 2 / 3;
+}
+
+.dungeon__back {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-3);
+  background-color: var(--surface-2);
+  background-image:
+    repeating-linear-gradient(45deg, transparent 0 14px, rgb(201 161 90 / 16%) 14px 15px),
+    repeating-linear-gradient(-45deg, transparent 0 18px, rgb(201 161 90 / 18%) 18px 19px);
+  box-shadow: var(--shadow-1);
+}
+
+.dungeon__back--1 {
+  transform: translate(8px, 8px);
+}
+
+.dungeon__back--2 {
+  transform: translate(4px, 4px);
+}
+
+.dungeon__count {
+  position: absolute;
+  right: -10px;
+  bottom: -10px;
+  min-width: 44px;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-2);
+  background: var(--gold-bright);
+  color: var(--gold-ink);
+  font-size: var(--text-small);
+  font-weight: 700;
   text-align: center;
 }
 
-.card-note {
-  margin: 0;
-  text-wrap: pretty;
-  max-width: 460px;
+/* ---------- Selection preview ---------- */
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-3);
+  background: var(--surface-1);
+}
+
+.preview__title {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-1);
+}
+
+.preview__description {
+  color: var(--text-2);
+  font-size: var(--text-body);
+}
+
+.preview__status--weapon {
+  color: var(--weapon-ok);
   font-size: var(--text-small);
-  line-height: 1.5;
+  font-weight: 600;
+}
+
+.preview__hint,
+.preview__empty {
   color: var(--text-muted);
-  text-align: center;
+  font-size: var(--text-small);
+}
+
+.preview__rejected {
+  color: var(--damage);
+  font-size: var(--text-small);
+}
+
+.preview__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ---------- Status line and action bar ---------- */
+
+.status-line {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--space-2) var(--space-6);
+  color: var(--text-2);
+  font-size: var(--text-small);
+}
+
+.action-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 72px;
+  padding: var(--space-2) var(--space-5);
+  background: var(--bg-1);
+  border-top: 1px solid var(--border-2);
+}
+
+.action-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.action-bar__helper {
+  max-width: 52ch;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-small);
+  line-height: 1.4;
+}
+
+.action-bar__reason {
+  color: var(--text-muted);
+}
+
+/* ---------- Dialogs ---------- */
+
+.dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+}
+
+.dialog__scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+}
+
+.dialog__close {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.dialog__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: min(100%, 560px);
+  max-height: calc(100vh - 2 * var(--space-4));
+  overflow-y: auto;
+  padding: var(--space-6);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-3);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-3);
+}
+
+.dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.dialog__title {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text-1);
+}
+
+.dialog__panel--sheet {
+  position: fixed;
+  top: auto;
+  right: 0;
+  bottom: var(--action-bar-height, 0px);
+  left: 0;
+  width: 100%;
+  max-height: calc(80vh - var(--action-bar-height, 0px));
+  border-radius: var(--radius-3) var(--radius-3) 0 0;
+}
+
+.help__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  color: var(--text-2);
+}
+
+.help__body h3 {
+  margin-bottom: var(--space-1);
+  color: var(--text-1);
+  font-size: var(--text-h3);
+  font-weight: 600;
+}
+
+.help__body section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.help__preferences {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-1);
+}
+
+.help__motion {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.help__motion input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--gold);
+}
+
+.help__version {
+  color: var(--text-muted);
+  font-size: var(--text-caption);
+}
+
+/* ---------- Result screen ---------- */
+
+.result-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-8) var(--space-4);
+}
+
+.result-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: min(100%, 640px);
+  padding: var(--space-6);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-3);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-3);
+}
+
+.result-panel__title {
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text-1);
+}
+
+.result-panel__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+}
+
+.result-label {
+  color: var(--text-2);
+  font-size: var(--text-small);
+}
+
+.result-value {
+  color: var(--text-1);
+  font-size: var(--text-body);
+  font-weight: 600;
+}
+
+.result-score {
+  color: var(--text-1);
+  font-size: var(--text-score);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.result-panel__details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.result-panel__details dt {
+  color: var(--text-2);
+  font-size: var(--text-small);
+}
+
+.result-panel__details dd {
+  margin: 0;
+  color: var(--text-1);
+  font-size: var(--text-body);
+}
+
+.result-panel__details code {
+  font-family: var(--font-mono);
+  word-break: break-all;
+}
+
+.result-panel__highlights {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-1);
+}
+
+.result-panel__highlights-title {
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: 600;
+}
+
+.result-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1199px) {
+  .room-grid {
+    grid-template-columns: repeat(2, minmax(0, var(--card-track-medium)));
+    gap: var(--space-3);
+  }
 }
 
 @media (max-width: 767px) {
-  .app {
-    padding: var(--space-6) var(--space-4);
-    gap: var(--space-6);
+  .play-header {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
   }
 
-  .card-demo {
+  .play-header__center {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .play-header__right {
+    gap: var(--space-2);
+  }
+
+  .play-main {
+    grid-template-columns: minmax(0, 1fr);
+    order: initial;
+    gap: var(--space-4);
     padding: var(--space-4);
+    padding-bottom: 0;
+  }
+
+  .play-main__room {
+    order: 1;
+  }
+
+  .play-main__weapon {
+    order: 2;
+  }
+
+  .play-main__dungeon {
+    order: 3;
+  }
+
+  .room-grid {
+    grid-template-columns: repeat(2, minmax(0, var(--card-track-compact)));
+    justify-content: center;
+    gap: var(--space-3);
+  }
+
+  .weapon-rail {
+    flex-direction: row;
+    gap: var(--space-5);
+    overflow-x: auto;
+    padding-bottom: var(--space-1);
+  }
+
+  .play-screen {
+    padding-bottom: calc(var(--action-bar-height, 148px) + var(--space-2));
+  }
+
+  .status-line {
+    padding: var(--space-2) var(--space-4);
+  }
+
+  .action-bar {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 60;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: var(--space-1);
+    min-height: 0;
+    padding: var(--space-2) var(--space-3);
+    padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom));
+  }
+
+  /* Disabled-action rules stay visible at compact (REQ-004, task-6 MAJOR).
+     Two columns keep every action reachable without a ragged single-button row. */
+  .action-bar__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+
+  .action-bar__actions .button {
+    width: 100%;
+  }
+
+  .action-bar__helper {
+    max-width: none;
+    font-size: var(--text-small);
+    line-height: 1.35;
+  }
+
+  .dialog {
+    align-items: end;
+    padding: 0;
+  }
+
+  .dialog__panel {
+    width: 100%;
+    max-height: calc(85vh - var(--action-bar-height, 148px));
+    border-radius: var(--radius-3) var(--radius-3) 0 0;
+  }
+
+  .result-panel {
+    padding: var(--space-4);
+  }
+}
+
+/* Below 132px a card cannot carry its 2:3 artwork; switch to metadata rows. */
+@media (max-width: 359px) {
+  .room-grid {
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+  }
+
+  .card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-2);
+    background: var(--surface-1);
+    text-align: left;
+  }
+
+  .card__frame {
+    display: none;
+  }
+
+  .card__meta {
+    display: flex;
+    min-width: 0;
+  }
+
+  .card__caption {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .card--selected {
+    outline: 2px solid var(--selection);
+    outline-offset: 2px;
+  }
+
+  .card--ineligible {
+    border-color: var(--weapon-no);
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .card:not([aria-disabled='true']):hover .card__frame {
+    transform: none;
+  }
+}
+
+[data-motion='reduced'] *,
+[data-motion='reduced'] *::before,
+[data-motion='reduced'] *::after {
+  transition-duration: 1ms !important;
+  animation-duration: 1ms !important;
+}
+
+[data-motion='reduced'] .card:not([aria-disabled='true']):hover .card__frame {
+  transform: none;
+}
+
+/* ---------- Forced colors ---------- */
+
+@media (forced-colors: active) {
+  .button,
+  .card,
+  .dialog__panel,
+  .preview,
+  .result-panel {
+    border: 1px solid CanvasText;
+  }
+
+  .button:focus-visible,
+  .card:focus-visible {
+    outline: 2px solid CanvasText;
   }
 }
