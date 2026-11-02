@@ -67,6 +67,19 @@ export function PlayScreen({ game, selected, t, onSelect, onAct, onTitle }: Prop
   return (
     <>
       <section className="statusbar" aria-label={t('runInProgress')}>
+        <div className="health">
+          <span>{t('health')}</span>
+          <strong className="health-value">
+            {b.health} <span className="muted">/ 20</span>
+          </strong>
+          <meter min="0" max="20" value={b.health} aria-label={t('health')} />
+        </div>
+        <div className="status-items">
+          <div>
+            <span>{t('dungeon')}</span>
+            <strong>{t('cardsRemaining', { count: b.dungeon.length })}</strong>
+          </div>
+        </div>
         <button className="status-menu" onClick={onTitle} aria-label={t('menu')} title={t('menu')}>
           <svg
             viewBox="0 0 24 24"
@@ -81,19 +94,6 @@ export function PlayScreen({ game, selected, t, onSelect, onAct, onTitle }: Prop
             <path d="M5.75 10.25v9h12.5v-9M10 19.25V14h4v5.25" />
           </svg>
         </button>
-        <div className="health">
-          <span>{t('health')}</span>
-          <strong className="health-value">
-            {b.health} <span className="muted">/ 20</span>
-          </strong>
-          <meter min="0" max="20" value={b.health} aria-label={t('health')} />
-        </div>
-        <div className="status-items">
-          <div>
-            <span>{t('dungeon')}</span>
-            <strong>{t('cardsRemaining', { count: b.dungeon.length })}</strong>
-          </div>
-        </div>
       </section>
       <div className="board">
         <section className="room-area" aria-label={t('room', { room: b.highlights.roomsExplored })}>

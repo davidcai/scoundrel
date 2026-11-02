@@ -55,6 +55,6 @@ export function recordOutcome(
       currentStreak,
       bestStreak: Math.max(statistics.bestStreak, currentStreak),
     },
-    history: [record, ...history].slice(0, 50),
+    history: [record, ...history].slice(0, 30),
   };
 }

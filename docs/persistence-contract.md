@@ -6,7 +6,7 @@ This implements [REQ-001](prd.md#req-001), [REQ-008](prd.md#req-008), [REQ-009](
 
 IndexedDB database `scoundrel`, database version 1, object store `saves`, key `scoundrel:save` contains one JSON envelope: `{ version: 1, data: { session, preferences } }`. The database version and envelope format version are separate concerns. There are no imports from other releases.
 
-The session contains the active or final game, room-start undo snapshot, attempt number, lifetime statistics, and newest 50 completed outcomes. Preferences contain language, motion, and rules for future runs. Card selection and announcements are transient and excluded. Active runs resume at the title; a final result reloads at its result screen when that was the saved screen.
+The session contains the active or final game, room-start undo snapshot, attempt number, lifetime statistics, and newest 30 completed outcomes. Preferences contain language, motion, and rules for future runs. Card selection and announcements are transient and excluded. Active runs resume at the title; a final result reloads at its result screen when that was the saved screen.
 
 The envelope is validated before use: cards and zones, board/snapshot invariants, outcome scores, timestamps, history ordering, and aggregate counts must be consistent. `migrateEnvelope` chains explicitly supplied supported-version migrations and rejects future versions or missing steps. No older released format exists yet. A future change must supply a real prior-version fixture and migration coverage before shipping.
 

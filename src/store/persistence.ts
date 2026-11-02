@@ -151,7 +151,8 @@ const sessionSchema: z.ZodType<Session> = z
       (s.game === null || s.runNumber > 0) &&
       (s.game?.status === 'playing' || s.game === null || s.history[0]?.id === s.runNumber)
     );
-  });
+  })
+  .transform((s) => ({ ...s, history: s.history.slice(0, 30) }));
 export const preferencesSchema = z.object({
   language: z.enum(['auto', 'en', 'zh']),
   reducedMotion: z.boolean(),

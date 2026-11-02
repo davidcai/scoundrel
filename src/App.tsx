@@ -192,7 +192,12 @@ export function App({ initial }: { initial: InitialSave }) {
                 <p className="kicker">{t('kicker')}</p>
                 <div className="intro-copy">
                   <h1 id="title">
-                    <span className="mark" aria-hidden="true" />
+                    <svg className="game-icon" viewBox="0 0 40 48" fill="none" aria-hidden="true">
+                      <rect x="4" y="3" width="30" height="40" rx="4" transform="rotate(-6 4 3)" />
+                      <path d="M12 39V23a8 8 0 0 1 16 0v16M9 39h22" />
+                      <path className="game-icon-door" d="M16 39V24a4 4 0 0 1 8 0v15Z" />
+                      <path d="M18 9h4M20 7v4" />
+                    </svg>
                     <span>{t('gameName')}</span>
                   </h1>
                   <p className="lead">
@@ -208,7 +213,7 @@ export function App({ initial }: { initial: InitialSave }) {
                     </button>
                   )}
                   <button
-                    className={game?.status === 'playing' ? 'wide' : 'primary wide'}
+                    className={game?.status === 'playing' ? 'wide' : 'primary wide new-run-full'}
                     onClick={newRun}
                   >
                     {t('newRun')}

@@ -146,8 +146,18 @@ h2 {
   gap: 16px;
   margin: 24px 0;
 }
-.intro h1 .mark {
+.game-icon {
+  width: 36px;
+  height: 44px;
   flex: none;
+  stroke: var(--action);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.game-icon-door {
+  fill: var(--action);
+  stroke: none;
 }
 .lead {
   font:
@@ -407,6 +417,7 @@ dialog::backdrop {
     min-width: 0;
     padding-inline: 8px;
   }
+  .start > .new-run-full,
   .title-links {
     grid-column: 1 / -1;
   }
@@ -560,6 +571,7 @@ meter {
     serif;
 }
 .status-menu {
+  border: 0;
   flex: none;
   display: inline-flex;
   align-items: center;
@@ -980,10 +992,6 @@ meter {
   }
   .history-entry {
     padding: 16px;
-  }
-  .history-header time {
-    margin-left: 0;
-    width: 100%;
   }
   .history-entry > button {
     justify-self: stretch;

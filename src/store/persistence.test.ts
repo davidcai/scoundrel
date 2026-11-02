@@ -121,7 +121,7 @@ describe('lifetime aggregates and recent history', () => {
     });
     expect(history.map((r) => r.id)).toEqual([4, 3, 2, 1]);
   });
-  it('retains newest 50 outcomes while totals, best score and streaks survive trimming', () => {
+  it('retains newest 30 outcomes while totals, best score and streaks survive trimming', () => {
     const won = win().game as FinishedRun;
     let stats = EMPTY_STATISTICS;
     let history: ReturnType<typeof recordOutcome>['history'] = [];
@@ -130,9 +130,9 @@ describe('lifetime aggregates and recent history', () => {
       stats = n.statistics;
       history = n.history;
     }
-    expect(history).toHaveLength(50);
+    expect(history).toHaveLength(30);
     expect(history[0].id).toBe(51);
-    expect(history.at(-1)?.id).toBe(2);
+    expect(history.at(-1)?.id).toBe(22);
     expect(stats).toEqual({
       gamesPlayed: 51,
       wins: 51,
