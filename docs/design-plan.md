@@ -413,6 +413,15 @@ This is the guide's self-check; the formal audit stays deferred per [REQ-017](pr
 Use this sequence for design handoff:
 
 1. Establish the style guide, title screen, and play screen. Review these against [DEC-001](prd.md#dec-001), [REQ-001](prd.md#req-001), and [REQ-003](prd.md#req-003) through [REQ-008](prd.md#req-008), including the access needs in [REQ-016](prd.md#req-016) and [REQ-017](prd.md#req-017). Record the style-guide approval in the section above.
-2. Once the style guide is approved and recorded in the section above, extend that visual language to statistics, settings, and the result scorecard. Review against [REQ-009](prd.md#req-009), [REQ-011](prd.md#req-011), [REQ-012](prd.md#req-012), [REQ-013](prd.md#req-013), and [REQ-014](prd.md#req-014).
+2. Once the style guide is approved and recorded in the section above, extend that visual language to statistics, settings, and the result scorecard. Review against [REQ-009](prd.md#req-009), [REQ-011](prd.md#req-011), [REQ-012](prd.md#req-012), [REQ-013](prd.md#req-013), and [REQ-014](prd.md#req-014). **Completed 2026-11-02.**
+
+### Design handoff status
+
+- **Step 1 — style guide, title screen, and play screen:** reviewed and approved on 2026-11-01; the approval is recorded in [Design approval status](#design-approval-status).
+- **Step 2 — statistics, settings, and result scorecard:** reviewed and completed on 2026-11-02 after the Phase 4b UI landed. The review covered the extension of the approved visual language to those screens against [REQ-009](prd.md#req-009), [REQ-011](prd.md#req-011), [REQ-012](prd.md#req-012), [REQ-013](prd.md#req-013), and [REQ-014](prd.md#req-014). Evidence came from an independent product/design review and an independent QA visual and accessibility review; their findings were fixed in commit `454c4cd6`. Verification screenshots were captured in the ignored `.artifacts/phase4b-design/` and `.artifacts/phase5/screens/` directories.
+
+This record completes the design handoff sequence. It is not a new approval gate and does not re-approve the written style guide: the guide remains approved on 2026-11-01 as recorded in [Design approval status](#design-approval-status), and any change to it, its tokens, or its typography still requires a new recorded approval.
+
+One accepted deviation is recorded. The result breakdown shows "Potions wasted" because the engine tracks wasted potions only; the approved guide's illustrative "potion used/wasted" wording stays illustration and does not require a used-potions count. No rules, tokens, or typography change.
 
 Use the PRD's [product acceptance checks](prd.md#product-acceptance) for the final product review rather than keeping a separate feature checklist here.
