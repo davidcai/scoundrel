@@ -15,9 +15,14 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Runners are pinned to Ubuntu 24.04 instead of ubuntu-latest so the whole
+# pipeline is reproducible. Playwright 1.64.1's WebKit build (webkit-2370)
+# needs Ubuntu 24.04's ICU 74 (libicudata.so.74); ubuntu-latest migrated to
+# Ubuntu 26 on 2026-10-19, where WebKit fails to launch. Both jobs share the
+# same image; revisit this pin when Playwright is upgraded.
 jobs:
   ci:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Check out repository
@@ -59,7 +64,7 @@ jobs:
   # Browser checks run against the production build. Playwright is installed
   # here (not in `ci`) so the fast gate stays independent of browser downloads.
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: ci
     timeout-minutes: 30
     steps:
