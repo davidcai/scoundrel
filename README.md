@@ -2,7 +2,7 @@
 
 Scoundrel is a single-player roguelike dungeon-crawling card game. Players face monsters, equip weapons, and use potions as they work through a dungeon made from a standard deck.
 
-This branch builds a fresh game release. Phases 1–3 are complete: the game runs in the browser against the pure TypeScript rules engine, with the approved warm visual direction and title, play, and result screens. Phase 4 — persistence, statistics, history, and replay — is in progress. The parent product branch must not be merged into `main`.
+This branch builds a fresh game release. Phases 1–4 are complete and Phase 5 verification is substantially complete: the game runs in the browser against the pure TypeScript rules engine, with the approved dark green visual direction and title, play, result, statistics, and settings screens. Deployment, merging into `main`, and opening a merge request remain unauthorized.
 
 ## Development
 
