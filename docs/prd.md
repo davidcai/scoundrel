@@ -5,14 +5,14 @@
 Each labeled item has a stable ID and link anchor. Use the ID when referencing a requirement or decision. Keep IDs when editing or moving an item; retire an ID rather than reusing it for a different meaning.
 
 <a id="info-001"></a>
-### INFO-001: Product and sources
+### INFO-001: Product context
 
-Scoundrel is a single-player dungeon-crawling card game for the web. This PRD draws on the player-facing requirements in `main`'s `docs/spec.md` and the prior product and design plan on this branch.
+Scoundrel is a single-player dungeon-crawling card game for the web. This PRD defines the intended product from its initial release.
 
 <a id="info-002"></a>
 ### INFO-002: Document authority
 
-This PRD defines product goals, scope, and acceptance outcomes. The [game rules](rules.md) are authoritative for default gameplay and scoring. The [design plan](design-plan.md) specifies presentation decisions that satisfy the PRD. It references requirements here rather than maintaining a second feature list. The current rules and PRD supersede older specification choices, including English-only support and artwork limited to backdrops.
+This PRD defines product goals, scope, and acceptance outcomes. The [game rules](rules.md) are authoritative for default gameplay and scoring. The [design plan](design-plan.md) specifies presentation decisions that satisfy the PRD. It references requirements here rather than maintaining a second feature list.
 
 ## Product goals
 
@@ -29,14 +29,14 @@ Returning players can resume unfinished runs, review their progress, replay a du
 <a id="goal-003"></a>
 ### GOAL-003: Make the full game accessible
 
-Players using a keyboard, screen reader, or small touchscreen can complete the same game as other players.
+Players using a keyboard or small touchscreen can complete the game. Provide common accessibility support as part of normal interface work; extensive accessibility work is a lower priority for the initial release.
 
 ## Core requirements
 
 <a id="req-001"></a>
 ### REQ-001: Start and resume
 
-The title screen offers New Run, Enter Seed, Stats, Settings, and About. Continue is prominent when an unfinished saved run exists. Returning players choose when to resume rather than being placed directly into a run. New Run starts a shuffled dungeon using the player's selected rule options.
+The title screen offers New Run, Enter Seed, Stats, Settings, and About. Continue is prominent when an unfinished saved run exists. Returning players choose when to resume rather than being placed directly into a run. New Run starts a shuffled dungeon using the player's selected rule options. The game keeps one active run. When an unfinished run exists, New Run, valid seed entry, and history replay ask for confirmation before replacing it. The dialog explains that replacement records a loss and offers Cancel and Start new run. Cancel or Escape preserves the current run, progress, and statistics; only confirmation starts the replacement. With no unfinished run, these actions start immediately. Opening a valid shared link continues to start a fresh attempt immediately. The replaced run cannot be resumed and is recorded as an abandoned loss under [REQ-013](#req-013).
 
 <a id="req-002"></a>
 ### REQ-002: Play by the selected rules
@@ -66,24 +66,30 @@ Replacing a weapon explains that the old weapon and all its defeated monsters ar
 <a id="req-007"></a>
 ### REQ-007: Run away when permitted
 
-Running away returns the room's cards to the bottom of the dungeon and deals another room. Default play prohibits running away from consecutive rooms. Running away is always unavailable in the final room, including when the consecutive-room restriction is turned off.
+Running away is allowed only before the first card in a room is resolved. Selecting or previewing a card does not count as resolving it. This timing restriction applies under either consecutive-room house-rule choice. Running away returns all four room cards to the bottom of the dungeon and deals another room. Default play prohibits running away from consecutive rooms. Running away is always unavailable in the final room, including when the consecutive-room restriction is turned off.
 
 <a id="req-008"></a>
 ### REQ-008: Retry the current room
 
-Undo to Room Start restores the current room's starting health, equipment, defeated monsters, cards, and potion allowance. It restores the same room rather than generating another dungeon. Undo remains available after resuming a saved run. Entering the next room ends the opportunity to undo the previous room.
+Undo to Room Start restores the current room's starting health, equipment, defeated-monster stack, room cards and their order, draw-pile order, potion allowance, escape eligibility, and run-highlight counters. It restores the same room rather than generating another dungeon. The seed and selected rules stay fixed.
+
+If escape was allowed at room entry, undo makes escape available again because no card remains resolved. If escape was blocked at room entry because the preceding room was escaped, undo keeps it blocked. Other restrictions, including the final-room escape prohibition, still apply.
+
+Undo reverses changes to run highlights made since the room began, including monsters defeated and potions wasted. Retrying a room must not accumulate duplicate counts.
+
+Undo remains available after resuming an unfinished saved run. Undo is unavailable once the run ends in a win or loss, including after reloading the result screen. Entering the next room ends the opportunity to undo the previous room. Running away also starts a new room with its own undo starting point; undo cannot return to the escaped room.
 
 <a id="req-009"></a>
 ### REQ-009: Finish and review a run
 
-Clearing the final room while alive produces a win. Health at zero or below produces a loss. Scoring follows the game rules. The result screen shows outcome, final health, score, seed, rule options, and highlights such as monsters defeated, potions wasted, and rooms explored. Reloading preserves the result screen. Each completed run contributes to statistics once, including after repeated reloads.
+Clearing the final room while alive produces a win. Health at zero or below produces a loss. Scoring follows the game rules. The result screen shows outcome, final health, score, seed, rule options, and highlights such as monsters defeated, potions wasted, and rooms explored. A completed result is final; retrying requires starting a fresh run or replay. Reloading preserves the result screen. Each completed run contributes to statistics once, including after repeated reloads.
 
 ## Supporting requirements
 
 <a id="req-010"></a>
 ### REQ-010: Preserve progress and preferences
 
-Players can close and reopen the game to resume their active run with its room progress and undo intact. Settings and statistics persist between visits. Changing settings does not alter an active run's rules, and removing a saved run does not remove statistics or preferences. Product updates should preserve existing player progress and preferences.
+Players can close and reopen the game to resume their active run with its room progress and undo intact. Settings and statistics persist between visits. Changing settings does not alter an active run's rules, and removing a saved run does not remove statistics or preferences. Future product updates should preserve progress and preferences created by this game.
 
 <a id="req-011"></a>
 ### REQ-011: Offer three house-rule choices
@@ -104,12 +110,26 @@ Players can select English, Simplified Chinese, or automatic language selection 
 <a id="req-013"></a>
 ### REQ-013: Review statistics and recent runs
 
-Statistics show games played, wins, losses, win rate, best score, current streak, and best streak. Recent run history appears newest first and shows each run's seed, rule options, outcome, score, date, and rooms cleared. Players can replay a listed dungeon with its original rule options. History is a bounded collection of recent runs; lifetime totals remain useful beyond that collection.
+Statistics show games played, wins, losses, win rate, best score, current streak, and best streak. Recent run history appears newest first and shows each run's seed, rule options, outcome, score, date, and rooms cleared. Players can replay a listed dungeon with its original rule options. Keep the newest 30 completed runs, including abandoned losses. When a new entry exceeds that limit, remove the oldest history entry. Trimming history must not change lifetime games played, wins, losses, win rate, best score, current streak, or best streak. An unfinished active run does not occupy a history entry.
+
+An unfinished run is abandoned when it is replaced by a fresh attempt or explicitly discarded. Record it exactly once as a loss, increasing games played and losses and including it in the win-rate calculation. Identify the loss as abandoned in run history. Score it using the normal loss formula at the moment of abandonment: the negative sum of monster values remaining in the draw pile. Ignore remaining health and exclude unresolved room monsters. If no monsters remain in the draw pile, the score is 0; the outcome is still a loss. Include this score in best-score comparisons like any other run. Returning to the title screen, closing the game, or reloading does not abandon a resumable run. Invalid seed entries or shared links that do not start a replacement run do not record a loss.
+
+Streaks count consecutive wins across all runs, including replays and house-rule variants. Both streak counters start at 0. Each win increases the current streak by 1; each loss, including abandonment, resets it to 0. The best streak is the highest current streak ever reached and does not decrease. An unfinished run leaves both counters unchanged. Record each outcome once so reloading cannot increase or reset a streak again. For example, win, win, loss, win produces a current streak of 1 and a best streak of 2.
+
+Room counts are application statistics with these definitions:
+
+- **Rooms explored:** Increase once whenever a new room is dealt, including the starting room and each replacement room dealt after escape. Resuming or undoing the same room does not add another explored room.
+- **Rooms cleared:** Increase once when the required cards have been resolved while the player is alive: three cards in a normal room, or every card in the final room. Pressing Enter Next Room is not required for this count.
+- **Escape:** The escaped room remains explored but is not cleared. Its replacement adds one explored room, even if some of its cards have been seen before.
+- **Undo:** Restore room-start counters according to [REQ-008](#req-008). Undoing a cleared room removes that room's cleared count; clearing it again adds it once. The current room remains explored.
+- **Death:** The room where the player dies is explored but not cleared, even if the lethal action resolves its last required card.
+
+For example, clearing the first room, escaping the second, and dying in the third produces 3 rooms explored and 1 room cleared.
 
 <a id="req-014"></a>
 ### REQ-014: Share and replay a dungeon
 
-Players can enter a seed or copy a replay link from the result screen. A seed identifies the starting dungeon. A replay link includes both the seed and rule options, so another player can begin the same challenge. It starts a fresh attempt rather than copying moves or current progress. Entering a seed alone uses the recipient's selected rule options.
+Players can enter a seed or copy a replay link from the result screen. A seed identifies the starting dungeon. A replay link includes both the seed and rule options, so another player can begin the same challenge. It starts a fresh attempt rather than copying moves or current progress. Entering a seed alone uses the recipient's selected rule options. Fresh attempts follow the replacement policy in [REQ-001](#req-001).
 
 <a id="req-015"></a>
 ### REQ-015: Learn through contextual help
@@ -119,12 +139,12 @@ Contextual help explains card types, damage previews, weapon degradation, and ru
 <a id="req-016"></a>
 ### REQ-016: Support desktop and mobile play
 
-Critical game information and controls remain legible on desktop and small mobile screens, with usable touch targets and sufficient contrast.
+Support modern browsers, with Chromium-based browsers and Safari as the primary verification targets on applicable desktop and mobile devices. Critical game information and controls remain legible on desktop and small mobile screens, with usable touch targets and sufficient contrast.
 
 <a id="req-017"></a>
-### REQ-017: Support keyboard and screen-reader play
+### REQ-017: Support keyboard navigation and basic accessibility
 
-Every card, action, and contextual explanation is accessible with a keyboard and has visible focus. Screen-reader users receive descriptive card information and announcements for meaningful changes, including combat, potion use, blocked actions, and run outcomes. Contextual explanations are also available with pointer and touch input.
+Players can navigate cards, actions, screens, and contextual help with the keyboard, with visible focus and no keyboard traps. Use semantic controls, descriptive labels and card information, readable contrast, and basic screen-reader support. Contextual explanations are also available with pointer and touch input. Keyboard navigation and these basic practices are in scope for the initial release. Formal accessibility audits, conformance certification, and extensive screen-reader testing are lower-priority follow-up work and do not block the initial release.
 
 ## Product decisions
 
@@ -143,6 +163,11 @@ The following are outside the core product:
 - Additional scoring or deck variants and difficulty presets beyond the three house-rule options.
 - A required linear tutorial, audio, or detailed gameplay analytics beyond the listed statistics and run highlights.
 
+<a id="dec-003"></a>
+### DEC-003: Fresh release
+
+Define save, preference, seed, and replay-link formats for this product. Data import and compatibility work are outside scope. Preserve data created by this game as described in [REQ-010](#req-010).
+
 ## Product acceptance
 
 All requirements above are in scope. The following checks group the outcomes needed for the core product to be ready.
@@ -160,7 +185,7 @@ Previews explain confirmed outcomes; undo and save/resume restore the expected r
 <a id="ac-003"></a>
 ### AC-003: Review and reproduce runs
 
-Results survive reloads without duplicate statistics. History replays and shared links start the intended dungeon with the intended rules. Covers [REQ-009](#req-009), [REQ-013](#req-013), and [REQ-014](#req-014).
+Results are final, with undo unavailable after a win or loss, and survive reloads without duplicate statistics. History replays and shared links start the intended dungeon with the intended rules. Covers [REQ-009](#req-009), [REQ-013](#req-013), and [REQ-014](#req-014).
 
 <a id="ac-004"></a>
 ### AC-004: Respect preferences
@@ -170,4 +195,4 @@ All house-rule choices work as described without changing an active run's rules.
 <a id="ac-005"></a>
 ### AC-005: Play and learn across devices and access needs
 
-The complete play flow and contextual help work with keyboard, screen reader, and touch, with legible information in both supported languages and the agreed visual identity. Covers [REQ-012](#req-012), [REQ-015](#req-015), [REQ-016](#req-016), [REQ-017](#req-017), and [DEC-001](#dec-001).
+The complete play flow and contextual help work with keyboard and touch in the target browsers, with visible focus, semantic controls, descriptive labels, legible information in both supported languages, and the agreed visual identity. Review basic accessibility; formal audits and extensive screen-reader testing are not initial-release gates. Covers [REQ-012](#req-012), [REQ-015](#req-015), [REQ-016](#req-016), [REQ-017](#req-017), and [DEC-001](#dec-001).

@@ -18,7 +18,7 @@ Scoundrel is a popular 1-player roguelike dungeon-crawling card game. Played wi
 
 1. Deal: Flip cards from the Dungeon face up until the Room contains 4 cards, including any carried card. If fewer cards remain, deal all of them. Once the Dungeon draw pile is empty after dealing, this is the final room.
 2. Resolve: Resolve 3 of the 4 cards in any order you choose. The 4th remaining card carries over into the next room. In the final room, resolve every remaining card with no carryover, even if only one card remains.
-3. Running Away: Once per turn, if you choose not to face a room, you can send all 4 cards to the bottom of the Dungeon deck and deal a new room of 4 cards. You cannot run from two rooms in a row. You cannot run away from the final room, because the Dungeon draw pile is empty.
+3. Running Away: Only before resolving the first card in a room, if you choose not to face it, you can send all 4 cards to the bottom of the Dungeon deck and deal a new room of 4 cards. Selecting or previewing a card does not count as resolving it. You cannot run from two rooms in a row. You cannot run away from the final room, because the Dungeon draw pile is empty.
 
 ## Combat & Item Rules
 
