@@ -245,6 +245,8 @@ authorization — not open product work.
 - [x] Chromium/WebKit/medium/compact/narrow lanes pass locally; Firefox lane passes in CI.
 - [x] Design handoff step 2 recorded; accepted potion-wording deviation documented.
 - [x] Full CI matrix green on push, including Firefox on Ubuntu (run 41412783455).
+- [x] Full CI matrix green on push after the dark green theme revision and the Ubuntu 24.04
+  runner pin, including WebKit, Chromium, and Firefox projects (run 42333117816).
 - [ ] Real Safari manual smoke completed and recorded.
 - [ ] Physical iOS/Android spot check (or explicitly accepted as unverified).
 - [ ] Asset-weight limitation accepted for hosting.
@@ -253,8 +255,8 @@ authorization — not open product work.
 ## Files for the Phase 5 commit
 
 The Phase 5 tooling and this report were committed as `d71e7d80` on top of `454c4cd6` (design
-handoff step-2 record in `7d0db026`; docs-only status update in `6811b8c1`). This CI-evidence
-revision of the report is the only uncommitted change. Files that make up the Phase 5 commit, for
+handoff step-2 record in `7d0db026`; docs-only status update in `6811b8c1`; CI-evidence revision
+of this report in `e6708504`). Files that make up the Phase 5 commit, for
 traceability:
 
 - `package.json`, `pnpm-lock.yaml` (Playwright/axe devDependencies and e2e scripts)
@@ -269,3 +271,16 @@ traceability:
   same follow-up commit)
 
 No `src/` changes are part of the Phase 5 work; all evidence remains under ignored `.artifacts/`.
+
+## Post-report updates
+
+- 2026-11-06: the user approved a dark green style revision that supersedes the 2026-11-01
+  warm-leather direction, recorded in [the design plan](design-plan.md#design-approval-status)
+  and applied in `d2a60e67`. Independent style-guide and adversarial diff reviews passed; all
+  local gates and strict WCAG 2.2 AA axe scans in Chromium remained green, and the release
+  assets/artwork are unchanged.
+- 2026-11-06: `ubuntu-latest` migrated to Ubuntu 26, where the Playwright 1.64.1 WebKit build
+  cannot launch (missing ICU 74); both CI jobs were pinned to `ubuntu-24.04` in `5ba71143`.
+  CI run 42333117816 on `5ba71143` is green for both the `ci` and `e2e` jobs.
+
+The open items below are unchanged.
