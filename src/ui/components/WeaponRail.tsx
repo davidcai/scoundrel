@@ -14,18 +14,17 @@ function visibleCap(width: number): number {
 }
 
 /**
- * Weapon slot and kill stack. The stack exposes a text list and total so the
- * state never depends on the thumbnails (REQ-004, design plan §5/§7). The
- * newest defeat is the top/right thumbnail; the cap is measured on the rail
- * (not the thumbnails), so the 4/3/2 thumbnail rule applies to the actual
- * available width.
+ * Weapon slot and defeated-monster stack. The stack exposes a visually-hidden
+ * name list so the state never depends on the thumbnails (REQ-004, design plan
+ * §5/§7). The newest defeat is the top/right thumbnail; the cap is measured on
+ * the rail (not the thumbnails), so the 4/3/2 thumbnail rule applies to the
+ * actual available width.
  */
 export function WeaponRail({ view }: { view: WeaponView }) {
   const { t, locale } = usePreferences();
   const [railRef, railWidth] = useMeasuredWidth<HTMLDivElement>();
   const cap = visibleCap(railWidth);
   const visible = view.kills.slice(Math.max(0, view.kills.length - cap));
-  const hiddenCount = view.kills.length - visible.length;
   const names = formatList(
     locale,
     view.kills.map((card) => formatCardName(t, card)),
@@ -71,10 +70,6 @@ export function WeaponRail({ view }: { view: WeaponView }) {
                 </li>
               ))}
             </ul>
-            <p className="rail-caption">{t('play.killStackTotal', { count: view.kills.length })}</p>
-            {hiddenCount > 0 ? (
-              <p className="rail-caption">{t('play.killStackMore', { count: hiddenCount })}</p>
-            ) : null}
             <p className="visually-hidden">{names}</p>
           </>
         )}

@@ -109,17 +109,17 @@ export function requiredResult(state: GameState) {
   return result;
 }
 
-/** Confirmation label for a resolve step at rest (selection only previews). */
-export function confirmLabel(step: Extract<UiStep, { kind: 'resolve' }>): string {
-  if (step.attack === 'weapon') return 'Use weapon';
-  if (step.attack === 'barehanded') return 'Fight barehanded';
+/** Confirm-button matcher; monster attacks include the projected damage in the label. */
+export function confirmLabel(step: Extract<UiStep, { kind: 'resolve' }>): string | RegExp {
+  if (step.attack === 'weapon') return /^Use weapon/;
+  if (step.attack === 'barehanded') return /^Fight barehanded/;
   switch (cardKind(step.card)) {
     case 'weapon':
       return 'Equip weapon';
     case 'potion':
       return 'Drink potion';
     default:
-      return 'Fight barehanded';
+      return /^Fight barehanded/;
   }
 }
 
@@ -134,7 +134,7 @@ export async function performStep(page: Page, step: UiStep): Promise<void> {
     return;
   }
   await page.locator(`[data-card="${step.card}"]`).click();
-  await page.getByRole('button', { name: confirmLabel(step), exact: true }).click();
+  await page.getByRole('button', { name: confirmLabel(step) }).click();
 }
 
 export async function replaySteps(page: Page, steps: readonly UiStep[]): Promise<void> {

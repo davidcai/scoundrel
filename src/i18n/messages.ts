@@ -81,19 +81,15 @@ export function formatCardNameByValue(t: Translate, card: CardId): string {
   return `${formatCardName(t, card)} (${cardValue(card)})`;
 }
 
-/** Visible caption: capitalized card type plus state fragments, e.g. "Monster · Selected". */
+/** Visible caption: capitalized card type plus the not-usable reason. */
 export function formatCardCaption(
   t: Translate,
   parts: {
     readonly kind: CardKind;
-    readonly selected?: boolean;
-    readonly carried?: boolean;
     readonly reason?: RejectionReason | null;
   },
 ): string {
   const pieces: string[] = [formatCardType(t, parts.kind)];
-  if (parts.carried === true) pieces.push(t('card.state.carried'));
-  if (parts.selected === true) pieces.push(t('card.state.selected'));
   if (parts.reason != null) {
     pieces.push(t('card.state.notUsable', { reason: rejectionText(t, parts.reason) }));
   }
@@ -102,7 +98,8 @@ export function formatCardCaption(
 
 /**
  * Accessible name: starts with the visible caption verbatim (WCAG 2.5.3 Label
- * in Name), then the card identity.
+ * in Name), then the card identity and any selection/carried state, so state
+ * stays announced for assistive technology now that captions no longer show it.
  */
 export function formatCardAccessibleName(
   t: Translate,
@@ -114,22 +111,46 @@ export function formatCardAccessibleName(
     readonly reason?: RejectionReason | null;
   },
 ): string {
-  return t('a11y.cardLabel', {
-    caption: formatCardCaption(t, parts),
-    cardName: formatCardName(t, parts.card),
-  });
+  const pieces: string[] = [
+    t('a11y.cardLabel', {
+      caption: formatCardCaption(t, parts),
+      cardName: formatCardName(t, parts.card),
+    }),
+  ];
+  if (parts.carried === true) pieces.push(t('card.state.carried'));
+  if (parts.selected === true) pieces.push(t('card.state.selected'));
+  return pieces.join(t('card.captionSeparator'));
 }
 
+/** Title for non-monster previews; monsters use formatMonsterMatchupTitle. */
 export function formatPreviewTitle(t: Translate, card: CardId): string {
   const cardName = formatCardName(t, card);
   switch (cardKind(card)) {
-    case 'monster':
-      return t('preview.monsterTitle', { cardName, value: cardValue(card) });
     case 'weapon':
       return t('preview.weaponTitle', { cardName, value: cardValue(card) });
     case 'potion':
       return t('preview.potionTitle', { cardName });
+    case 'monster':
+      return cardName;
   }
+}
+
+/**
+ * Monster preview title as a matchup, e.g. "Monster 5 vs. Weapon 5" or
+ * "Monster 5 vs. barehanded".
+ */
+export function formatMonsterMatchupTitle(
+  t: Translate,
+  monster: MonsterPreview,
+  weaponValue: number | null,
+): string {
+  if (monster.weapon === null || weaponValue === null) {
+    return t('preview.monsterMatchupBarehanded', { monster: monster.monsterValue });
+  }
+  return t('preview.monsterMatchup', {
+    monster: monster.monsterValue,
+    weapon: weaponValue,
+  });
 }
 
 /** Both monster choices and the weapon restriction, as one announcement. */
@@ -167,7 +188,7 @@ export function describeMonsterPreview(
   return parts.join(' ');
 }
 
-/** Status-line and announcement text for a resolved action. */
+/** Announcement text for a resolved action. */
 export function describeEvent(t: Translate, event: GameEvent): string {
   switch (event.type) {
     case 'cardResolved': {

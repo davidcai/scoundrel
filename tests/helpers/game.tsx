@@ -161,17 +161,18 @@ export function findScenario(
   throw new Error('Could not find a state matching the requested scenario.');
 }
 
-function confirmLabel(step: Extract<UiStep, { kind: 'resolve' }>): string {
+/** Confirm-button matcher; monster attacks include the projected damage in the label. */
+function confirmLabel(step: Extract<UiStep, { kind: 'resolve' }>): string | RegExp {
   const t = createTranslator('en');
-  if (step.attack === 'weapon') return t('action.useWeapon');
-  if (step.attack === 'barehanded') return t('action.fightBarehanded');
+  if (step.attack === 'weapon') return /^Use weapon/;
+  if (step.attack === 'barehanded') return /^Fight barehanded/;
   switch (cardKind(step.card)) {
     case 'weapon':
       return t('action.equipWeapon');
     case 'potion':
       return t('action.drinkPotion');
     default:
-      return t('action.fightBarehanded');
+      return /^Fight barehanded/;
   }
 }
 

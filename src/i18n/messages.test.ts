@@ -5,6 +5,7 @@ import {
   cardKind,
   createInitialState,
   type CardId,
+  type MonsterPreview,
   type RejectionReason,
 } from '../engine';
 import { CATALOGS, LOCALES, createTranslator, resolveLocale } from './index';
@@ -16,6 +17,7 @@ import {
   formatCardAccessibleName,
   formatCardCaption,
   formatCardName,
+  formatMonsterMatchupTitle,
   formatRulesDescription,
   rejectionText,
 } from './messages';
@@ -69,40 +71,73 @@ describe('message helpers', () => {
     expect(formatCardName(enT, card)).not.toBe(formatCardName(zhT, card));
   });
 
-  it('captions cards by type and state, never by position', () => {
+  it('captions cards by type, never by position or state', () => {
     expect(formatCardCaption(enT, { kind: 'monster' })).toBe('Monster');
-    expect(formatCardCaption(enT, { kind: 'weapon', selected: true })).toBe('Weapon · Selected');
-    expect(formatCardCaption(enT, { kind: 'potion', carried: true })).toBe('Potion · Carried');
+    expect(formatCardCaption(enT, { kind: 'weapon' })).toBe('Weapon');
+    expect(formatCardCaption(enT, { kind: 'potion' })).toBe('Potion');
     expect(formatCardCaption(zhT, { kind: 'monster' })).toBe('怪物');
-    expect(formatCardCaption(zhT, { kind: 'weapon', selected: true })).toBe('武器，已选择');
-    expect(formatCardCaption(zhT, { kind: 'potion', carried: true })).toBe('药水，携带');
+    expect(formatCardCaption(zhT, { kind: 'weapon' })).toBe('武器');
+    expect(formatCardCaption(zhT, { kind: 'potion' })).toBe('药水');
 
     const blocked = formatCardCaption(enT, { kind: 'monster', reason: 'weapon-ineligible' });
     expect(blocked).toContain(
       enT('card.state.notUsable', { reason: rejectionText(enT, 'weapon-ineligible') }),
     );
-    expect(blocked).not.toMatch(/Card \d+ of \d+/);
-
-    // Carried is listed before Selected (design plan §3).
-    const both = formatCardCaption(enT, { kind: 'monster', carried: true, selected: true });
-    expect(both.indexOf(enT('card.state.carried'))).toBeLessThan(
-      both.indexOf(enT('card.state.selected')),
-    );
+    expect(blocked).not.toMatch(/Selected|Carried|Card \d+ of \d+/);
   });
 
-  it('keeps the visible caption as an exact prefix of the accessible name', () => {
+  it('keeps the visible caption as an exact prefix of the accessible name and announces state', () => {
     const caption = formatCardCaption(enT, { kind: 'monster' });
     const accessible = formatCardAccessibleName(enT, { card: 'club-a', kind: 'monster' });
     expect(accessible).toBe(`${caption}, ${formatCardName(enT, 'club-a')}`);
     expect(accessible.startsWith(caption)).toBe(true);
 
-    const selected = formatCardCaption(enT, { kind: 'weapon', selected: true });
-    const selectedName = formatCardAccessibleName(enT, {
-      card: 'diamond-5',
-      kind: 'weapon',
+    // The visible badge text is included for WCAG 2.5.3 Label in Name.
+    const carried = formatCardAccessibleName(enT, {
+      card: 'club-a',
+      kind: 'monster',
+      carried: true,
+    });
+    expect(carried.startsWith(caption)).toBe(true);
+    expect(carried).toContain(formatCardName(enT, 'club-a'));
+    expect(carried).toContain(enT('card.state.carried'));
+
+    // Carried is announced before Selected (design plan §3).
+    const both = formatCardAccessibleName(enT, {
+      card: 'club-a',
+      kind: 'monster',
+      carried: true,
       selected: true,
     });
-    expect(selectedName.startsWith(selected)).toBe(true);
+    expect(both.startsWith(caption)).toBe(true);
+    expect(both.indexOf(enT('card.state.carried'))).toBeLessThan(
+      both.indexOf(enT('card.state.selected')),
+    );
+
+    const zhCaption = formatCardCaption(zhT, { kind: 'monster' });
+    const zhCarried = formatCardAccessibleName(zhT, {
+      card: 'club-a',
+      kind: 'monster',
+      carried: true,
+    });
+    expect(zhCarried.startsWith(zhCaption)).toBe(true);
+    expect(zhCarried).toContain(zhT('card.state.carried'));
+  });
+
+  it('titles monster previews as a weapon or barehanded matchup', () => {
+    const preview: MonsterPreview = {
+      card: 'spade-5',
+      monsterValue: 5,
+      barehanded: { damage: 5, healthAfter: 15 },
+      weapon: { eligible: true, limit: null, damage: 2, healthAfter: 18 },
+    };
+    expect(formatMonsterMatchupTitle(enT, preview, 5)).toBe('Monster 5 vs. Weapon 5');
+    expect(formatMonsterMatchupTitle(zhT, preview, 5)).toBe('怪物 5 对战武器 5');
+
+    const barehanded: MonsterPreview = { ...preview, weapon: null };
+    expect(formatMonsterMatchupTitle(enT, barehanded, null)).toBe('Monster 5 vs. barehanded');
+    expect(formatMonsterMatchupTitle(zhT, barehanded, null)).toBe('怪物 5 对战徒手');
+    expect(formatMonsterMatchupTitle(enT, barehanded, 5)).toBe('Monster 5 vs. barehanded');
   });
 
   it('covers every rejection reason exactly once', () => {

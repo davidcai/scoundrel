@@ -1,6 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_RULE_CONFIG } from '../../src/engine';
+import { DEFAULT_RULE_CONFIG, cardKind, type CardId } from '../../src/engine';
 import { createTranslator } from '../../src/i18n';
 import { formatPreviewTitle } from '../../src/i18n/messages';
 import { openRun } from '../helpers/game';
@@ -29,14 +29,25 @@ describe('play compact layout', () => {
     openRun(SEED, DEFAULT_RULE_CONFIG);
 
     const card = firstCard();
-    const cardId = card.dataset.card as Parameters<typeof formatPreviewTitle>[1];
+    const cardId = card.dataset.card as CardId;
+    const kind = cardKind(cardId);
     fireEvent.click(card);
 
-    const dialog = screen.getByRole('dialog', { name: formatPreviewTitle(t, cardId) });
+    const dialog = screen.getByRole('dialog');
     expect(dialog).toBeInTheDocument();
     expect(dialog).toHaveClass('dialog__panel--sheet');
     expect(document.querySelector('.play-main__preview')).toBeNull();
     expect(dialog.querySelector('.preview')).not.toBeNull();
+
+    // The sheet is named by the preview title: a matchup for monsters, the
+    // card title for weapons/potions.
+    const title = dialog.querySelector('.preview__title')?.textContent ?? '';
+    expect(dialog).toHaveAccessibleName(title);
+    if (kind === 'monster') {
+      expect(title).toMatch(/^Monster \d+ vs\. (?:Weapon \d+|barehanded)$/);
+    } else {
+      expect(title).toBe(formatPreviewTitle(t, cardId));
+    }
   });
 
   it('offers a 44px close control and keeps the sheet above the fixed action bar', () => {

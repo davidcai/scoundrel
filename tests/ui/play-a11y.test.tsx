@@ -85,7 +85,6 @@ describe('play accessibility', () => {
     expect(screen.getAllByText(t('play.health', { health: 20, max: 20 })).length).toBeGreaterThan(
       0,
     );
-    expect(screen.getByText(t('play.potionAvailable'))).toBeInTheDocument();
   });
 
   it('shows the plain weapon-usable status in an eligible monster preview', () => {
@@ -121,17 +120,32 @@ describe('play accessibility', () => {
     expect(bar).toHaveAttribute('aria-valuetext', t('a11y.healthBar', { health: 20, max: 20 }));
   });
 
-  it('shows a persistent status line with the last outcome', () => {
+  it('shows the seed in a labelled corner without header duplicates', () => {
     openRun(SEED, DEFAULT_RULE_CONFIG);
-    const status = screen.getByTestId('status-line');
-    expect(status).toHaveTextContent(t('play.roomHint'));
+
+    // The room heading is the only room label; the potion indicator is gone.
+    expect(
+      screen.getAllByRole('heading', { name: t('play.roomNumber', { number: 1 }) }),
+    ).toHaveLength(1);
+    expect(document.querySelector('.play-header__room')).toBeNull();
+    expect(document.querySelector('.potion')).toBeNull();
+
+    const seed = document.querySelector<HTMLElement>('.play-screen__seed');
+    expect(seed).not.toBeNull();
+    const value = seed!.querySelector<HTMLElement>('.seed__value');
+    expect(value?.textContent).toBe(SEED);
+    expect(value).toHaveAttribute('aria-label', t('a11y.seed', { seed: SEED }));
+    expect(seed!.textContent).toContain(t('play.seedPrefix'));
+  });
+
+  it('announces the resolved outcome in the polite live region', () => {
+    openRun(SEED, DEFAULT_RULE_CONFIG);
 
     const firstCard = document.querySelector<HTMLElement>('[data-card]')!;
     fireEvent.click(firstCard);
     const confirm = document.querySelector<HTMLElement>('.preview__actions button.button--primary');
     fireEvent.click(confirm!);
 
-    expect(screen.getByTestId('status-line').textContent?.length).toBeGreaterThan(0);
-    expect(screen.getByTestId('status-line').textContent).not.toBe(t('play.roomHint'));
+    expect(screen.getByTestId('live-polite').textContent?.length).toBeGreaterThan(0);
   });
 });

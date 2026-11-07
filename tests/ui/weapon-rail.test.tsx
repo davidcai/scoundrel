@@ -70,7 +70,9 @@ describe('weapon rail', () => {
     // Oldest→newest left-to-right, so the newest kill is the last/top thumb.
     expect(images[0]!.src).toContain('club-4.png');
     expect(images[images.length - 1]!.src).toContain('club-7.png');
-    expect(screen.getByText(t('play.killStackMore', { count: 2 }))).toBeInTheDocument();
+    // The stack has no totals or overflow captions; the heading alone labels it.
+    expect(screen.getByRole('heading', { name: t('play.killStackTitle') })).toBeInTheDocument();
+    expect(screen.queryByText(/defeated|\+\d+ more|…/)).toBeNull();
     // The full stack is always available as text for assistive technology.
     const names = container.querySelector('.visually-hidden')?.textContent ?? '';
     expect(names.length).toBeGreaterThan(0);

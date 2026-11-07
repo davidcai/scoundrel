@@ -2,6 +2,7 @@ import type { AttackMode } from '../../engine';
 import {
   describeCardPreview,
   describeMonsterPreview,
+  formatMonsterMatchupTitle,
   formatPreviewTitle,
   rejectionText,
 } from '../../i18n/messages';
@@ -13,7 +14,6 @@ export interface PreviewPanelProps {
   session: UiSession;
   titleId: string;
   onConfirm: (attack?: AttackMode) => void;
-  onCancel: () => void;
 }
 
 /**
@@ -21,7 +21,7 @@ export interface PreviewPanelProps {
  * selections always keep the barehanded option; ineligible weapon attacks are
  * shown with their restriction but stay visible.
  */
-export function PreviewPanel({ session, titleId, onConfirm, onCancel }: PreviewPanelProps) {
+export function PreviewPanel({ session, titleId, onConfirm }: PreviewPanelProps) {
   const { t } = usePreferences();
   const { preview, previewRejection, state } = session;
   const weaponValue = state.weapon?.value ?? null;
@@ -35,9 +35,6 @@ export function PreviewPanel({ session, titleId, onConfirm, onCancel }: PreviewP
         <p className="preview__rejected">
           {t('preview.rejected', { reason: rejectionText(t, previewRejection) })}
         </p>
-        <Button variant="secondary" onClick={onCancel}>
-          {t('action.cancel')}
-        </Button>
       </section>
     );
   }
@@ -59,7 +56,7 @@ export function PreviewPanel({ session, titleId, onConfirm, onCancel }: PreviewP
     return (
       <section className="preview" aria-labelledby={titleId}>
         <h2 className="preview__title" id={titleId}>
-          {formatPreviewTitle(t, preview.card)}
+          {formatMonsterMatchupTitle(t, monster, weaponValue)}
         </h2>
         <p className="preview__description">{describeMonsterPreview(t, monster, weaponValue)}</p>
         {weaponEligible ? (
@@ -73,17 +70,16 @@ export function PreviewPanel({ session, titleId, onConfirm, onCancel }: PreviewP
               aria-disabled={weaponEligible ? undefined : true}
               onClick={weaponEligible ? () => onConfirm('weapon') : undefined}
             >
-              {t('action.useWeapon')}
+              {weaponEligible
+                ? t('action.useWeaponWithDamage', { damage: monster.weapon.damage })
+                : t('action.useWeapon')}
             </Button>
           ) : null}
           <Button
             variant={monster.weapon === null ? 'primary' : 'secondary'}
             onClick={() => onConfirm('barehanded')}
           >
-            {t('action.fightBarehanded')}
-          </Button>
-          <Button variant="ghost" onClick={onCancel}>
-            {t('action.cancel')}
+            {t('action.fightBarehandedWithDamage', { damage: monster.barehanded.damage })}
           </Button>
         </div>
       </section>
@@ -110,9 +106,6 @@ export function PreviewPanel({ session, titleId, onConfirm, onCancel }: PreviewP
       <div className="preview__actions">
         <Button variant="primary" onClick={() => onConfirm()}>
           {confirmLabel}
-        </Button>
-        <Button variant="ghost" onClick={onCancel}>
-          {t('action.cancel')}
         </Button>
       </div>
     </section>

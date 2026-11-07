@@ -29,8 +29,6 @@ export const CardTile = forwardRef<HTMLButtonElement, CardTileProps>(function Ca
   const { t } = usePreferences();
   const caption = formatCardCaption(t, {
     kind: view.kind,
-    selected: view.selected,
-    carried: view.carried,
     reason: view.reason,
   });
   const accessibleName = formatCardAccessibleName(t, {
@@ -59,7 +57,11 @@ export const CardTile = forwardRef<HTMLButtonElement, CardTileProps>(function Ca
       onFocus={onFocus}
       onKeyDown={onKeyDown}
     >
-      <CardFrame card={view.card} className="card__frame--tile" />
+      <CardFrame
+        card={view.card}
+        className="card__frame--tile"
+        badge={view.carried ? t('card.state.carried') : undefined}
+      />
       {/* Narrow-screen fallback (below 132px cards) renders metadata rows. */}
       <span className="card__meta" aria-hidden="true">
         <span className="card__meta-name">{formatCardName(t, view.card)}</span>
@@ -67,6 +69,8 @@ export const CardTile = forwardRef<HTMLButtonElement, CardTileProps>(function Ca
           {formatCardType(t, view.kind)}
           {t('card.captionSeparator')}
           {view.value}
+          {view.carried ? t('card.captionSeparator') : null}
+          {view.carried ? t('card.state.carried') : null}
         </span>
       </span>
       <span className="card__caption">{caption}</span>

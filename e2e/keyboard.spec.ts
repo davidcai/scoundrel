@@ -52,11 +52,12 @@ async function tabTo(
   throw new Error(`Keyboard focus did not reach ${description}.`);
 }
 
-async function pressButton(page: Page, name: string): Promise<void> {
+async function pressButton(page: Page, name: string | RegExp): Promise<void> {
+  const matches = (value: string) => (typeof name === 'string' ? value === name : name.test(value));
   await tabTo(
     page,
-    (info) => info.tag === 'BUTTON' && (info.text === name || info.label === name),
-    `the "${name}" button`,
+    (info) => info.tag === 'BUTTON' && (matches(info.text) || matches(info.label)),
+    `the "${String(name)}" button`,
   );
   await page.keyboard.press('Enter');
 }

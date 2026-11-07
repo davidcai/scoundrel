@@ -10,7 +10,11 @@ import {
   type GameState,
 } from '../../src/engine';
 import { createTranslator } from '../../src/i18n';
-import { describeCardPreview, describeMonsterPreview } from '../../src/i18n/messages';
+import {
+  describeCardPreview,
+  describeMonsterPreview,
+  formatMonsterMatchupTitle,
+} from '../../src/i18n/messages';
 import { findScenario, replayScenario } from '../helpers/game';
 
 const t = createTranslator('en');
@@ -56,11 +60,18 @@ describe('play preview', () => {
     expect(document.querySelector('.preview__description')?.textContent).toBe(
       describeMonsterPreview(t, preview.preview, null),
     );
+    expect(document.querySelector('.preview__title')?.textContent).toBe(
+      formatMonsterMatchupTitle(t, preview.preview, null),
+    );
     expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe(
       String(state.health),
     );
 
-    fireEvent.click(screen.getByRole('button', { name: t('action.fightBarehanded') }));
+    const barehanded = screen.getByRole('button', { name: /^Fight barehanded/ });
+    expect(barehanded).toHaveTextContent(
+      t('action.fightBarehandedWithDamage', { damage: preview.preview.barehanded.damage }),
+    );
+    fireEvent.click(barehanded);
 
     expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe(
       String(preview.preview.barehanded.healthAfter),
@@ -95,6 +106,10 @@ describe('play preview', () => {
 
     const weaponChoice = screen.getByRole('button', { name: t('action.useWeapon') });
     expect(weaponChoice).toHaveAttribute('aria-disabled', 'true');
+    expect(weaponChoice).toHaveTextContent(t('action.useWeapon'));
+    expect(document.querySelector('.preview__title')?.textContent).toBe(
+      formatMonsterMatchupTitle(t, preview.preview, state.weapon?.value ?? null),
+    );
     expect(document.querySelector('.preview__description')?.textContent).toBe(
       monsterDescription(state, monster),
     );
@@ -194,7 +209,12 @@ describe('play preview', () => {
     expect(damage).toBeGreaterThanOrEqual(0);
 
     fireEvent.click(document.querySelector<HTMLElement>(`[data-card="${monster}"]`)!);
-    fireEvent.click(screen.getByRole('button', { name: t('action.useWeapon') }));
+    expect(document.querySelector('.preview__title')?.textContent).toBe(
+      formatMonsterMatchupTitle(t, preview.preview, state.weapon?.value ?? null),
+    );
+    const weaponChoice = screen.getByRole('button', { name: /^Use weapon/ });
+    expect(weaponChoice).toHaveTextContent(t('action.useWeaponWithDamage', { damage }));
+    fireEvent.click(weaponChoice);
 
     expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe(
       String(preview.preview.weapon?.healthAfter),

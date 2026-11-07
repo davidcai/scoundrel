@@ -15,7 +15,6 @@ import {
   getCardViews,
   getDungeonCount,
   getHealthView,
-  getPotionStatus,
   getRoomNumber,
   getWeaponView,
 } from '../../store/selectors';
@@ -26,11 +25,9 @@ import { Dialog } from '../components/Dialog';
 import { DungeonPile } from '../components/DungeonPile';
 import { HealthMeter } from '../components/HealthMeter';
 import { HelpDialog } from '../components/HelpDialog';
-import { PotionIndicator } from '../components/PotionIndicator';
 import { PreviewPanel } from '../components/PreviewPanel';
 import { RoomGrid } from '../components/RoomGrid';
 import { SeedDisplay } from '../components/SeedDisplay';
-import { StatusLine } from '../components/StatusLine';
 import { WeaponRail } from '../components/WeaponRail';
 import { preloadArtwork } from '../artwork';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -44,7 +41,7 @@ export interface PlayScreenProps {
 
 /**
  * The play screen: room cards, selection preview, weapon and kill stack,
- * draw pile, persistent status line, and the room actions.
+ * draw pile, seed corner, and the room actions.
  *
  * Focus policy (design plan §7): a new room focuses its heading on compact and
  * its first card on wider layouts; clearing a room focuses the enabled "Enter
@@ -70,7 +67,6 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
   const { state } = session;
   const health = getHealthView(state);
   const availability = getActionAvailability(state);
-  const potion = getPotionStatus(state);
   const weapon = getWeaponView(state);
   const cardViews = getCardViews(state, session.selectedCard);
   const roomNumber = getRoomNumber(state);
@@ -83,15 +79,6 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
   selectedRef.current = session.selectedCard;
   const previousRoomsRef = useRef<number | null>(null);
   const previousHelpRef = useRef(helpOpen);
-
-  const statusText =
-    session.notice === null
-      ? state.roomCleared
-        ? t('play.roomHintCleared')
-        : t('play.roomHint')
-      : session.notice.kind === 'event'
-        ? describeEvent(t, session.notice.event)
-        : rejectionText(t, session.notice.reason);
 
   // Announce resolved outcomes once per notice, and invalidity assertively.
   useEffect(() => {
@@ -197,8 +184,8 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
     preloadArtwork(state.dungeon.slice(0, 4));
   }, [state.dungeon]);
 
-  // When a selection is cleared (Cancel, Escape, or the sheet close button),
-  // return focus to that card once the modal has unmounted.
+  // When a selection is cleared (Escape, clicking the card again, or the sheet
+  // close button), return focus to that card once the modal has unmounted.
   const previousSelectedRef = useRef<CardId | null>(null);
   useEffect(() => {
     const previous = previousSelectedRef.current;
@@ -234,12 +221,7 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
   };
 
   const preview = (
-    <PreviewPanel
-      session={session}
-      titleId={previewTitleId}
-      onConfirm={handleConfirm}
-      onCancel={handleCancel}
-    />
+    <PreviewPanel session={session} titleId={previewTitleId} onConfirm={handleConfirm} />
   );
 
   return (
@@ -262,9 +244,6 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
         <header className="play-header">
           <HealthMeter health={health.health} max={health.max} />
           <div className="play-header__center">
-            <span className="play-header__room">
-              {formatRoomLabel(t, roomNumber, state.finalRoom)}
-            </span>
             <span
               className="dungeon-chip"
               role="img"
@@ -272,13 +251,11 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
             >
               <span aria-hidden="true">{dungeonCount}</span>
             </span>
-            <PotionIndicator status={potion} />
           </div>
           <div className="play-header__right">
             {sessionOnly ? (
               <span className="play-header__unsaved">{t('play.sessionOnly')}</span>
             ) : null}
-            <SeedDisplay seed={state.seed} />
             <Button variant="ghost" onClick={() => setHelpOpen(true)}>
               {t('play.help')}
             </Button>
@@ -313,8 +290,6 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
           </div>
         </main>
 
-        <StatusLine text={statusText} />
-
         <ActionBar
           ref={actionBarRef}
           enterButtonRef={enterButtonRef}
@@ -324,6 +299,10 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
           onUndo={() => dispatch({ type: 'undoRoom' })}
           onHelp={() => setHelpOpen(true)}
         />
+
+        <div className="play-screen__seed">
+          <SeedDisplay seed={state.seed} />
+        </div>
       </div>
 
       {compact && session.selectedCard !== null ? (

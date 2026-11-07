@@ -501,12 +501,6 @@ button {
   gap: var(--space-2) var(--space-3);
 }
 
-.play-header__room {
-  color: var(--text-1);
-  font-size: var(--text-small);
-  font-weight: 600;
-}
-
 .play-header__right {
   display: flex;
   align-items: center;
@@ -538,18 +532,25 @@ button {
 
 .health {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  min-width: 150px;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-width: 0;
+  max-width: 420px;
 }
 
 .health__label {
+  flex: 0 0 auto;
+  white-space: nowrap;
   color: var(--text-1);
   font-size: var(--text-label);
   font-weight: 600;
 }
 
 .health__track {
+  flex: 1 1 96px;
+  min-width: 72px;
+  max-width: 180px;
   height: 12px;
   overflow: hidden;
   background: var(--health-track);
@@ -565,21 +566,17 @@ button {
   transition: width var(--motion-2) var(--ease-enter);
 }
 
-.potion {
-  color: var(--text-2);
-  font-size: var(--text-small);
-}
-
-.potion--used {
-  color: var(--wasted);
-}
-
 .seed {
   display: inline-flex;
   align-items: baseline;
+  gap: var(--space-1);
   color: var(--text-2);
   font-family: var(--font-mono);
   font-size: var(--text-small);
+}
+
+.seed__label {
+  color: var(--text-muted);
 }
 
 .seed__value {
@@ -775,6 +772,31 @@ button {
   line-height: 1.4;
 }
 
+/* Carried state badge inside the frame; captions no longer spell it out. */
+.card__badge {
+  position: absolute;
+  bottom: var(--space-2);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px var(--space-2);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-ui);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Paint the badge label from the data attribute so it is never a DOM text
+   node inside the card button (WCAG 2.5.3 label in name). */
+.card__badge::after {
+  content: attr(data-badge);
+}
+
 /* Metadata rows are the fallback below 132px-wide cards (design plan §4). */
 .card__meta {
   display: none;
@@ -924,15 +946,30 @@ button {
   gap: var(--space-2);
 }
 
-/* ---------- Status line and action bar ---------- */
+/* ---------- Action bar and seed corner ---------- */
 
-.status-line {
-  width: 100%;
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: var(--space-2) var(--space-6);
-  color: var(--text-2);
-  font-size: var(--text-small);
+/*
+ * The seed lives in the bottom-right corner above the action bar. The bottom
+ * offset uses the measured action-bar height, so it clears the sticky bar on
+ * wide/medium and the fixed compact bar.
+ */
+.play-screen__seed {
+  position: fixed;
+  right: var(--space-5);
+  bottom: calc(var(--action-bar-height, 0px) + var(--space-2));
+  z-index: 30;
+  display: flex;
+  justify-content: flex-end;
+  max-width: calc(100vw - 2 * var(--space-5));
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+}
+
+.play-screen__seed .seed {
+  font-size: var(--text-caption);
 }
 
 .action-bar {
@@ -1713,11 +1750,27 @@ button {
   }
 
   .play-screen {
-    padding-bottom: calc(var(--action-bar-height, 148px) + var(--space-2));
+    /* Clear both the fixed action bar and the seed footer band. */
+    padding-bottom: calc(var(--action-bar-height, 148px) + 44px);
   }
 
-  .status-line {
-    padding: var(--space-2) var(--space-4);
+  /* Compact: the seed corner is an opaque footer band directly above the fixed
+     action bar. Scrolling content passes behind the band instead of showing
+     through the label, so the seed never covers a room card. */
+  .play-screen__seed {
+    right: 0;
+    bottom: var(--action-bar-height, 148px);
+    left: 0;
+    justify-content: flex-end;
+    max-width: none;
+    padding: var(--space-1) var(--space-4);
+    border-top: 1px solid var(--border-2);
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 0;
+    background: var(--bg-1);
+    box-shadow: none;
   }
 
   .action-bar {

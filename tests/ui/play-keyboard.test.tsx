@@ -56,7 +56,8 @@ describe('play keyboard', () => {
     const cardId = firstCard.dataset.card as string;
 
     fireEvent.click(firstCard);
-    fireEvent.click(screen.getByRole('button', { name: t('action.cancel') }));
+    // Clicking the selected card again clears it (no preview Cancel button).
+    fireEvent.click(firstCard);
     fireEvent.click(firstCard);
     const confirm = document.querySelector<HTMLElement>('.preview__actions button.button--primary');
     expect(confirm).not.toBeNull();
