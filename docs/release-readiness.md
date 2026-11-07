@@ -289,5 +289,18 @@ No `src/` changes are part of the Phase 5 work; all evidence remains under ignor
   (48 files/496 tests, 94.78/250 KiB entry bundle, strict axe and chromium-wide e2e green); the
   style guide records the change as a dated post-approval correction. Open items below are
   unchanged, and deployment, merging, and merge requests remain unauthorized.
+- 2026-11-06 (round 2, later): a second user-directed play-screen pass removed the positional
+  caption/state fragments, preview dismiss button, kill-stack count, duplicated header room
+  label, potion indicator and persistent status line; added the carried badge inside the card
+  frame, matchup preview titles, damage-bearing confirm labels and the bottom-right seed, and
+  regrouped the health label with its bar. Independent review found one serious WCAG 2.5.3
+  `label-content-name-mismatch` regression on carried cards; it was fixed by painting the badge
+  label with generated content (accessible name still announces "Carried") and covered by a new
+  carried-state strict-axe e2e spec. The re-check reproduced the pre-fix violation and passed the
+  fixed build at 1440/1024/390 (`.artifacts/task57/`); 48 files/499 tests, 94.67/250 KiB entry,
+  5.75/50 CSS and chromium-wide/compact e2e pass. Commit `75033765`; CI run `42346846541` is green
+  for both the `ci` and `e2e` jobs. The 320px narrow-metadata label-in-name gap is pre-existing,
+  documented as a tracked follow-up, and not claimed fixed. Deployment, merging and merge
+  requests remain unauthorized; the open items below are unchanged.
 
 The open items below are unchanged.
