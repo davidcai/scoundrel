@@ -20,14 +20,12 @@ import {
 } from '../../store/selectors';
 import { ActionBar } from '../components/ActionBar';
 import { useAnnounce } from '../components/Announcer';
-import { Button } from '../components/Button';
 import { Dialog } from '../components/Dialog';
-import { DungeonPile } from '../components/DungeonPile';
+import { DungeonStatus } from '../components/DungeonStatus';
 import { HealthMeter } from '../components/HealthMeter';
 import { HelpDialog } from '../components/HelpDialog';
 import { PreviewPanel } from '../components/PreviewPanel';
 import { RoomGrid } from '../components/RoomGrid';
-import { SeedDisplay } from '../components/SeedDisplay';
 import { WeaponRail } from '../components/WeaponRail';
 import { preloadArtwork } from '../artwork';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -41,7 +39,7 @@ export interface PlayScreenProps {
 
 /**
  * The play screen: room cards, selection preview, weapon and kill stack,
- * draw pile, seed corner, and the room actions.
+ * draw-pile status in the header, seed in the action bar, and the room actions.
  *
  * Focus policy (design plan §7): a new room focuses its heading on compact and
  * its first card on wider layouts; clearing a room focuses the enabled "Enter
@@ -242,24 +240,15 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
         </a>
 
         <header className="play-header">
-          <HealthMeter health={health.health} max={health.max} />
-          <div className="play-header__center">
-            <span
-              className="dungeon-chip"
-              role="img"
-              aria-label={t('a11y.dungeonCount', { count: dungeonCount })}
-            >
-              <span aria-hidden="true">{dungeonCount}</span>
-            </span>
+          <div className="play-header__status">
+            <HealthMeter health={health.health} max={health.max} />
+            <DungeonStatus count={dungeonCount} />
           </div>
-          <div className="play-header__right">
-            {sessionOnly ? (
+          {sessionOnly ? (
+            <div className="play-header__right">
               <span className="play-header__unsaved">{t('play.sessionOnly')}</span>
-            ) : null}
-            <Button variant="ghost" onClick={() => setHelpOpen(true)}>
-              {t('play.help')}
-            </Button>
-          </div>
+            </div>
+          ) : null}
         </header>
 
         <main className="play-main">
@@ -284,25 +273,18 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
             </div>
             {!compact ? <div className="play-main__preview">{preview}</div> : null}
           </section>
-
-          <div className="play-main__dungeon">
-            <DungeonPile count={dungeonCount} />
-          </div>
         </main>
 
         <ActionBar
           ref={actionBarRef}
           enterButtonRef={enterButtonRef}
           availability={availability}
+          seed={state.seed}
           onEnterNextRoom={() => dispatch({ type: 'enterNextRoom' })}
           onRunAway={() => dispatch({ type: 'runAway' })}
           onUndo={() => dispatch({ type: 'undoRoom' })}
           onHelp={() => setHelpOpen(true)}
         />
-
-        <div className="play-screen__seed">
-          <SeedDisplay seed={state.seed} />
-        </div>
       </div>
 
       {compact && session.selectedCard !== null ? (

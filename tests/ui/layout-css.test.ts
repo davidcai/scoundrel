@@ -46,9 +46,10 @@ describe('approved layout rules', () => {
       .map((match) => match[0])
       .join('\n');
     expect(mediumBlocks).toContain('grid-template-columns: minmax(180px, 240px) minmax(0, 1fr)');
-    expect(mediumBlocks).toContain('.play-main__dungeon');
-    expect(mediumBlocks).toContain('display: none');
-    expect(block(/\.dungeon-chip \{[\s\S]*?\n\}/)).toContain('min-width: 44px');
+    expect(css).not.toContain('.play-main__dungeon');
+    expect(css).not.toContain('.dungeon-chip');
+    expect(block(/\.dungeon-status \{[\s\S]*?\n\}/)).toContain('display: inline-flex');
+    expect(block(/\.action-bar__end \{[\s\S]*?\n\}/)).toContain('align-items: flex-end');
   });
 
   it('places the compact preview sheet above the fixed action bar', () => {

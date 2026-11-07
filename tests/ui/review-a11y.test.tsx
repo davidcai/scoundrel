@@ -35,13 +35,17 @@ describe('axe regressions', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('names the dungeon count chip through a valid role', () => {
+  it('names the dungeon count beside the health line through a valid role', () => {
     openRun(findSeed('lost', doomedPolicy), DEFAULT_RULE_CONFIG);
 
-    const chip = document.querySelector<HTMLElement>('.dungeon-chip');
-    expect(chip).not.toBeNull();
-    expect(chip).toHaveAttribute('role', 'img');
-    expect(chip?.getAttribute('aria-label')).toBe(t('a11y.dungeonCount', { count: 40 }));
+    const status = document.querySelector<HTMLElement>('.dungeon-status');
+    expect(status).not.toBeNull();
+    expect(status).toHaveAttribute('role', 'img');
+    expect(status?.getAttribute('aria-label')).toBe(t('a11y.dungeonCount', { count: 40 }));
+
+    const header = document.querySelector<HTMLElement>('.play-header');
+    expect(header).toContainElement(status);
+    expect(document.querySelector('.dungeon-chip')).toBeNull();
   });
 
   it('starts a card accessible name with its visible caption (WCAG 2.5.3)', () => {

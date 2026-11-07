@@ -3,9 +3,12 @@ import { rejectionText } from '../../i18n/messages';
 import { usePreferences } from '../../store/preferences';
 import type { ActionAvailability } from '../../store/selectors';
 import { Button } from './Button';
+import { SeedDisplay } from './SeedDisplay';
 
 export interface ActionBarProps {
   availability: ActionAvailability;
+  /** Run seed shown at the bottom-right corner of this panel. */
+  seed: string;
   onEnterNextRoom: () => void;
   onRunAway: () => void;
   onUndo: () => void;
@@ -18,10 +21,11 @@ export interface ActionBarProps {
  * Sticky room actions. Unavailable actions stay focusable (`aria-disabled`) and
  * their rule is shown in a visible helper line that each disabled button
  * references with `aria-describedby` (REQ-004, design plan §5/§7). The helper is
- * visible at every breakpoint, including compact.
+ * visible at every breakpoint, including compact. The run seed fills the
+ * bottom-right corner of the same panel.
  */
 export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function ActionBar(
-  { availability, onEnterNextRoom, onRunAway, onUndo, onHelp, enterButtonRef },
+  { availability, seed, onEnterNextRoom, onRunAway, onUndo, onHelp, enterButtonRef },
   containerRef,
 ) {
   const { t } = usePreferences();
@@ -71,15 +75,18 @@ export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function Act
           {t('play.help')}
         </Button>
       </div>
-      {hasReasons ? (
-        <p className="action-bar__helper" id={helperId} data-testid="action-reasons">
-          {unavailable.map((entry) => (
-            <span key={entry.label} className="action-bar__reason">
-              {t('play.disabledAction', { action: entry.label, reason: entry.text })}
-            </span>
-          ))}
-        </p>
-      ) : null}
+      <div className="action-bar__end">
+        {hasReasons ? (
+          <p className="action-bar__helper" id={helperId} data-testid="action-reasons">
+            {unavailable.map((entry) => (
+              <span key={entry.label} className="action-bar__reason">
+                {t('play.disabledAction', { action: entry.label, reason: entry.text })}
+              </span>
+            ))}
+          </p>
+        ) : null}
+        <SeedDisplay seed={seed} />
+      </div>
     </div>
   );
 });

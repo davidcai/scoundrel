@@ -120,7 +120,7 @@ describe('play accessibility', () => {
     expect(bar).toHaveAttribute('aria-valuetext', t('a11y.healthBar', { health: 20, max: 20 }));
   });
 
-  it('shows the seed in a labelled corner without header duplicates', () => {
+  it('shows the seed in the action bar without header duplicates', () => {
     openRun(SEED, DEFAULT_RULE_CONFIG);
 
     // The room heading is the only room label; the potion indicator is gone.
@@ -130,12 +130,23 @@ describe('play accessibility', () => {
     expect(document.querySelector('.play-header__room')).toBeNull();
     expect(document.querySelector('.potion')).toBeNull();
 
-    const seed = document.querySelector<HTMLElement>('.play-screen__seed');
+    const actionBar = document.querySelector<HTMLElement>('.action-bar');
+    expect(actionBar).not.toBeNull();
+    const seed = actionBar!.querySelector<HTMLElement>('.seed');
     expect(seed).not.toBeNull();
+    expect(document.querySelector('.play-screen__seed')).toBeNull();
     const value = seed!.querySelector<HTMLElement>('.seed__value');
     expect(value?.textContent).toBe(SEED);
     expect(value).toHaveAttribute('aria-label', t('a11y.seed', { seed: SEED }));
     expect(seed!.textContent).toContain(t('play.seedPrefix'));
+  });
+
+  it('keeps a single Help entry point in the action bar', () => {
+    openRun(SEED, DEFAULT_RULE_CONFIG);
+
+    const helpButtons = screen.getAllByRole('button', { name: t('play.help') });
+    expect(helpButtons).toHaveLength(1);
+    expect(document.querySelector('.action-bar')).toContainElement(helpButtons[0]!);
   });
 
   it('announces the resolved outcome in the polite live region', () => {

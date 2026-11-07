@@ -493,12 +493,12 @@ button {
   border-bottom: 1px solid var(--border-2);
 }
 
-.play-header__center {
+.play-header__status {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  gap: var(--space-2) var(--space-3);
+  gap: var(--space-2) var(--space-5);
+  min-width: 0;
 }
 
 .play-header__right {
@@ -507,27 +507,23 @@ button {
   gap: var(--space-4);
 }
 
-/* Medium and compact keep the dungeon count in the header, not a rail. */
-.dungeon-chip {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  min-height: 24px;
-  padding: 0 var(--space-2);
-  border: 1px solid var(--accent);
-  border-radius: var(--radius-2);
-  background: var(--accent-hover);
-  color: var(--accent-ink);
+/* Draw-pile count sits immediately after the health label/bar. */
+.dungeon-status {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  min-width: 0;
   font-size: var(--text-small);
-  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 1199px) {
-  .dungeon-chip {
-    display: inline-flex;
-  }
+.dungeon-status__title {
+  color: var(--text-1);
+  font-weight: 600;
+}
+
+.dungeon-status__caption {
+  color: var(--text-2);
 }
 
 .health {
@@ -586,10 +582,10 @@ button {
 .play-main {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr) minmax(140px, 200px);
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
   gap: var(--space-6);
   width: 100%;
-  max-width: 1440px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: var(--space-6);
 }
@@ -597,10 +593,6 @@ button {
 @media (max-width: 1199px) {
   .play-main {
     grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
-  }
-
-  .play-main__dungeon {
-    display: none;
   }
 }
 
@@ -675,8 +667,7 @@ button {
 }
 
 .weapon,
-.kill-stack,
-.dungeon {
+.kill-stack {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -855,49 +846,6 @@ button {
   width: 100%;
 }
 
-/* ---------- Dungeon ---------- */
-
-.dungeon__stack {
-  position: relative;
-  width: 96px;
-  aspect-ratio: 2 / 3;
-}
-
-.dungeon__back {
-  position: absolute;
-  inset: 0;
-  border: 1px solid var(--border-2);
-  border-radius: var(--radius-3);
-  background-color: var(--surface-2);
-  background-image:
-    repeating-linear-gradient(45deg, transparent 0 14px, rgb(169 224 138 / 16%) 14px 15px),
-    repeating-linear-gradient(-45deg, transparent 0 18px, rgb(169 224 138 / 18%) 18px 19px);
-  box-shadow: var(--shadow-1);
-}
-
-.dungeon__back--1 {
-  transform: translate(8px, 8px);
-}
-
-.dungeon__back--2 {
-  transform: translate(4px, 4px);
-}
-
-.dungeon__count {
-  position: absolute;
-  right: -10px;
-  bottom: -10px;
-  min-width: 44px;
-  padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--accent);
-  border-radius: var(--radius-2);
-  background: var(--accent-hover);
-  color: var(--accent-ink);
-  font-size: var(--text-small);
-  font-weight: 700;
-  text-align: center;
-}
-
 /* ---------- Selection preview ---------- */
 
 .preview {
@@ -946,31 +894,7 @@ button {
   gap: var(--space-2);
 }
 
-/* ---------- Action bar and seed corner ---------- */
-
-/*
- * The seed lives in the bottom-right corner above the action bar. The bottom
- * offset uses the measured action-bar height, so it clears the sticky bar on
- * wide/medium and the fixed compact bar.
- */
-.play-screen__seed {
-  position: fixed;
-  right: var(--space-5);
-  bottom: calc(var(--action-bar-height, 0px) + var(--space-2));
-  z-index: 30;
-  display: flex;
-  justify-content: flex-end;
-  max-width: calc(100vw - 2 * var(--space-5));
-  padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--border-1);
-  border-radius: var(--radius-2);
-  background: var(--surface-1);
-  box-shadow: var(--shadow-1);
-}
-
-.play-screen__seed .seed {
-  font-size: var(--text-caption);
-}
+/* ---------- Action bar and seed ---------- */
 
 .action-bar {
   position: sticky;
@@ -991,6 +915,21 @@ button {
   align-items: center;
   gap: var(--space-2);
   min-width: 0;
+}
+
+/* Right column: helper rules above the seed, so the seed lands in the
+   bottom-right corner of the panel at every width. */
+.action-bar__end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+  min-width: 0;
+  margin-left: auto;
+}
+
+.action-bar__end .seed {
+  font-size: var(--text-caption);
 }
 
 .action-bar__helper {
@@ -1706,8 +1645,7 @@ button {
     padding: var(--space-2) var(--space-4);
   }
 
-  .play-header__center {
-    order: 3;
+  .play-header__status {
     width: 100%;
     justify-content: flex-start;
   }
@@ -1732,10 +1670,6 @@ button {
     order: 2;
   }
 
-  .play-main__dungeon {
-    order: 3;
-  }
-
   .room-grid {
     grid-template-columns: repeat(2, minmax(0, var(--card-track-compact)));
     justify-content: center;
@@ -1750,27 +1684,8 @@ button {
   }
 
   .play-screen {
-    /* Clear both the fixed action bar and the seed footer band. */
-    padding-bottom: calc(var(--action-bar-height, 148px) + 44px);
-  }
-
-  /* Compact: the seed corner is an opaque footer band directly above the fixed
-     action bar. Scrolling content passes behind the band instead of showing
-     through the label, so the seed never covers a room card. */
-  .play-screen__seed {
-    right: 0;
-    bottom: var(--action-bar-height, 148px);
-    left: 0;
-    justify-content: flex-end;
-    max-width: none;
-    padding: var(--space-1) var(--space-4);
-    border-top: 1px solid var(--border-2);
-    border-right: 0;
-    border-bottom: 0;
-    border-left: 0;
-    border-radius: 0;
-    background: var(--bg-1);
-    box-shadow: none;
+    /* Clear the fixed action bar (the seed now sits inside it). */
+    padding-bottom: calc(var(--action-bar-height, 148px) + var(--space-2));
   }
 
   .action-bar {
