@@ -1,4 +1,4 @@
-import { formatCardName, formatWeaponBroken } from '../../i18n/messages';
+import { formatCardName } from '../../i18n/messages';
 import { formatList } from '../../i18n';
 import { usePreferences } from '../../store/preferences';
 import type { WeaponView } from '../../store/selectors';
@@ -47,12 +47,7 @@ export function WeaponRail({ view }: { view: WeaponView }) {
           </div>
         ) : (
           <div className="weapon__card">
-            <CardFrame card={view.weapon.card} broken={view.broken} />
-            {view.broken && view.brokenLimit !== null ? (
-              <p className="rail-caption rail-caption--warning">
-                {formatWeaponBroken(t, view.brokenLimit)}
-              </p>
-            ) : null}
+            <CardFrame card={view.weapon.card} />
           </div>
         )}
       </section>

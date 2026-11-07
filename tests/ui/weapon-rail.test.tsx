@@ -2,7 +2,6 @@ import { act, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CardId } from '../../src/engine';
 import { createTranslator } from '../../src/i18n';
-import { formatWeaponBroken } from '../../src/i18n/messages';
 import type { WeaponView } from '../../src/store/selectors';
 import { WeaponRail } from '../../src/ui/components/WeaponRail';
 import { renderWithProviders } from '../helpers/render';
@@ -77,7 +76,7 @@ describe('weapon rail', () => {
     expect(names.length).toBeGreaterThan(0);
   });
 
-  it('applies the 3px damage strip to a broken weapon, outside the frame', () => {
+  it('never renders a damage strip or broken caption for a spent weapon', () => {
     const view = baseView({
       weapon: { card: 'diamond-5' as CardId, value: 5, kills: KILLS, limit: 4 },
       broken: true,
@@ -85,8 +84,9 @@ describe('weapon rail', () => {
     });
     const { container } = renderWithProviders(<WeaponRail view={view} />);
 
-    expect(container.querySelector('.card__damage')).not.toBeNull();
-    expect(screen.getByText(formatWeaponBroken(t, 4))).toBeInTheDocument();
+    expect(container.querySelector('.card__damage')).toBeNull();
+    expect(container.querySelectorAll('.weapon__card .card__frame')).toHaveLength(1);
+    expect(screen.queryByText(/Broken|损坏/)).toBeNull();
   });
 
   it('shows the empty slot and barehanded hint without a weapon', () => {

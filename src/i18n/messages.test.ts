@@ -69,33 +69,40 @@ describe('message helpers', () => {
     expect(formatCardName(enT, card)).not.toBe(formatCardName(zhT, card));
   });
 
-  it('describes card position and states', () => {
-    const caption = formatCardCaption(enT, { index: 1, total: 4 });
-    expect(caption).toContain('1');
-    expect(caption).toContain('4');
+  it('captions cards by type and state, never by position', () => {
+    expect(formatCardCaption(enT, { kind: 'monster' })).toBe('Monster');
+    expect(formatCardCaption(enT, { kind: 'weapon', selected: true })).toBe('Weapon · Selected');
+    expect(formatCardCaption(enT, { kind: 'potion', carried: true })).toBe('Potion · Carried');
+    expect(formatCardCaption(zhT, { kind: 'monster' })).toBe('怪物');
+    expect(formatCardCaption(zhT, { kind: 'weapon', selected: true })).toBe('武器，已选择');
+    expect(formatCardCaption(zhT, { kind: 'potion', carried: true })).toBe('药水，携带');
 
-    const selected = formatCardCaption(enT, { index: 2, total: 4, selected: true });
-    expect(selected).toContain(enT('card.state.selected'));
+    const blocked = formatCardCaption(enT, { kind: 'monster', reason: 'weapon-ineligible' });
+    expect(blocked).toContain(
+      enT('card.state.notUsable', { reason: rejectionText(enT, 'weapon-ineligible') }),
+    );
+    expect(blocked).not.toMatch(/Card \d+ of \d+/);
 
-    const accessible = formatCardAccessibleName(enT, {
-      card: 'club-a',
-      index: 1,
-      total: 4,
-    });
-    expect(accessible).toContain(formatCardName(enT, 'club-a'));
-    // WCAG 2.5.3: the visible caption must appear verbatim in the name.
-    expect(accessible).toContain(formatCardCaption(enT, { index: 1, total: 4 }));
+    // Carried is listed before Selected (design plan §3).
+    const both = formatCardCaption(enT, { kind: 'monster', carried: true, selected: true });
+    expect(both.indexOf(enT('card.state.carried'))).toBeLessThan(
+      both.indexOf(enT('card.state.selected')),
+    );
+  });
 
+  it('keeps the visible caption as an exact prefix of the accessible name', () => {
+    const caption = formatCardCaption(enT, { kind: 'monster' });
+    const accessible = formatCardAccessibleName(enT, { card: 'club-a', kind: 'monster' });
+    expect(accessible).toBe(`${caption}, ${formatCardName(enT, 'club-a')}`);
+    expect(accessible.startsWith(caption)).toBe(true);
+
+    const selected = formatCardCaption(enT, { kind: 'weapon', selected: true });
     const selectedName = formatCardAccessibleName(enT, {
-      card: 'heart-4',
-      index: 3,
-      total: 4,
+      card: 'diamond-5',
+      kind: 'weapon',
       selected: true,
     });
-    expect(selectedName).toContain(formatCardCaption(enT, { index: 3, total: 4, selected: true }));
-    expect(
-      selectedName.indexOf(formatCardCaption(enT, { index: 3, total: 4, selected: true })),
-    ).toBe(0);
+    expect(selectedName.startsWith(selected)).toBe(true);
   });
 
   it('covers every rejection reason exactly once', () => {

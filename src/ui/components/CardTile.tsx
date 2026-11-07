@@ -2,8 +2,8 @@ import { forwardRef } from 'react';
 import {
   formatCardAccessibleName,
   formatCardCaption,
-  formatCardKind,
   formatCardName,
+  formatCardType,
 } from '../../i18n/messages';
 import { usePreferences } from '../../store/preferences';
 import type { CardView } from '../../store/selectors';
@@ -28,16 +28,14 @@ export const CardTile = forwardRef<HTMLButtonElement, CardTileProps>(function Ca
 ) {
   const { t } = usePreferences();
   const caption = formatCardCaption(t, {
-    index: view.index,
-    total: view.total,
+    kind: view.kind,
     selected: view.selected,
     carried: view.carried,
     reason: view.reason,
   });
   const accessibleName = formatCardAccessibleName(t, {
     card: view.card,
-    index: view.index,
-    total: view.total,
+    kind: view.kind,
     selected: view.selected,
     carried: view.carried,
     reason: view.reason,
@@ -66,7 +64,7 @@ export const CardTile = forwardRef<HTMLButtonElement, CardTileProps>(function Ca
       <span className="card__meta" aria-hidden="true">
         <span className="card__meta-name">{formatCardName(t, view.card)}</span>
         <span className="card__meta-detail">
-          {formatCardKind(t, view.kind)}
+          {formatCardType(t, view.kind)}
           {t('card.captionSeparator')}
           {view.value}
         </span>

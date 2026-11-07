@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_RULE_CONFIG } from '../../src/engine';
 import { createTranslator } from '../../src/i18n';
@@ -51,7 +51,7 @@ describe('axe regressions', () => {
     fireEvent.click(firstCard);
     expect(firstCard).toHaveAttribute('aria-pressed', 'true');
 
-    const caption = within(firstCard).getByText(/Card \d of 4/).textContent ?? '';
+    const caption = firstCard.querySelector('.card__caption')?.textContent ?? '';
     const label = firstCard.getAttribute('aria-label') ?? '';
     expect(caption.length).toBeGreaterThan(0);
     expect(label.startsWith(caption)).toBe(true);

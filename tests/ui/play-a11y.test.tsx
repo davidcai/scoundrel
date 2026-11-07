@@ -6,36 +6,34 @@ import {
   cardKind,
   type CardId,
 } from '../../src/engine';
-import { createTranslator } from '../../src/i18n';
+import { createTranslator, type MessageKey } from '../../src/i18n';
 import { formatCardName } from '../../src/i18n/messages';
 import { findScenario, openRun, replayScenario } from '../helpers/game';
 
 const t = createTranslator('en');
 const SEED = 'a11y-seed';
 
-function kindKey(cardId: CardId): string {
-  const kind = cardKind(cardId);
-  return kind === 'monster'
-    ? t('card.kind.monster')
-    : kind === 'weapon'
-      ? t('card.kind.weapon')
-      : t('card.kind.potion');
+function typeKey(cardId: CardId): MessageKey {
+  return `card.type.${cardKind(cardId)}`;
 }
 
 describe('play accessibility', () => {
-  it('exposes card identity, kind, and position in the accessible name', () => {
+  it('exposes card identity and the type caption in the accessible name', () => {
     openRun(SEED, DEFAULT_RULE_CONFIG);
 
     const roomCards = screen.getByRole('group', { name: t('a11y.roomCards') });
     const all = Array.from(roomCards.querySelectorAll<HTMLElement>('[data-card]'));
     expect(all).toHaveLength(4);
 
-    all.forEach((card, index) => {
+    all.forEach((card) => {
       const cardId = card.dataset.card as CardId;
       const label = card.getAttribute('aria-label') ?? '';
+      const caption = card.querySelector('.card__caption')?.textContent ?? '';
+      // WCAG 2.5.3: the visible caption is an exact prefix of the name.
+      expect(caption).toBe(t(typeKey(cardId)));
+      expect(label.startsWith(caption)).toBe(true);
       expect(label).toContain(formatCardName(t, cardId));
-      expect(label).toContain(kindKey(cardId));
-      expect(label).toContain(t('card.captionIndex', { index: index + 1, total: 4 }));
+      expect(label).not.toMatch(/Card \d+ of \d+/);
       expect(card).toHaveAttribute('aria-pressed', 'false');
     });
   });

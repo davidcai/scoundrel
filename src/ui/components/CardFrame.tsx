@@ -6,18 +6,15 @@ import { CardArt } from './CardArt';
 /**
  * Approved card framing (design plan D3): 1px border-2 frame, 1px bg-0 inner
  * separator, 12px radius, current PNG illustration. Children render after the
- * frame for captions or state strips. A broken weapon adds the 3px damage strip
- * in the mat margin outside the fixed frame, never over the artwork (§4/§5).
+ * frame for captions.
  */
 export function CardFrame({
   card,
   className,
-  broken = false,
   children,
 }: {
   card: CardId;
   className?: string;
-  broken?: boolean;
   children?: ReactNode;
 }) {
   return (
@@ -25,7 +22,6 @@ export function CardFrame({
       <span className="card__mat">
         <CardArt card={card} />
       </span>
-      {broken ? <span className="card__damage" aria-hidden="true" /> : null}
       {children}
     </span>
   );

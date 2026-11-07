@@ -282,5 +282,12 @@ No `src/` changes are part of the Phase 5 work; all evidence remains under ignor
 - 2026-11-06: `ubuntu-latest` migrated to Ubuntu 26, where the Playwright 1.64.1 WebKit build
   cannot launch (missing ICU 74); both CI jobs were pinned to `ubuntu-24.04` in `5ba71143`.
   CI run 42333117816 on `5ba71143` is green for both the `ci` and `e2e` jobs.
+- 2026-11-06 (later): user-directed play-screen corrections were applied — room-card captions
+  show the capitalized card type plus state fragments instead of positional "Card N of 4" text,
+  the broken-weapon damage strip and "Broken — value" caption were removed, and card accessible
+  names now follow the visible caption. Independent review verdict: SAFE TO COMMIT, no blockers
+  (48 files/496 tests, 94.78/250 KiB entry bundle, strict axe and chromium-wide e2e green); the
+  style guide records the change as a dated post-approval correction. Open items below are
+  unchanged, and deployment, merging, and merge requests remain unauthorized.
 
 The open items below are unchanged.

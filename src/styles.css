@@ -666,10 +666,6 @@ button {
   font-size: var(--text-small);
 }
 
-.rail-caption--warning {
-  color: var(--damage);
-}
-
 .rail-hint {
   color: var(--text-muted);
   font-size: var(--text-small);
@@ -777,18 +773,6 @@ button {
   color: var(--text-2);
   font-size: var(--text-small);
   line-height: 1.4;
-}
-
-/* Broken weapon: 3px damage strip in the mat margin, outside the fixed frame
-   and never over the artwork (design plan §4/§5). */
-.card__damage {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: -3px;
-  width: 3px;
-  border-radius: 2px;
-  background: var(--damage);
 }
 
 /* Metadata rows are the fallback below 132px-wide cards (design plan §4). */

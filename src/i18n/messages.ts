@@ -37,10 +37,10 @@ export const REJECTION_KEYS: Readonly<Record<RejectionReason, MessageKey>> = {
   'undo-unavailable': 'rejection.undo-unavailable',
 };
 
-const KIND_KEYS: Readonly<Record<CardKind, MessageKey>> = {
-  monster: 'card.kind.monster',
-  weapon: 'card.kind.weapon',
-  potion: 'card.kind.potion',
+const TYPE_KEYS: Readonly<Record<CardKind, MessageKey>> = {
+  monster: 'card.type.monster',
+  weapon: 'card.type.weapon',
+  potion: 'card.type.potion',
 };
 
 export const RULE_LABEL_KEYS: Readonly<Record<RuleOptionName, MessageKey>> = {
@@ -72,26 +72,26 @@ export function formatCardName(t: Translate, card: CardId): string {
   });
 }
 
-export function formatCardKind(t: Translate, kind: CardKind): string {
-  return t(KIND_KEYS[kind]);
+/** Capitalized card type shown in captions and narrow-screen metadata rows. */
+export function formatCardType(t: Translate, kind: CardKind): string {
+  return t(TYPE_KEYS[kind]);
 }
 
 export function formatCardNameByValue(t: Translate, card: CardId): string {
   return `${formatCardName(t, card)} (${cardValue(card)})`;
 }
 
-/** Visible caption fragments in the approved order: "Card 2 of 4 · Carried · Selected". */
+/** Visible caption: capitalized card type plus state fragments, e.g. "Monster · Selected". */
 export function formatCardCaption(
   t: Translate,
   parts: {
-    readonly index: number;
-    readonly total: number;
+    readonly kind: CardKind;
     readonly selected?: boolean;
     readonly carried?: boolean;
     readonly reason?: RejectionReason | null;
   },
 ): string {
-  const pieces: string[] = [t('card.captionIndex', { index: parts.index, total: parts.total })];
+  const pieces: string[] = [formatCardType(t, parts.kind)];
   if (parts.carried === true) pieces.push(t('card.state.carried'));
   if (parts.selected === true) pieces.push(t('card.state.selected'));
   if (parts.reason != null) {
@@ -102,14 +102,13 @@ export function formatCardCaption(
 
 /**
  * Accessible name: starts with the visible caption verbatim (WCAG 2.5.3 Label
- * in Name), then the card identity and kind.
+ * in Name), then the card identity.
  */
 export function formatCardAccessibleName(
   t: Translate,
   parts: {
     readonly card: CardId;
-    readonly index: number;
-    readonly total: number;
+    readonly kind: CardKind;
     readonly selected?: boolean;
     readonly carried?: boolean;
     readonly reason?: RejectionReason | null;
@@ -118,12 +117,7 @@ export function formatCardAccessibleName(
   return t('a11y.cardLabel', {
     caption: formatCardCaption(t, parts),
     cardName: formatCardName(t, parts.card),
-    kind: formatCardKind(t, cardKind(parts.card)),
   });
-}
-
-export function formatWeaponBroken(t: Translate, limit: number): string {
-  return t('card.state.broken', { value: limit });
 }
 
 export function formatPreviewTitle(t: Translate, card: CardId): string {
