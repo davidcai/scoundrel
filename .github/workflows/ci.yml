@@ -39,24 +39,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint
-        run: pnpm lint
-
-      - name: Check formatting
-        run: pnpm format:check
-
-      - name: Type check
-        run: pnpm typecheck
-
-      - name: Unit and integration tests
-        run: pnpm test
-
-      # `pnpm build` also type-checks, so a broken build fails before the gate.
-      - name: Build production bundle
-        run: pnpm build
-
-      - name: Bundle size budget
-        run: pnpm bundle-size
+      # One command keeps format, lint, tests, build (type-check included), and
+      # bundle budgets in a single step; the build owns the TypeScript check.
+      - name: Verify
+        run: pnpm verify
 
   # Browser checks run against the production build. Chrome is the only
   # supported browser, so this job installs only Chromium and starts alongside
