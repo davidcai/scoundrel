@@ -1,4 +1,4 @@
-import { forwardRef, useId, type RefObject } from 'react';
+import { useId, type RefObject } from 'react';
 import { rejectionText } from '../../i18n/messages';
 import { usePreferences } from '../../store/preferences';
 import type { ActionAvailability } from '../../store/selectors';
@@ -23,10 +23,14 @@ export interface ActionBarProps {
  * visible at every breakpoint, including compact. The run seed fills the
  * bottom-right corner of the same panel.
  */
-export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function ActionBar(
-  { availability, seed, onEnterNextRoom, onRunAway, onUndo, enterButtonRef },
-  containerRef,
-) {
+export function ActionBar({
+  availability,
+  seed,
+  onEnterNextRoom,
+  onRunAway,
+  onUndo,
+  enterButtonRef,
+}: ActionBarProps) {
   const { t } = usePreferences();
   const helperId = useId();
 
@@ -43,7 +47,7 @@ export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function Act
     hasReasons && !enabled ? helperId : undefined;
 
   return (
-    <div ref={containerRef} className="action-bar" role="group" aria-label={t('play.actionBar')}>
+    <div className="action-bar" role="group" aria-label={t('play.actionBar')}>
       <div className="action-bar__actions">
         <Button
           ref={enterButtonRef}
@@ -85,4 +89,4 @@ export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function Act
       </div>
     </div>
   );
-});
+}

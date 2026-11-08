@@ -30,18 +30,15 @@ test('plays comfortably on a compact touch viewport', async ({ page }) => {
   expect(cardBox?.width ?? 0).toBeGreaterThanOrEqual(132);
   expect(cardBox?.height ?? 0).toBeGreaterThanOrEqual(132);
 
-  const actionBarTop = (await actionBar.boundingBox())?.y;
-  expect(actionBarTop).toBeDefined();
-
-  // Tapping a card opens the preview sheet above the fixed action bar.
+  // Tapping a card opens the preview sheet at the bottom of the viewport.
   await page.locator('.card').first().click();
   const sheet = page.getByRole('dialog');
   await expect(sheet).toBeVisible();
   const sheetBox = await sheet.boundingBox();
   expect(sheetBox?.y ?? 0).toBeGreaterThanOrEqual(0);
-  if (actionBarTop !== undefined) {
-    expect((sheetBox?.y ?? 0) + (sheetBox?.height ?? 0)).toBeLessThanOrEqual(actionBarTop + 1);
-  }
+  expect((sheetBox?.y ?? 0) + (sheetBox?.height ?? 0)).toBeLessThanOrEqual(
+    (await page.evaluate(() => window.innerHeight)) + 1,
+  );
 
   const closeBox = await page.getByRole('button', { name: 'Close preview' }).boundingBox();
   expect(closeBox?.width ?? 0).toBeGreaterThanOrEqual(44);

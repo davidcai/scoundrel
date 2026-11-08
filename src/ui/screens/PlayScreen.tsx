@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type CSSProperties, type Dispatch } from 'react';
+import { useEffect, useId, useRef, type Dispatch } from 'react';
 import type { AttackMode, CardId } from '../../engine';
 import {
   describeCardPreview,
@@ -48,13 +48,11 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
   const { t } = usePreferences();
   const announce = useAnnounce();
   const compact = useMediaQuery('(max-width: 767px)');
-  const [actionBarHeight, setActionBarHeight] = useState(0);
 
   const contentRef = useRef<HTMLDivElement>(null);
   const firstCardRef = useRef<HTMLButtonElement>(null);
   const enterButtonRef = useRef<HTMLButtonElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const actionBarRef = useRef<HTMLDivElement>(null);
   const roomHeadingId = useId();
   const roomHintId = useId();
   const previewTitleId = useId();
@@ -157,18 +155,6 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
     availability.enterNextRoom.enabled,
   ]);
 
-  // Measure the sticky action bar so the compact preview sheet sits above it.
-  useEffect(() => {
-    const element = actionBarRef.current;
-    if (element === null) return;
-    const update = () => setActionBarHeight(element.getBoundingClientRect().height);
-    update();
-    if (typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(update);
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [compact]);
-
   // Warm the next room's artwork without blocking the current room.
   useEffect(() => {
     preloadArtwork(state.dungeon.slice(0, 4));
@@ -215,10 +201,7 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
   );
 
   return (
-    <div
-      className="play-screen"
-      style={{ '--action-bar-height': `${actionBarHeight}px` } as CSSProperties}
-    >
+    <div className="play-screen">
       <div className="play-screen__content" ref={contentRef}>
         <a
           className="skip-link"
@@ -264,18 +247,16 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
               <RoomGrid views={cardViews} onSelect={handleSelect} firstCardRef={firstCardRef} />
             </div>
             {!compact ? <div className="play-main__preview">{preview}</div> : null}
+            <ActionBar
+              enterButtonRef={enterButtonRef}
+              availability={availability}
+              seed={state.seed}
+              onEnterNextRoom={() => dispatch({ type: 'enterNextRoom' })}
+              onRunAway={() => dispatch({ type: 'runAway' })}
+              onUndo={() => dispatch({ type: 'undoRoom' })}
+            />
           </section>
         </main>
-
-        <ActionBar
-          ref={actionBarRef}
-          enterButtonRef={enterButtonRef}
-          availability={availability}
-          seed={state.seed}
-          onEnterNextRoom={() => dispatch({ type: 'enterNextRoom' })}
-          onRunAway={() => dispatch({ type: 'runAway' })}
-          onUndo={() => dispatch({ type: 'undoRoom' })}
-        />
       </div>
 
       {compact && session.selectedCard !== null ? (

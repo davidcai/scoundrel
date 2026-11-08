@@ -14,8 +14,8 @@ export interface DialogProps {
   closeLabel?: string;
   /**
    * Content that stays visually behind the modal but must not receive pointer
-   * or assistive input while it is open (the compact preview sheet sits above a
-   * fixed action bar). The element is marked `inert` for the dialog's lifetime.
+   * or assistive input while it is open. The element is marked `inert` for the
+   * dialog's lifetime.
    */
   backgroundRef?: RefObject<HTMLElement | null>;
   children: ReactNode;

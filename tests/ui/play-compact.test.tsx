@@ -50,7 +50,7 @@ describe('play compact layout', () => {
     }
   });
 
-  it('offers a 44px close control and keeps the sheet above the fixed action bar', () => {
+  it('offers a 44px close control with the sheet and action bar in normal flow', () => {
     installMatchMedia({ compact: true });
     openRun(SEED, DEFAULT_RULE_CONFIG);
 
@@ -61,8 +61,7 @@ describe('play compact layout', () => {
     expect(close).not.toBeNull();
     expect(close).toHaveAttribute('aria-label', t('preview.close'));
 
-    const screenStyle = document.querySelector('.play-screen')?.getAttribute('style') ?? '';
-    expect(screenStyle).toContain('--action-bar-height');
+    expect(document.querySelector('.play-screen')?.getAttribute('style')).toBeNull();
 
     fireEvent.click(close!);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();

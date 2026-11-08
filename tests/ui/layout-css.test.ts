@@ -20,11 +20,13 @@ describe('approved layout rules', () => {
     const bar = block(/\.action-bar \{[\s\S]*?\n\}/);
     expect(bar).toContain('min-height: 72px');
     expect(bar).toContain('align-items: center');
+    expect(bar).not.toContain('position: sticky');
+    expect(bar).not.toContain('position: fixed');
     expect(css).not.toMatch(/\.action-bar__reason\s*\{[^}]*display:\s*none/);
     const compactBar = block(
       /@media \(max-width: 767px\) \{[\s\S]*?\.action-bar \{[\s\S]*?\n {2}\}/,
     );
-    expect(compactBar).toContain('z-index: 60');
+    expect(compactBar).not.toContain('position: fixed');
     expect(compactBar).not.toContain('display: none');
     const compactActions = block(
       /@media \(max-width: 767px\) \{[\s\S]*?\.action-bar__actions \{[\s\S]*?\n {2}\}/,
@@ -52,9 +54,10 @@ describe('approved layout rules', () => {
     expect(block(/\.action-bar__end \{[\s\S]*?\n\}/)).toContain('align-items: flex-end');
   });
 
-  it('places the compact preview sheet above the fixed action bar', () => {
+  it('places the compact preview sheet at the bottom of the viewport', () => {
     const sheet = block(/\.dialog__panel--sheet \{[\s\S]*?\n\}/);
-    expect(sheet).toContain('bottom: var(--action-bar-height');
+    expect(sheet).toContain('bottom: 0');
+    expect(sheet).not.toContain('--action-bar-height');
     const close = block(/\.dialog__close \{[\s\S]*?\n\}/);
     expect(close).toContain('width: 44px');
     expect(close).toContain('height: 44px');
