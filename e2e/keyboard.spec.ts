@@ -100,7 +100,7 @@ async function startSeededRunByKeyboard(page: Page, seed: string): Promise<void>
   await tabTo(page, (info) => info.tag === 'INPUT', 'the seed input');
   await page.keyboard.type(seed);
   await pressButton(page, 'Start with this seed');
-  await expect(page.getByRole('button', { name: 'Enter next room' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Run away' })).toBeVisible();
 }
 
 test('completes a winning run using only the keyboard', async ({ page }) => {

@@ -35,7 +35,7 @@ test('resumes an active run after reload', async ({ page }) => {
   );
 
   await page.reload();
-  await expect(page.getByRole('button', { name: 'Enter next room' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Run away' })).toBeVisible();
   await expect(page.getByRole('progressbar')).toHaveAttribute(
     'aria-valuenow',
     String(beforeReload.state.health),

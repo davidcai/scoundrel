@@ -17,10 +17,9 @@ export interface ActionBarProps {
 }
 
 /**
- * Sticky room actions. Unavailable actions stay focusable (`aria-disabled`) and
- * their rule is shown in a visible helper line that each disabled button
- * references with `aria-describedby` (REQ-004, design plan §5/§7). The helper is
- * visible at every breakpoint, including compact. The run seed fills the
+ * Room actions. Enter next room and Undo are rendered only while available;
+ * Run away stays visible and, when the rules forbid it, references the visible
+ * restriction line (REQ-004, design plan §5/§7). The run seed fills the
  * bottom-right corner of the same panel.
  */
 export function ActionBar({
@@ -34,55 +33,39 @@ export function ActionBar({
   const { t } = usePreferences();
   const helperId = useId();
 
-  const unavailable = [
-    { label: t('play.enterNextRoom'), availability: availability.enterNextRoom },
-    { label: t('play.runAway'), availability: availability.runAway },
-    { label: t('play.undo'), availability: availability.undoRoom },
-  ].flatMap(({ label, availability: state }) =>
-    state.enabled || state.reason === null ? [] : [{ label, text: rejectionText(t, state.reason) }],
-  );
-  const hasReasons = unavailable.length > 0;
-  // Only a button that is actually unavailable describes itself with the helper.
-  const describedBy = (enabled: boolean): string | undefined =>
-    hasReasons && !enabled ? helperId : undefined;
+  const runAwayReason =
+    !availability.runAway.enabled && availability.runAway.reason !== null
+      ? rejectionText(t, availability.runAway.reason)
+      : null;
 
   return (
     <div className="action-bar" role="group" aria-label={t('play.actionBar')}>
       <div className="action-bar__actions">
-        <Button
-          ref={enterButtonRef}
-          variant="primary"
-          aria-disabled={availability.enterNextRoom.enabled ? undefined : true}
-          aria-describedby={describedBy(availability.enterNextRoom.enabled)}
-          onClick={availability.enterNextRoom.enabled ? onEnterNextRoom : undefined}
-        >
-          {t('play.enterNextRoom')}
-        </Button>
+        {availability.enterNextRoom.enabled ? (
+          <Button ref={enterButtonRef} variant="primary" onClick={onEnterNextRoom}>
+            {t('play.enterNextRoom')}
+          </Button>
+        ) : null}
         <Button
           variant="secondary"
           aria-disabled={availability.runAway.enabled ? undefined : true}
-          aria-describedby={describedBy(availability.runAway.enabled)}
+          aria-describedby={runAwayReason === null ? undefined : helperId}
           onClick={availability.runAway.enabled ? onRunAway : undefined}
         >
           {t('play.runAway')}
         </Button>
-        <Button
-          variant="ghost"
-          aria-disabled={availability.undoRoom.enabled ? undefined : true}
-          aria-describedby={describedBy(availability.undoRoom.enabled)}
-          onClick={availability.undoRoom.enabled ? onUndo : undefined}
-        >
-          {t('play.undo')}
-        </Button>
+        {availability.undoRoom.enabled ? (
+          <Button variant="ghost" onClick={onUndo}>
+            {t('play.undo')}
+          </Button>
+        ) : null}
       </div>
       <div className="action-bar__end">
-        {hasReasons ? (
+        {runAwayReason !== null ? (
           <p className="action-bar__helper" id={helperId} data-testid="action-reasons">
-            {unavailable.map((entry) => (
-              <span key={entry.label} className="action-bar__reason">
-                {t('play.disabledAction', { action: entry.label, reason: entry.text })}
-              </span>
-            ))}
+            <span className="action-bar__reason">
+              {t('play.disabledAction', { action: t('play.runAway'), reason: runAwayReason })}
+            </span>
           </p>
         ) : null}
         <SeedDisplay seed={seed} />

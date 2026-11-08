@@ -12,56 +12,30 @@ function firstCard(): HTMLElement {
   return document.querySelector<HTMLElement>('[data-card]')!;
 }
 
-function action(name: string): HTMLButtonElement {
-  return screen.getByRole('button', { name }) as HTMLButtonElement;
-}
-
 function resolveFirstCard(): void {
   fireEvent.click(firstCard());
   fireEvent.click(document.querySelector<HTMLElement>('.preview__actions button.button--primary')!);
 }
 
 describe('Phase 3 review residuals', () => {
-  it('references the visible restriction only from actions that are really disabled', () => {
+  it('renders only available room actions', () => {
     openRun(SEED, DEFAULT_RULE_CONFIG);
 
-    const enter = action(t('play.enterNextRoom'));
-    const runAway = action(t('play.runAway'));
-    const undo = action(t('play.undo'));
-
-    expect(enter).toHaveAttribute('aria-disabled', 'true');
-    expect(enter).toHaveAttribute('aria-describedby');
-    expect(undo).toHaveAttribute('aria-disabled', 'true');
-    expect(undo).toHaveAttribute('aria-describedby');
-    expect(runAway).not.toHaveAttribute('aria-disabled');
-    expect(runAway).not.toHaveAttribute('aria-describedby');
-
-    const helper = screen.getByTestId('action-reasons');
-    expect(helper).toHaveAttribute('id', enter.getAttribute('aria-describedby'));
-    expect(helper).toHaveTextContent(
-      t('play.disabledAction', {
-        action: t('play.enterNextRoom'),
-        reason: t('rejection.room-not-cleared'),
-      }),
+    expect(screen.queryByRole('button', { name: t('play.enterNextRoom') })).toBeNull();
+    expect(screen.queryByRole('button', { name: t('play.undo') })).toBeNull();
+    expect(screen.getByRole('button', { name: t('play.runAway') })).not.toHaveAttribute(
+      'aria-disabled',
     );
+    expect(screen.queryByTestId('action-reasons')).toBeNull();
 
-    // After one resolution Undo becomes available: its description goes away.
+    // After one resolution Undo becomes available while Enter next room stays
+    // hidden; Run away is now restricted, so its reason line is the only one.
     resolveFirstCard();
-    expect(action(t('play.undo'))).not.toHaveAttribute('aria-disabled');
-    expect(action(t('play.undo'))).not.toHaveAttribute('aria-describedby');
-    expect(action(t('play.enterNextRoom'))).toHaveAttribute('aria-describedby');
-  });
-
-  it('keeps each restriction in its own element for locale-neutral spacing', () => {
-    openRun(SEED, DEFAULT_RULE_CONFIG);
-
+    expect(screen.getByRole('button', { name: t('play.undo') })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: t('play.enterNextRoom') })).toBeNull();
     const helper = screen.getByTestId('action-reasons');
-    const reasons = Array.from(helper.querySelectorAll('.action-bar__reason'));
-    expect(reasons.length).toBe(2);
-    expect(reasons[0]).toHaveTextContent(t('play.enterNextRoom'));
-    expect(reasons[1]).toHaveTextContent(t('play.undo'));
-    // Spacing comes from layout (separate elements), not a hardcoded ASCII space.
-    expect(helper.textContent).toBe(reasons.map((reason) => reason.textContent).join(''));
+    expect(helper).toHaveTextContent(t('play.runAway'));
+    expect(helper).toHaveTextContent(t('rejection.escape-after-resolution'));
   });
 
   it('marks the compact play surface inert while the preview sheet is open', () => {

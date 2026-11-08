@@ -625,7 +625,8 @@ button {
 
 .room-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, var(--card-track-wide)));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-width: calc(4 * var(--card-track-wide) + 3 * var(--space-4));
   justify-content: start;
   gap: var(--space-4);
 }
@@ -633,9 +634,12 @@ button {
 /* Approved card track sizes (design plan §4/§6): cards never exceed 200px on
    wide, fall back to 2×2 when the center column cannot hold four, and use the
    medium/compact clamps at their breakpoints. */
-@container (max-width: 699px) {
+@container (max-width: 619px) {
   .room-grid {
-    grid-template-columns: repeat(2, minmax(0, var(--card-track-medium)));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: calc(2 * var(--card-track-compact) + var(--space-3));
+    gap: var(--space-3);
+    margin-inline: auto;
   }
 }
 
@@ -1649,13 +1653,6 @@ button {
 
 /* ---------- Responsive ---------- */
 
-@media (max-width: 1199px) {
-  .room-grid {
-    grid-template-columns: repeat(2, minmax(0, var(--card-track-medium)));
-    gap: var(--space-3);
-  }
-}
-
 @media (max-width: 767px) {
   .play-header {
     flex-wrap: wrap;
@@ -1692,12 +1689,6 @@ button {
 
   .play-main__weapon {
     order: 2;
-  }
-
-  .room-grid {
-    grid-template-columns: repeat(2, minmax(0, var(--card-track-compact)));
-    justify-content: center;
-    gap: var(--space-3);
   }
 
   .weapon-rail {

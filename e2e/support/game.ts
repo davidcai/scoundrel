@@ -158,7 +158,7 @@ export async function startSeededRun(
   await expect(page).toHaveURL(
     new RegExp(`#/play\\?seed=${escapeRegExp(encodeURIComponent(seed))}&config=${config}$`),
   );
-  await expect(page.getByRole('button', { name: 'Enter next room' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Run away' })).toBeVisible();
 }
 
 export async function startSharedLink(page: Page, link: string): Promise<void> {

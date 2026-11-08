@@ -38,7 +38,7 @@ describe('approved layout rules', () => {
     expect(css).toContain('--card-track-wide: clamp(160px, 14vw, 200px)');
     expect(css).toContain('--card-track-medium: clamp(140px, 30vw, 180px)');
     expect(css).toContain('--card-track-compact: clamp(132px, 40vw, 168px)');
-    expect(css).toContain('@container (max-width: 699px)');
+    expect(css).toContain('@container (max-width: 619px)');
     expect(block(/@media \(max-width: 359px\) \{[\s\S]*?\n\}/)).toContain('.card__meta');
     expect(css).toMatch(/\.card__meta \{\s*display: none/);
   });
