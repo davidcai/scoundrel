@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { AttackMode } from '../../engine';
 import {
   describeCardPreview,
@@ -14,6 +15,8 @@ export interface PreviewPanelProps {
   session: UiSession;
   titleId: string;
   onConfirm: (attack?: AttackMode) => void;
+  /** Room-level actions rendered inside this panel, beneath the card choices. */
+  roomActions?: ReactNode;
 }
 
 /**
@@ -21,10 +24,12 @@ export interface PreviewPanelProps {
  * selections always keep the barehanded option; ineligible weapon attacks are
  * shown with their restriction but stay visible.
  */
-export function PreviewPanel({ session, titleId, onConfirm }: PreviewPanelProps) {
+export function PreviewPanel({ session, titleId, onConfirm, roomActions }: PreviewPanelProps) {
   const { t } = usePreferences();
   const { preview, previewRejection, state } = session;
   const weaponValue = state.weapon?.value ?? null;
+  const roomActionsSlot =
+    roomActions === undefined ? null : <div className="preview__room-actions">{roomActions}</div>;
 
   if (previewRejection !== null) {
     return (
@@ -35,6 +40,7 @@ export function PreviewPanel({ session, titleId, onConfirm }: PreviewPanelProps)
         <p className="preview__rejected">
           {t('preview.rejected', { reason: rejectionText(t, previewRejection) })}
         </p>
+        {roomActionsSlot}
       </section>
     );
   }
@@ -46,6 +52,7 @@ export function PreviewPanel({ session, titleId, onConfirm }: PreviewPanelProps)
           {t('preview.title')}
         </h2>
         <p className="preview__empty">{t('play.previewEmpty')}</p>
+        {roomActionsSlot}
       </section>
     );
   }
@@ -82,6 +89,7 @@ export function PreviewPanel({ session, titleId, onConfirm }: PreviewPanelProps)
             {t('action.fightBarehandedWithDamage', { damage: monster.barehanded.damage })}
           </Button>
         </div>
+        {roomActionsSlot}
       </section>
     );
   }
@@ -108,6 +116,7 @@ export function PreviewPanel({ session, titleId, onConfirm }: PreviewPanelProps)
           {confirmLabel}
         </Button>
       </div>
+      {roomActionsSlot}
     </section>
   );
 }

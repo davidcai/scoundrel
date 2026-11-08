@@ -17,7 +17,7 @@ function block(match: RegExp): string {
 
 describe('approved layout rules', () => {
   it('keeps the wide action bar a single 72px row with visible reasons', () => {
-    const bar = block(/\.action-bar \{[\s\S]*?\n\}/);
+    const bar = block(/^\.action-bar \{[\s\S]*?\n\}/m);
     expect(bar).toContain('min-height: 72px');
     expect(bar).toContain('align-items: center');
     expect(bar).not.toContain('position: sticky');
@@ -51,7 +51,7 @@ describe('approved layout rules', () => {
     expect(css).not.toContain('.play-main__dungeon');
     expect(css).not.toContain('.dungeon-chip');
     expect(block(/\.dungeon-status \{[\s\S]*?\n\}/)).toContain('display: inline-flex');
-    expect(block(/\.action-bar__end \{[\s\S]*?\n\}/)).toContain('align-items: flex-end');
+    expect(block(/^\.action-bar__end \{[\s\S]*?\n\}/m)).toContain('align-items: flex-end');
   });
 
   it('places the compact preview sheet at the bottom of the viewport', () => {

@@ -528,6 +528,7 @@ button {
 
 .health {
   display: flex;
+  flex: 0 0 auto;
   flex-wrap: nowrap;
   align-items: center;
   gap: var(--space-2) var(--space-3);
@@ -544,9 +545,10 @@ button {
 }
 
 .health__track {
-  flex: 1 1 96px;
-  min-width: 72px;
-  max-width: 180px;
+  flex: 0 0 200px;
+  width: 200px;
+  min-width: 120px;
+  max-width: 280px;
   height: 12px;
   overflow: hidden;
   background: var(--health-track);
@@ -864,6 +866,26 @@ button {
   font-weight: 600;
   line-height: 1.3;
   color: var(--text-1);
+}
+
+.preview__room-actions {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-1);
+}
+
+/* The room actions live inside the selected-card panel: keep the panel's own
+   surface and border, and let the row wrap when the center column is narrow. */
+.preview .action-bar {
+  flex-wrap: wrap;
+  row-gap: var(--space-2);
+  min-height: 0;
+  padding: 0;
+  border-top: 0;
+  background: transparent;
+}
+
+.preview .action-bar__end {
+  margin-left: auto;
 }
 
 .preview__description {
@@ -1645,6 +1667,11 @@ button {
   .play-header__status {
     width: 100%;
     justify-content: flex-start;
+  }
+
+  .health__track {
+    flex-basis: 160px;
+    width: 160px;
   }
 
   .play-header__right {

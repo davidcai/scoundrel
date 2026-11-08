@@ -196,9 +196,22 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
     dispatch({ type: 'clearSelection' });
   };
 
-  const preview = (
-    <PreviewPanel session={session} titleId={previewTitleId} onConfirm={handleConfirm} />
+  const roomActions = (
+    <ActionBar
+      enterButtonRef={enterButtonRef}
+      availability={availability}
+      seed={state.seed}
+      onEnterNextRoom={() => dispatch({ type: 'enterNextRoom' })}
+      onRunAway={() => dispatch({ type: 'runAway' })}
+      onUndo={() => dispatch({ type: 'undoRoom' })}
+    />
   );
+  const previewProps = {
+    session,
+    titleId: previewTitleId,
+    onConfirm: handleConfirm,
+  } as const;
+  const preview = <PreviewPanel {...previewProps} />;
 
   return (
     <div className="play-screen">
@@ -246,15 +259,13 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
             >
               <RoomGrid views={cardViews} onSelect={handleSelect} firstCardRef={firstCardRef} />
             </div>
-            {!compact ? <div className="play-main__preview">{preview}</div> : null}
-            <ActionBar
-              enterButtonRef={enterButtonRef}
-              availability={availability}
-              seed={state.seed}
-              onEnterNextRoom={() => dispatch({ type: 'enterNextRoom' })}
-              onRunAway={() => dispatch({ type: 'runAway' })}
-              onUndo={() => dispatch({ type: 'undoRoom' })}
-            />
+            {!compact ? (
+              <div className="play-main__preview">
+                <PreviewPanel {...previewProps} roomActions={roomActions} />
+              </div>
+            ) : (
+              <div className="play-main__room-actions">{roomActions}</div>
+            )}
           </section>
         </main>
       </div>
