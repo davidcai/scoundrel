@@ -152,7 +152,7 @@ Contextual help explains card types, damage previews, weapon degradation, and ru
 <a id="req-016"></a>
 ### REQ-016: Support desktop and mobile play
 
-Support the current and previous major versions of Chrome, Edge, Firefox, and Safari on desktop, and current iOS Safari and Android Chrome on mobile. Chromium-based browsers and Safari are the primary verification targets; Firefox gets a complete-flow smoke check. Critical game information and controls remain legible on desktop and small mobile screens, with touch targets at least 24×24 CSS px and at least 44×44 CSS px for primary card and action controls.
+Support the current and previous major versions of Google Chrome on desktop and current Chrome on Android. Chrome is the only supported browser (user decision, 2026-11-08); Firefox, Safari, Edge, and other browsers are out of scope. Critical game information and controls remain legible on desktop and small mobile screens, with touch targets at least 24×24 CSS px and at least 44×44 CSS px for primary card and action controls.
 
 <a id="req-017"></a>
 ### REQ-017: Support keyboard navigation and basic accessibility

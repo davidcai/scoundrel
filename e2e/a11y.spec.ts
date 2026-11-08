@@ -41,8 +41,8 @@ async function scan(page: Page, label: string): Promise<void> {
 test.beforeEach(({}, testInfo) => {
   test.skip(!['full', 'visual'].includes(projectLane(testInfo)), 'Accessibility lane.');
   test.skip(
-    !['chromium-wide', 'webkit-wide', 'chromium-medium'].includes(testInfo.project.name),
-    'Axe scans run on the Chromium and WebKit projects.',
+    !['chromium-wide', 'chromium-medium'].includes(testInfo.project.name),
+    'Axe scans run on the Chromium projects.',
   );
 });
 

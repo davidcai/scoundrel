@@ -16,10 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 # Runners are pinned to Ubuntu 24.04 instead of ubuntu-latest so the whole
-# pipeline is reproducible. Playwright 1.64.1's WebKit build (webkit-2370)
-# needs Ubuntu 24.04's ICU 74 (libicudata.so.74); ubuntu-latest migrated to
-# Ubuntu 26 on 2026-10-19, where WebKit fails to launch. Both jobs share the
-# same image; revisit this pin when Playwright is upgraded.
+# pipeline is reproducible; both jobs share the same image.
 jobs:
   ci:
     runs-on: ubuntu-24.04
@@ -61,22 +58,12 @@ jobs:
       - name: Bundle size budget
         run: pnpm bundle-size
 
-  # Browser checks run against the production build. The job is split into two
-  # parallel shards so Chromium coverage does not wait for WebKit/Firefox, and
-  # both shards start alongside the fast `ci` gate instead of after it.
+  # Browser checks run against the production build. Chrome is the only
+  # supported browser, so this job installs only Chromium and starts alongside
+  # the fast `ci` gate instead of waiting behind it.
   e2e:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - lane: chromium
-            projects: '--project=chromium-wide --project=chromium-medium --project=chromium-compact --project=chromium-narrow'
-            browsers: chromium
-          - lane: webkit-firefox
-            projects: '--project=webkit-wide --project=webkit-compact --project=webkit-narrow --project=firefox-wide'
-            browsers: webkit firefox
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -99,20 +86,20 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-1.64.1-${{ hashFiles('pnpm-lock.yaml') }}
 
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps ${{ matrix.browsers }}
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Build production bundle
         run: pnpm build
 
-      - name: Run end-to-end checks (${{ matrix.lane }})
-        run: pnpm e2e ${{ matrix.projects }}
+      - name: Run end-to-end checks
+        run: pnpm e2e
 
       - name: Upload Playwright reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.lane }}
+          name: playwright-report
           path: |
             playwright-report/
             test-results/

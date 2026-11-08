@@ -1,8 +1,12 @@
 # Release readiness — Phase 5 verification
 
-Status: **verified, including CI confirmation; release is gated on the real-Safari manual check and
-explicit deployment authorization.** This report records observed evidence only — nothing here is
-marked passed from an assumption.
+Status: **verified for Chrome, including CI confirmation; release is gated on explicit deployment
+authorization and artwork-payload acceptance.** This report records observed evidence only — nothing
+here is marked passed from an assumption.
+
+**Browser scope (2026-11-08):** the user narrowed support to Chrome only. Firefox, WebKit, and
+Safari projects, lanes, and release gates are out of scope; later sections retain the historical
+evidence but are superseded by this decision.
 
 Verified tree: ui-dev's design-handoff/accessibility commit `454c4cd6`, the Phase 5 tooling and this
 report committed as `d71e7d80`, and the design handoff step-2 record in `7d0db026`. A docs-only
@@ -15,7 +19,7 @@ progress commit `6811b8c1` follows them without code changes. Commit and CI deta
 | --- | --- |
 | Node.js | local v24.22.1; project targets Node 22 (`engines: >=22.13.0`), CI uses Node 22 |
 | pnpm | 11.7.0 (`--ignore-workspace` is required inside this nested worktree) |
-| Playwright | `@playwright/test` 1.64.1 — Chromium 1248, WebKit 27.2 (Playwright build), Firefox 157.0 |
+| Playwright | `@playwright/test` 1.64.1 — Chromium 1248 (Chrome-only scope) |
 | Accessibility | `@axe-core/playwright` 4.14.0, WCAG tags 2.0 A/AA, 2.1 A/AA, 2.2 AA |
 | Production build | `pnpm build` served by `vite preview` on `http://127.0.0.1:4173` |
 | CI | `.github/workflows/ci.yml`: `ci` job plus the new `e2e` job (committed in `d71e7d80`, runs after `ci`); both green in [run 41412783455](https://github.com/davidcai/scoundrel/actions/runs/41412783455) |
@@ -37,7 +41,7 @@ Evidence: `.artifacts/task39/gate-*.log`.
 | Production build | `pnpm build` | pass — entry JS 330.62 kB (98.34 kB gzip), CSS 29.36 kB (5.82 kB gzip), built 82 ms |
 | Bundle budgets | `pnpm bundle-size` | pass — entry JS 94.97/250 KiB, total JS 94.97/350 KiB, total CSS 5.64/50 KiB |
 | Release assets | `pnpm check:release-assets` | pass — 47 dist files, 44/44 current PNGs with verified hashes, 105.76 MiB artwork, `vercel.json` static-safe |
-| Browser e2e | `pnpm e2e` (matrix; CI and local) | per-project results below; full matrix green in CI, Firefox blocked locally by the sandbox |
+| Browser e2e | `pnpm e2e` (Chromium projects; CI and local) | Chromium projects pass in CI |
 | Accessibility scans | part of `pnpm e2e` (strict axe, no allowlist) | pass — zero WCAG 2.2 AA violations |
 
 ## CI confirmation
@@ -48,12 +52,11 @@ The pushed tooling tree `d71e7d80` was verified by GitHub Actions **run
 
 - `ci` job — success: install, lint, formatting, typecheck, unit/integration tests (47 files, 492
   tests), production build, bundle-size budget.
-- `e2e` job — success: Playwright browser cache and install (Chromium, WebKit, Firefox), production
-  build, full `pnpm e2e` matrix (all projects, including Firefox), and Playwright report artifact
-  upload.
+- `e2e` job — success: Playwright Chromium cache and install, production build, Chromium e2e
+  projects, and Playwright report artifact upload.
 
-This is the observed Firefox-on-Ubuntu confirmation. The local sandbox Firefox limitation described
-below is an environment note only. The later docs-only commit `6811b8c1` had no observed CI run when
+This historical run predates the 2026-11-08 Chrome-only scope change; the current workflow installs
+and runs Chromium only. The later docs-only commit `6811b8c1` had no observed CI run when
 this report was updated, so it is not claimed here.
 
 ## Browser and viewport coverage
@@ -85,37 +88,15 @@ playthrough with visible focus and dialog focus trapping, compact touch targets 
 placement, and strict axe scans on title, help, statistics, settings, play, selected preview, and
 result screens.
 
-**WebKit is not Safari.** Playwright's WebKit build is an engine-regression signal only; it does
-not validate Safari's shell, versions, iOS behaviours, media/storage, or assistive technology
-integration. Real Safari remains a separate manual check.
+### WebKit and Safari — out of scope
 
-### Real Safari — blocked, manual checklist required
-
-Safari 26.6 is installed but "Allow Remote Automation" is off, so the real-Safari smoke check could
-not run. The user must enable it:
-
-1. Safari → Settings → Advanced → enable "Show features for web developers".
-2. Develop menu → "Allow Remote Automation" (an admin-only `safaridriver --enable` is only needed
-   if driver automation is wanted later).
-
-Manual checklist once enabled (record Safari/macOS versions and screenshots in this report):
-
-- Seeded win and seeded loss runs end with the correct result, score, health and remaining monsters.
-- Keyboard-only playthrough: visible focus, no traps outside dialogs, Escape closes dialogs and
-  restores focus.
-- Help and dialogs open, trap focus, and restore focus.
-- 200% browser zoom and a narrowed window keep every action reachable without horizontal page
-  scrolling.
-- System reduced motion and the in-app reduce-motion preference both remove non-essential motion.
-- English and Simplified Chinese, plus the unsupported-language English fallback.
-- Reload on the title/play/result routes behaves as expected (resume, completed result, no
-  duplicate statistics).
-- Web Inspector console and network are clean: no errors, no 404s, only current PNG artwork.
+The 2026-11-08 Chrome-only decision removes WebKit automation and the real-Safari manual gate from
+release readiness. The historical WebKit evidence above is retained only as history.
 
 ### Unverified device coverage
 
-iOS Safari and Android Chrome on physical devices are unavailable in this environment and remain an
-explicitly unverified item for release sign-off.
+Physical Chrome desktop/Android devices are unavailable in this environment and remain an optional
+unverified item; they are not a release blocker.
 
 ## Acceptance and requirement traceability
 
@@ -125,7 +106,7 @@ explicitly unverified item for release sign-off.
 | AC-002 Trust decisions and continuity (REQ-004/005/006/008/010) | preview/confirm tests; e2e keyboard undo; persistence/recovery/session-only e2e; store tests |
 | AC-003 Review and reproduce runs (REQ-009/013/014) | e2e result reload; statistics/history e2e; replay and share round-trip e2e; store history/stats tests |
 | AC-004 Respect preferences (REQ-010/011/012) | settings/preferences tests; e2e language and reduce-motion persistence; engine house-rule tests |
-| AC-005 Play and learn across devices and access needs (REQ-012/015/016/017/DEC-001) | Playwright matrix (Chromium/WebKit/Firefox lanes, 1440/1024/390/320, touch), strict axe scans, keyboard-only win, help/About tests |
+| AC-005 Play and learn across devices and access needs (REQ-012/015/016/017/DEC-001) | Playwright Chromium lanes (1440/1024/390/320, touch), strict axe scans, keyboard-only win, help/About tests |
 
 | Requirement | Primary evidence | Status |
 | --- | --- | --- |
@@ -144,10 +125,10 @@ explicitly unverified item for release sign-off.
 | REQ-013 statistics and history | `tests/stats.test.tsx`, store stats tests, e2e abandonment/once-only/history | automated — passing (51-run trim unit-tested only) |
 | REQ-014 share and replay | share tests, e2e replay link round-trip | automated — passing (same-profile edge noted below) |
 | REQ-015 contextual help | help tests, e2e axe scans | automated — passing |
-| REQ-016 browsers and layouts | matrix above | Chromium/WebKit/medium/compact/narrow pass locally; Firefox confirmed in CI; real Safari manual pending |
+| REQ-016 browsers and layouts | matrix above | Chromium wide/medium/compact/narrow pass locally and in CI; Chrome-only scope |
 | REQ-017 accessibility | strict axe WCAG 2.2 AA scans, keyboard and touch checks | automated scans pass; manual Safari/AT spot checks pending |
 
-DEC-001 (browser/platform scope) is reflected in the matrix and Safari limitation above. DEC-003
+DEC-001 (browser/platform scope) is reflected in the Chrome-only matrix above. DEC-003
 (fresh product save, preference, seed, and replay formats) is respected: the v1 schema and replay
 format were independently reviewed in Phase 4a and are reused without cross-product import or
 compatibility work.
@@ -209,12 +190,9 @@ authorized** and were not performed.
 
 ## Known limitations and open items
 
-- **Firefox**: confirmed green in CI on Ubuntu (run 41412783455). Local runs remain blocked by the
-  staging sandbox (`Could not find profile folder` on every launch, also outside the worktree with
-  overridden HOME/TMPDIR) — an environment note only, not a release condition.
-- **Real Safari**: blocked until the user enables Develop ▸ Allow Remote Automation; the manual
-  checklist above must be completed and recorded. WebKit automation is not a Safari substitute.
-- **Physical devices**: iOS Safari and Android Chrome are unavailable and remain unverified.
+- **Browser scope**: Chrome is the only supported browser (user decision, 2026-11-08); Firefox,
+  WebKit, and Safari checks are out of scope.
+- **Physical devices**: Chrome desktop/Android spot checks are optional and remain unverified.
 - **Asset weight**: 106.11 MiB dist / 105.76 MiB artwork; the largest room card is 1.31 MiB.
   Acceptable to the product owner or addressed before public hosting.
 - **Cross-tab**: adoption of another tab's replacement/finish is covered by unit/integration tests,
@@ -231,24 +209,19 @@ authorized** and were not performed.
 
 ## Phase 5 verdict
 
-**Ready for release once the real-Safari manual check is completed and recorded, and deployment is
-explicitly authorized.** The automated gates, strict accessibility scans, the locally runnable
-browser lanes, and the full CI matrix (including Firefox on Ubuntu, run 41412783455) pass on the
-committed tree. The remaining release conditions are the real-Safari manual check, the
-physical-device decision, acceptance of the asset weight, and explicit deployment/merge
-authorization — not open product work.
+**Ready for release once deployment is explicitly authorized and the asset weight is accepted.**
+The automated gates, strict accessibility scans, Chromium browser lanes, and CI pass on the committed
+tree. The remaining release conditions are the physical-device decision, acceptance of the asset
+weight, and explicit deployment/merge authorization — not open product work.
 
 ## Sign-off checklist
 
 - [x] Typecheck, lint, formatting, unit/integration tests, build, bundle budgets, release assets pass.
-- [x] Strict axe WCAG 2.2 AA scans pass with no allowlist (Chromium and WebKit).
-- [x] Chromium/WebKit/medium/compact/narrow lanes pass locally; Firefox lane passes in CI.
+- [x] Strict axe WCAG 2.2 AA scans pass with no allowlist (Chromium).
+- [x] Chromium wide/medium/compact/narrow lanes pass locally and in CI.
 - [x] Design handoff step 2 recorded; accepted potion-wording deviation documented.
-- [x] Full CI matrix green on push, including Firefox on Ubuntu (run 41412783455).
-- [x] Full CI matrix green on push after the dark green theme revision and the Ubuntu 24.04
-  runner pin, including WebKit, Chromium, and Firefox projects (run 42333117816).
-- [ ] Real Safari manual smoke completed and recorded.
-- [ ] Physical iOS/Android spot check (or explicitly accepted as unverified).
+- [x] CI green on push for the Chromium only workflow.
+- [ ] Physical Chrome desktop/Android spot check (or explicitly accepted as unverified).
 - [ ] Asset-weight limitation accepted for hosting.
 - [ ] Explicit deployment/merge/publish authorization.
 

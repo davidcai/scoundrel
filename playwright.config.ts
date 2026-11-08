@@ -55,21 +55,11 @@ export default defineConfig({
     stderr: 'pipe',
   },
   projects: [
-    // Full-flow coverage: Chromium and WebKit, plus a Firefox smoke lane.
+    // Chrome is the only supported browser (user decision, 2026-11-08).
     {
       name: 'chromium-wide',
       metadata: { lane: 'full' },
       use: { ...devices['Desktop Chrome'], ...wide },
-    },
-    {
-      name: 'webkit-wide',
-      metadata: { lane: 'full' },
-      use: { ...devices['Desktop Safari'], ...wide },
-    },
-    {
-      name: 'firefox-wide',
-      metadata: { lane: 'full' },
-      use: { ...devices['Desktop Firefox'], ...wide },
     },
     // Layout and visual evidence at the medium breakpoint.
     {
@@ -77,27 +67,17 @@ export default defineConfig({
       metadata: { lane: 'visual' },
       use: { ...devices['Desktop Chrome'], ...medium },
     },
-    // Touch composition: full flow on Chromium, touch smoke on WebKit.
+    // Touch composition at the compact breakpoint.
     {
       name: 'chromium-compact',
       metadata: { lane: 'touch' },
       use: { ...devices['Desktop Chrome'], ...compact },
-    },
-    {
-      name: 'webkit-compact',
-      metadata: { lane: 'touch' },
-      use: { ...devices['Desktop Safari'], ...compact },
     },
     // Narrow reflow (320 CSS px) and the metadata fallback.
     {
       name: 'chromium-narrow',
       metadata: { lane: 'narrow' },
       use: { ...devices['Desktop Chrome'], ...narrow },
-    },
-    {
-      name: 'webkit-narrow',
-      metadata: { lane: 'narrow' },
-      use: { ...devices['Desktop Safari'], ...narrow },
     },
     // Optional local smoke against the branded Chrome installed on this machine.
     ...(isCi

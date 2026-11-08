@@ -81,7 +81,7 @@ Vite reports its own decimal-kB baseline (220.57 kB raw / 68.99 kB gzip JS, 3.29
 
 ## Browser and accessibility verification
 
-Verify [REQ-016](prd.md#req-016) and [REQ-017](prd.md#req-017) with Chromium and WebKit browser automation, a real Safari smoke check, and a complete-flow Firefox smoke check, covering desktop and mobile widths, touch, keyboard-only operation, help and dialogs, focus behavior, and reduced motion. WebKit automation alone is not proof of Safari compatibility. Formal audits, certification, and extensive screen-reader testing remain the lower-priority follow-ups defined in [REQ-017](prd.md#req-017).
+Verify [REQ-016](prd.md#req-016) and [REQ-017](prd.md#req-017) with Chromium browser automation, covering desktop and mobile widths, touch, keyboard-only operation, help and dialogs, focus behavior, and reduced motion. Chrome is the only supported browser (user decision, 2026-11-08); Firefox, Safari, and WebKit checks are out of scope. Formal audits, certification, and extensive screen-reader testing remain the lower-priority follow-ups defined in [REQ-017](prd.md#req-017).
 
 ## Delivery plan
 
@@ -123,7 +123,7 @@ Streak acceptance checks: both counters start at 0; win, win, loss, win yields c
 
 ### 5. Verify product readiness
 
-Review every PRD acceptance check and the design direction approved in the design plan, including the phase-4 saved-data format-change scenario. Run automated rule, interface, and browser checks appropriate to each behavior. Run Chromium and WebKit browser checks, a real Safari smoke check, and a complete-flow Firefox smoke check, including touch and complete keyboard playthroughs. Review basic accessibility during normal interface verification; record extensive screen-reader testing and formal audits as lower-priority follow-ups. Verify the release build for Vercel and, when deployment is authorized, smoke-check the deployed URL; document run, build, and verification commands only once those commands actually exist.
+Review every PRD acceptance check and the design direction approved in the design plan, including the phase-4 saved-data format-change scenario. Run automated rule, interface, and browser checks appropriate to each behavior. Run Chromium browser checks at desktop and mobile widths, including touch and complete keyboard playthroughs. Review basic accessibility during normal interface verification; record extensive screen-reader testing and formal audits as lower-priority follow-ups. Verify the release build for Vercel and, when deployment is authorized, smoke-check the deployed URL; document run, build, and verification commands only once those commands actually exist.
 
 Requirements: all [product acceptance checks](prd.md#product-acceptance), including [AC-001](prd.md#ac-001), [AC-002](prd.md#ac-002), [AC-003](prd.md#ac-003), [AC-004](prd.md#ac-004), and [AC-005](prd.md#ac-005).
 

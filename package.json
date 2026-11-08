@@ -20,7 +20,7 @@
     "verify": "pnpm format:check && pnpm lint && pnpm test && pnpm build && pnpm bundle-size",
     "e2e": "playwright test",
     "e2e:local": "playwright test --project=chromium-wide --project=chromium-medium --project=chromium-compact --project=chromium-narrow",
-    "e2e:install": "playwright install --with-deps chromium webkit firefox",
+    "e2e:install": "playwright install --with-deps chromium",
     "bundle-size": "node scripts/check-bundle-size.mjs",
     "check:release-assets": "node scripts/check-release-assets.mjs"
   },
