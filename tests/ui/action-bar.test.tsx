@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { fireEvent, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_RULE_CONFIG } from '../../src/engine';
 import { createTranslator } from '../../src/i18n';
@@ -72,12 +72,16 @@ describe('disabled room actions explain their restriction', () => {
   });
 
   it('describes disabled actions in Chinese at compact width', () => {
+    Object.defineProperty(window.navigator, 'languages', {
+      configurable: true,
+      get: () => ['zh-CN'],
+    });
+    Object.defineProperty(window.navigator, 'language', {
+      configurable: true,
+      get: () => 'zh-CN',
+    });
     installMatchMedia({ compact: true });
     openRun(SEED, DEFAULT_RULE_CONFIG);
-
-    fireEvent.click(screen.getAllByRole('button', { name: t('play.help') }).at(-1)!);
-    fireEvent.click(screen.getByRole('button', { name: zh('language.chinese') }));
-    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Escape' });
 
     const enter = disabledButton(zh('play.enterNextRoom'));
     const reason = describedReason(enter);

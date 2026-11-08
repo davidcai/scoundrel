@@ -18,7 +18,7 @@ test('plays comfortably on a compact touch viewport', async ({ page }) => {
 
   // Primary actions meet the 44x44 touch target.
   const actionBar = page.getByRole('group', { name: 'Room actions' });
-  for (const name of ['Enter next room', 'Run away', 'Undo', 'Help']) {
+  for (const name of ['Enter next room', 'Run away', 'Undo']) {
     const box = await actionBar.getByRole('button', { name }).boundingBox();
     expect(box, `${name} should be rendered`).not.toBeNull();
     expect(box?.height ?? 0, `${name} height`).toBeGreaterThanOrEqual(44);

@@ -12,7 +12,6 @@ export interface ActionBarProps {
   onEnterNextRoom: () => void;
   onRunAway: () => void;
   onUndo: () => void;
-  onHelp: () => void;
   /** Exposed so the play screen can move focus here after a room clears. */
   enterButtonRef?: RefObject<HTMLButtonElement | null>;
 }
@@ -25,7 +24,7 @@ export interface ActionBarProps {
  * bottom-right corner of the same panel.
  */
 export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function ActionBar(
-  { availability, seed, onEnterNextRoom, onRunAway, onUndo, onHelp, enterButtonRef },
+  { availability, seed, onEnterNextRoom, onRunAway, onUndo, enterButtonRef },
   containerRef,
 ) {
   const { t } = usePreferences();
@@ -70,9 +69,6 @@ export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function Act
           onClick={availability.undoRoom.enabled ? onUndo : undefined}
         >
           {t('play.undo')}
-        </Button>
-        <Button variant="ghost" onClick={onHelp}>
-          {t('play.help')}
         </Button>
       </div>
       <div className="action-bar__end">

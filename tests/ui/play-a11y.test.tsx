@@ -141,14 +141,6 @@ describe('play accessibility', () => {
     expect(seed!.textContent).toContain(t('play.seedPrefix'));
   });
 
-  it('keeps a single Help entry point in the action bar', () => {
-    openRun(SEED, DEFAULT_RULE_CONFIG);
-
-    const helpButtons = screen.getAllByRole('button', { name: t('play.help') });
-    expect(helpButtons).toHaveLength(1);
-    expect(document.querySelector('.action-bar')).toContainElement(helpButtons[0]!);
-  });
-
   it('announces the resolved outcome in the polite live region', () => {
     openRun(SEED, DEFAULT_RULE_CONFIG);
 

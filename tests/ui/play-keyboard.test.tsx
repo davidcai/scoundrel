@@ -107,21 +107,4 @@ describe('play keyboard', () => {
       screen.getByRole('heading', { level: 1, name: t('play.roomNumber', { number: 1 }) }),
     );
   });
-
-  it('opens help from the action bar, traps focus, and restores it on Escape', () => {
-    openRun(SEED, DEFAULT_RULE_CONFIG);
-    const helpButton = screen
-      .getAllByRole('button', { name: t('play.help') })
-      .at(-1) as HTMLElement;
-    helpButton.focus();
-
-    fireEvent.click(helpButton);
-    const dialog = screen.getByRole('dialog', { name: t('help.title') });
-    expect(dialog).toContainElement(document.activeElement as HTMLElement);
-
-    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Escape' });
-
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(document.activeElement).toBe(helpButton);
-  });
 });

@@ -47,7 +47,6 @@ export const zhHans = {
   'play.enterNextRoom': '进入下一个房间',
   'play.runAway': '逃跑',
   'play.undo': '撤销',
-  'play.help': '帮助',
   'play.previewEmpty': '选择一张卡牌查看其效果。',
 
   'card.name': '{suit}{rank}',

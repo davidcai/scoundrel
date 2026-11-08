@@ -23,7 +23,6 @@ import { useAnnounce } from '../components/Announcer';
 import { Dialog } from '../components/Dialog';
 import { DungeonStatus } from '../components/DungeonStatus';
 import { HealthMeter } from '../components/HealthMeter';
-import { HelpDialog } from '../components/HelpDialog';
 import { PreviewPanel } from '../components/PreviewPanel';
 import { RoomGrid } from '../components/RoomGrid';
 import { WeaponRail } from '../components/WeaponRail';
@@ -49,7 +48,6 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
   const { t } = usePreferences();
   const announce = useAnnounce();
   const compact = useMediaQuery('(max-width: 767px)');
-  const [helpOpen, setHelpOpen] = useState(false);
   const [actionBarHeight, setActionBarHeight] = useState(0);
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -76,7 +74,6 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
   const selectedRef = useRef(session.selectedCard);
   selectedRef.current = session.selectedCard;
   const previousRoomsRef = useRef<number | null>(null);
-  const previousHelpRef = useRef(helpOpen);
 
   // Announce resolved outcomes once per notice, and invalidity assertively.
   useEffect(() => {
@@ -114,10 +111,6 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
 
   // Context-specific focus after deals, resolutions, room clears, and undo.
   useEffect(() => {
-    const wasHelpOpen = previousHelpRef.current;
-    previousHelpRef.current = helpOpen;
-    if (helpOpen) return;
-    if (wasHelpOpen) return;
     if (document.querySelector('[role="dialog"]') !== null) return;
 
     const previousRooms = previousRoomsRef.current;
@@ -162,7 +155,6 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
     session.noticeSeq,
     compact,
     availability.enterNextRoom.enabled,
-    helpOpen,
   ]);
 
   // Measure the sticky action bar so the compact preview sheet sits above it.
@@ -283,7 +275,6 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
           onEnterNextRoom={() => dispatch({ type: 'enterNextRoom' })}
           onRunAway={() => dispatch({ type: 'runAway' })}
           onUndo={() => dispatch({ type: 'undoRoom' })}
-          onHelp={() => setHelpOpen(true)}
         />
       </div>
 
@@ -299,8 +290,6 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
           {preview}
         </Dialog>
       ) : null}
-
-      <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }
