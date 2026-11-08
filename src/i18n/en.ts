@@ -97,9 +97,9 @@ export const en = {
   'preview.rejected': 'This card cannot be resolved: {reason}',
 
   'action.fightBarehanded': 'Fight barehanded',
-  'action.fightBarehandedWithDamage': 'Fight barehanded ({damage} damage)',
+  'action.fightBarehandedWithDamage': 'Fight barehanded (Receive {damage} damage)',
   'action.useWeapon': 'Use weapon',
-  'action.useWeaponWithDamage': 'Use weapon ({damage} damage)',
+  'action.useWeaponWithDamage': 'Use weapon (Receive {damage} damage)',
   'action.equipWeapon': 'Equip weapon',
   'action.drinkPotion': 'Drink potion',
 
