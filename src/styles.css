@@ -877,6 +877,12 @@ button {
   border-top: 1px solid var(--border-1);
 }
 
+/* No room action is available: do not leave a divider over empty space. */
+.preview__room-actions:empty {
+  padding-top: 0;
+  border-top: 0;
+}
+
 /* The room actions live inside the selected-card panel: keep the panel's own
    surface and border, and let the row wrap when the center column is narrow. */
 .preview .action-bar {

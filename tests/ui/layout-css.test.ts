@@ -42,6 +42,11 @@ describe('approved layout rules', () => {
     expect(css).toMatch(/\.card__meta \{\s*display: none/);
   });
 
+  it('drops the empty room-actions divider', () => {
+    expect(css).toMatch(/\.preview__room-actions:empty\s*\{[^}]*border-top:\s*0/);
+    expect(css).toMatch(/\.preview__room-actions:empty\s*\{[^}]*padding-top:\s*0/);
+  });
+
   it('uses a two-column medium layout with the dungeon count in the header', () => {
     const mediumBlocks = Array.from(css.matchAll(/@media \(max-width: 1199px\) \{[\s\S]*?\n\}/g))
       .map((match) => match[0])
