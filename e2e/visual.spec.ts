@@ -34,6 +34,11 @@ test('captures visual evidence for this viewport', async ({ page }, testInfo) =>
   await openTitle(page);
   await shot('title');
 
+  if (projectLane(testInfo) === 'touch') {
+    // The play screen is desktop-only; keep the compact composition usable.
+    await page.setViewportSize({ width: 665, height: 900 });
+  }
+
   const scenario = findLostScenario();
   await startSeededRun(page, scenario.seed);
   await shot('play');

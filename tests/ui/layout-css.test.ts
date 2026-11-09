@@ -24,8 +24,7 @@ describe('approved layout rules', () => {
     expect(bar).not.toContain('position: fixed');
   });
 
-  it('uses the wide card track and keeps the metadata in the markup', () => {
-    expect(css).toContain('--card-track-wide: clamp(160px, 14vw, 200px)');
+  it('keeps the metadata in the markup for the room cards', () => {
     expect(css).toMatch(/\.card__meta \{\s*display: none/);
   });
 
@@ -39,10 +38,11 @@ describe('approved layout rules', () => {
     expect(main).toContain('max-width: 1440px');
   });
 
-  it('keeps the play surface on the wide layout at every viewport', () => {
-    const narrowPlay = block(/@media \(max-width: 999px\) \{[\s\S]*?\n\}/);
-    expect(narrowPlay).toContain('overflow-x: auto');
-    expect(narrowPlay).toContain('min-width: 1000px');
+  it('lets the play room shrink and grow without horizontal scrolling', () => {
+    const grid = block(/^\.room-grid \{[\s\S]*?\n\}/m);
+    expect(grid).toContain('grid-template-columns: repeat(4, minmax(0, 1fr))');
+    expect(grid).not.toContain('max-width');
+    expect(css).not.toContain('min-width: 1000px');
     expect(css).not.toContain('@container');
     expect(css).not.toMatch(/@media \(max-width: 767px\)[\s\S]*?\.play-main/);
   });

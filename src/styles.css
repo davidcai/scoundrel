@@ -82,7 +82,6 @@
   --focus-halo: 0 0 0 4px rgb(223 245 196 / 22%);
 
   /* Approved card track sizes (design plan §4/§6). */
-  --card-track-wide: clamp(160px, 14vw, 200px);
 
   --motion-1: 120ms;
   --motion-2: 200ms;
@@ -619,8 +618,7 @@ button {
 .room-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  max-width: calc(4 * var(--card-track-wide) + 3 * var(--space-4));
-  justify-content: start;
+  justify-content: stretch;
   gap: var(--space-4);
 }
 
@@ -630,6 +628,7 @@ button {
 
 .room-grid > .card {
   width: 100%;
+  min-width: 0;
 }
 
 .rail-title {
@@ -1619,23 +1618,6 @@ button {
 .play-screen__content {
   display: contents;
 }
-
-/* The play surface keeps the desktop composition at every viewport. Below
-   1000px it scrolls horizontally inside the play screen so the page's layout
-   viewport does not expand on mobile. */
-@media (max-width: 999px) {
-  .play-screen {
-    overflow-x: auto;
-  }
-
-  .play-screen__content {
-    display: flex;
-    flex-direction: column;
-    min-width: 1000px;
-  }
-}
-
-/* ---------- Responsive ---------- */
 
 @media (max-width: 767px) {
   .dialog {

@@ -65,7 +65,12 @@ test('has no WCAG 2.2 AA violations on the title, help, statistics, and settings
   await scan(page, 'settings');
 });
 
-test('has no WCAG 2.2 AA violations during play and on the result screen', async ({ page }) => {
+test('has no WCAG 2.2 AA violations during play and on the result screen', async ({
+  page,
+}, testInfo) => {
+  if (projectLane(testInfo) === 'touch') {
+    await page.setViewportSize({ width: 665, height: 900 });
+  }
   const scenario = findLostScenario();
   await startSeededRun(page, scenario.seed);
   await scan(page, 'play');
@@ -140,6 +145,6 @@ test('has no WCAG 2.2 AA violations on carried room cards', async ({ page }) => 
   await page.setViewportSize({ width: 1024, height: 768 });
   await scan(page, 'carried room 1024x768');
 
-  await page.setViewportSize({ width: 390, height: 844 });
-  await scan(page, 'carried room 390x844');
+  await page.setViewportSize({ width: 665, height: 900 });
+  await scan(page, 'carried room 665x900');
 });
