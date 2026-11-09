@@ -29,7 +29,7 @@ export const en = {
   'language.chinese': '简体中文',
   'language.group': 'Language',
 
-  'play.health': 'Health {health} / {max}',
+  'play.health': 'HP {health} / {max}',
   'play.roomNumber': 'Room {number}',
   'play.finalRoom': 'Final room',
   'play.weaponValue': 'Weapon {value}',
@@ -86,7 +86,7 @@ export const en = {
   'preview.weaponIneligible':
     'Weapon {weaponValue} cannot fight this monster. It can only fight monsters below {limit}.',
   'preview.noWeapon': 'You have no weapon; you fight barehanded.',
-  'preview.weaponUsable': 'Weapon usable',
+  'preview.weaponUsable': 'Fight!',
   'preview.close': 'Close preview',
   'preview.weaponEquip': 'Equip this weapon.',
   'preview.weaponReplace':
@@ -178,7 +178,7 @@ export const en = {
   'help.reduceMotion': 'Reduce motion',
   'help.version': 'Version {version}',
 
-  'a11y.healthBar': 'Health {health} / {max}',
+  'a11y.healthBar': 'HP {health} / {max}',
   'a11y.roomCards': 'Room cards',
   'a11y.cardLabel': '{caption}, {cardName}',
   'a11y.killStack': 'Defeated monsters of the equipped weapon',

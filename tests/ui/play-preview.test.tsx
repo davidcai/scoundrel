@@ -10,20 +10,10 @@ import {
   type GameState,
 } from '../../src/engine';
 import { createTranslator } from '../../src/i18n';
-import {
-  describeCardPreview,
-  describeMonsterPreview,
-  formatMonsterMatchupTitle,
-} from '../../src/i18n/messages';
+import { describeCardPreview, formatMonsterMatchupTitle } from '../../src/i18n/messages';
 import { findScenario, replayScenario } from '../helpers/game';
 
 const t = createTranslator('en');
-
-function monsterDescription(state: GameState, card: string): string {
-  const preview = previewMonster(state, card as never);
-  if (!preview.ok) throw new Error(preview.reason);
-  return describeMonsterPreview(t, preview.preview, state.weapon?.value ?? null);
-}
 
 function actionDescription(state: GameState, card: string): string {
   const preview = previewCardResolution(state, card as never);
@@ -57,9 +47,9 @@ describe('play preview', () => {
 
     fireEvent.click(document.querySelector<HTMLElement>(`[data-card="${monster}"]`)!);
 
-    expect(document.querySelector('.preview__description')?.textContent).toBe(
-      describeMonsterPreview(t, preview.preview, null),
-    );
+    // The damage-summary line is intentionally absent; the matchup title and
+    // choice labels carry the preview.
+    expect(document.querySelector('.preview__description')).toBeNull();
     expect(document.querySelector('.preview__title')?.textContent).toBe(
       formatMonsterMatchupTitle(t, preview.preview, null),
     );
@@ -110,9 +100,7 @@ describe('play preview', () => {
     expect(document.querySelector('.preview__title')?.textContent).toBe(
       formatMonsterMatchupTitle(t, preview.preview, state.weapon?.value ?? null),
     );
-    expect(document.querySelector('.preview__description')?.textContent).toBe(
-      monsterDescription(state, monster),
-    );
+    expect(document.querySelector('.preview__description')).toBeNull();
 
     const cardsBefore = document.querySelectorAll('[data-card]').length;
     fireEvent.click(weaponChoice);

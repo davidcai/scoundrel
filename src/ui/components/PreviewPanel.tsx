@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import type { AttackMode } from '../../engine';
 import {
   describeCardPreview,
-  describeMonsterPreview,
   formatMonsterMatchupTitle,
   formatPreviewTitle,
   rejectionText,
@@ -65,7 +64,6 @@ export function PreviewPanel({ session, titleId, onConfirm, roomActions }: Previ
         <h2 className="preview__title" id={titleId}>
           {formatMonsterMatchupTitle(t, monster, weaponValue)}
         </h2>
-        <p className="preview__description">{describeMonsterPreview(t, monster, weaponValue)}</p>
         {weaponEligible ? (
           <p className="preview__status preview__status--weapon">{t('preview.weaponUsable')}</p>
         ) : null}

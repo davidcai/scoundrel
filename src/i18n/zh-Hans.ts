@@ -29,7 +29,7 @@ export const zhHans = {
   'language.chinese': '简体中文',
   'language.group': '语言',
 
-  'play.health': '生命值 {health} / {max}',
+  'play.health': 'HP {health} / {max}',
   'play.roomNumber': '第 {number} 个房间',
   'play.finalRoom': '最后一个房间',
   'play.weaponValue': '武器 {value}',
@@ -86,7 +86,7 @@ export const zhHans = {
   'preview.weaponIneligible':
     '武器 {weaponValue} 无法攻击该怪物，只能攻击数值小于 {limit} 的怪物。',
   'preview.noWeapon': '你没有武器，只能徒手战斗。',
-  'preview.weaponUsable': '武器可用',
+  'preview.weaponUsable': '战斗！',
   'preview.close': '关闭预览',
   'preview.weaponEquip': '装备该武器。',
   'preview.weaponReplace': '这将替换武器 {oldValue}，并弃置它击败的 {kills} 张牌。',
@@ -172,7 +172,7 @@ export const zhHans = {
   'help.reduceMotion': '减少动画',
   'help.version': '版本 {version}',
 
-  'a11y.healthBar': '生命值 {health} / {max}',
+  'a11y.healthBar': 'HP {health} / {max}',
   'a11y.roomCards': '房间卡牌',
   'a11y.cardLabel': '{caption}，{cardName}',
   'a11y.killStack': '当前武器已击败的怪物',
