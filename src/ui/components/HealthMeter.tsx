@@ -11,10 +11,10 @@ export function HealthMeter({ health, max }: { health: number; max: number }) {
   const { t } = usePreferences();
   const labelId = useId();
   const ratio = Math.max(0, Math.min(1, health / max));
-  const tone = health >= 15 ? null : health >= 8 ? 'wounded' : 'critical';
+  const low = health <= 7;
 
   return (
-    <div className={tone === null ? 'health' : `health health--${tone}`}>
+    <div className={low ? 'health health--low' : 'health'}>
       <span className="health__label" id={labelId}>
         <span className="health__prefix">{t('play.healthPrefix')}</span>{' '}
         <span className="health__value">{t('play.healthValue', { health, max })}</span>

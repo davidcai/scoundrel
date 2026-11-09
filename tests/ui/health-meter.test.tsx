@@ -7,24 +7,19 @@ function toneFor(health: number): string | null {
   const healthEl = container.querySelector<HTMLElement>('.health');
   const className = healthEl?.className ?? '';
   unmount();
-  if (className.includes('health--critical')) return 'critical';
-  if (className.includes('health--wounded')) return 'wounded';
+  if (className.includes('health--low')) return 'low';
   return null;
 }
 
 describe('health meter tones', () => {
-  it('uses green from 15 HP up', () => {
+  it('uses green above 7 HP', () => {
     expect(toneFor(20)).toBeNull();
     expect(toneFor(15)).toBeNull();
+    expect(toneFor(8)).toBeNull();
   });
 
-  it('uses yellow from 8 to 14 HP', () => {
-    expect(toneFor(14)).toBe('wounded');
-    expect(toneFor(8)).toBe('wounded');
-  });
-
-  it('uses red below 8 HP', () => {
-    expect(toneFor(7)).toBe('critical');
-    expect(toneFor(0)).toBe('critical');
+  it('uses yellow at 7 HP and below', () => {
+    expect(toneFor(7)).toBe('low');
+    expect(toneFor(0)).toBe('low');
   });
 });

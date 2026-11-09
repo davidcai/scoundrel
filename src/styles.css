@@ -538,21 +538,13 @@ button {
 .health__label {
   flex: 0 0 auto;
   white-space: nowrap;
-  color: var(--text-1);
+  color: var(--health);
   font-size: var(--text-label);
   font-weight: 600;
 }
 
 .health__value {
   color: var(--health);
-}
-
-.health--wounded .health__value {
-  color: var(--wasted);
-}
-
-.health--critical .health__value {
-  color: var(--damage);
 }
 
 .health__track {
@@ -575,20 +567,17 @@ button {
   transition: width var(--motion-2) var(--ease-enter);
 }
 
-.health--wounded .health__fill {
+.health--low .health__label,
+.health--low .health__value {
+  color: var(--wasted);
+}
+
+.health--low .health__fill {
   background: var(--wasted);
 }
 
-.health--wounded .health__track {
+.health--low .health__track {
   border-color: var(--wasted);
-}
-
-.health--critical .health__fill {
-  background: var(--damage);
-}
-
-.health--critical .health__track {
-  border-color: var(--damage);
 }
 
 .seed {

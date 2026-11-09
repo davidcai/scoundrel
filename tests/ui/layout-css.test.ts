@@ -30,16 +30,18 @@ describe('approved layout rules', () => {
 
   it('colors the HP value like the fill and removes the seed frame', () => {
     expect(block(/^\.health__value \{[\s\S]*?\n\}/m)).toContain('color: var(--health)');
-    expect(css).toMatch(/\.health--wounded \.health__value \{\s*color: var\(--wasted\);/);
-    expect(css).toMatch(/\.health--critical \.health__value \{\s*color: var\(--damage\);/);
+    expect(css).toMatch(/\.health--low \.health__value \{\s*color: var\(--wasted\);/);
     const seed = block(/^\.play-screen__seed \{[\s\S]*?\n\}/m);
     expect(seed).toContain('border: 0');
   });
 
-  it('matches the health track border to its fill tone', () => {
+  it('uses only green and yellow for the health tone', () => {
     expect(block(/^\.health__track \{[\s\S]*?\n\}/m)).toContain('border: 1px solid var(--health)');
-    expect(css).toMatch(/\.health--wounded \.health__track \{\s*border-color: var\(--wasted\);/);
-    expect(css).toMatch(/\.health--critical \.health__track \{\s*border-color: var\(--damage\);/);
+    expect(css).toMatch(/\.health--low \.health__track \{\s*border-color: var\(--wasted\);/);
+    expect(css).toMatch(/\.health--low \.health__fill \{\s*background: var\(--wasted\);/);
+    expect(css).toMatch(/\.health--low \.health__label,[\s\S]*?color: var\(--wasted\);/);
+    expect(css).not.toContain('.health--critical');
+    expect(css).not.toContain('.health--wounded');
   });
 
   it('drops the empty room-actions divider', () => {
