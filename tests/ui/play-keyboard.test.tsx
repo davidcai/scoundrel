@@ -99,12 +99,10 @@ describe('play keyboard', () => {
     expect(document.activeElement).toBe(restored);
   });
 
-  it('focuses the room heading after a deal on compact widths', () => {
+  it('focuses the first card after a deal even when compact media matches', () => {
     installMatchMedia({ compact: true });
     openRun(SEED, DEFAULT_RULE_CONFIG);
 
-    expect(document.activeElement).toBe(
-      screen.getByRole('heading', { level: 1, name: t('play.roomNumber', { number: 1 }) }),
-    );
+    expect(document.activeElement).toBe(cards()[0]);
   });
 });

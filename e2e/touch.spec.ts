@@ -1,61 +1,44 @@
 import { expect, test } from '@playwright/test';
-import { confirmLabel, findLostScenario, projectLane, startSeededRun } from './support/game';
+import { findLostScenario, projectLane, startSeededRun } from './support/game';
 
 test.beforeEach(({}, testInfo) => {
   test.skip(projectLane(testInfo) !== 'touch', 'Touch lane only.');
 });
 
-test('plays comfortably on a compact touch viewport', async ({ page }) => {
+test('keeps the wide play controls usable on a compact touch viewport', async ({ page }) => {
   const scenario = findLostScenario();
   await startSeededRun(page, scenario.seed);
 
-  // No horizontal page scrolling at a 390px viewport.
-  const overflow = await page.evaluate(() => {
-    const root = document.scrollingElement ?? document.documentElement;
-    return { scrollWidth: root.scrollWidth, innerWidth: window.innerWidth };
-  });
-  expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.innerWidth);
+  // The play surface stays on the desktop composition and scrolls horizontally.
+  const playWidth = await page
+    .locator('.play-screen__content')
+    .evaluate((element) => element.getBoundingClientRect().width);
+  expect(playWidth).toBeGreaterThanOrEqual(1000);
+  await expect(page.locator('.play-screen')).toHaveJSProperty('scrollWidth', 1000);
 
   // Primary actions meet the 44x44 touch target.
   const actionBar = page.getByRole('group', { name: 'Room actions' });
-  for (const name of ['Run away']) {
-    const box = await actionBar.getByRole('button', { name }).boundingBox();
-    expect(box, `${name} should be rendered`).not.toBeNull();
-    expect(box?.height ?? 0, `${name} height`).toBeGreaterThanOrEqual(44);
-    expect(box?.width ?? 0, `${name} width`).toBeGreaterThanOrEqual(44);
-  }
+  const runAway = actionBar.getByRole('button', { name: 'Run away' });
+  await expect(runAway).toBeVisible();
+  const box = await runAway.boundingBox();
+  expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+  expect(box?.width ?? 0).toBeGreaterThanOrEqual(44);
 
-  // Room cards fill the compact track and remain tappable.
+  // Wide cards remain tappable.
   const cardBox = await page.locator('.card').first().boundingBox();
   expect(cardBox?.width ?? 0).toBeGreaterThanOrEqual(132);
   expect(cardBox?.height ?? 0).toBeGreaterThanOrEqual(132);
 
-  // Tapping a card opens the preview sheet at the bottom of the viewport.
+  // Tapping a card uses the inline wide preview, not a modal sheet.
   await page.locator('.card').first().click();
-  const sheet = page.getByRole('dialog');
-  await expect(sheet).toBeVisible();
-  const sheetBox = await sheet.boundingBox();
-  expect(sheetBox?.y ?? 0).toBeGreaterThanOrEqual(0);
-  expect((sheetBox?.y ?? 0) + (sheetBox?.height ?? 0)).toBeLessThanOrEqual(
-    (await page.evaluate(() => window.innerHeight)) + 1,
-  );
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  const preview = page.locator('.play-main__preview .preview');
+  await expect(preview).toBeVisible();
 
-  const closeBox = await page.getByRole('button', { name: 'Close preview' }).boundingBox();
-  expect(closeBox?.width ?? 0).toBeGreaterThanOrEqual(44);
-  expect(closeBox?.height ?? 0).toBeGreaterThanOrEqual(44);
-
-  await page.getByRole('button', { name: 'Close preview' }).click();
-  await expect(sheet).toHaveCount(0);
-
-  // Confirm the first scripted card through the sheet, then undo to room start.
-  const step = scenario.steps[0];
-  if (step === undefined || step.kind !== 'resolve') {
-    throw new Error('The fixture must start with a resolve step.');
-  }
-  await page.locator(`[data-card="${step.card}"]`).click();
-  await expect(sheet).toBeVisible();
-  await page.getByRole('button', { name: confirmLabel(step), exact: true }).click();
-  await expect(page.getByRole('progressbar')).not.toHaveAttribute('aria-valuenow', '20');
+  const actions = page.locator('.play-main__preview .preview__actions button:enabled');
+  await expect(actions.first()).toBeVisible();
+  await actions.last().click();
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Undo' }).click();
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '20');

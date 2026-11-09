@@ -83,8 +83,6 @@
 
   /* Approved card track sizes (design plan §4/§6). */
   --card-track-wide: clamp(160px, 14vw, 200px);
-  --card-track-medium: clamp(140px, 30vw, 180px);
-  --card-track-compact: clamp(132px, 40vw, 168px);
 
   --motion-1: 120ms;
   --motion-2: 200ms;
@@ -594,18 +592,11 @@ button {
   padding: var(--space-6);
 }
 
-@media (max-width: 1199px) {
-  .play-main {
-    grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
-  }
-}
-
 .play-main__room {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   min-width: 0;
-  container-type: inline-size;
 }
 
 .room-title {
@@ -636,14 +627,6 @@ button {
 /* Approved card track sizes (design plan §4/§6): cards never exceed 200px on
    wide, fall back to 2×2 when the center column cannot hold four, and use the
    medium/compact clamps at their breakpoints. */
-@container (max-width: 619px) {
-  .room-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: calc(2 * var(--card-track-compact) + var(--space-3));
-    gap: var(--space-3);
-    margin-inline: auto;
-  }
-}
 
 .room-grid > .card {
   width: 100%;
@@ -1020,17 +1003,6 @@ button {
   font-weight: 600;
   line-height: 1.25;
   color: var(--text-1);
-}
-
-.dialog__panel--sheet {
-  position: fixed;
-  top: auto;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  max-height: 80vh;
-  border-radius: var(--radius-3) var(--radius-3) 0 0;
 }
 
 .help__body {
@@ -1648,106 +1620,24 @@ button {
   display: contents;
 }
 
-/* ---------- Responsive ---------- */
-
-/* Tablet portrait: stack the rail below the room so all four cards fit in one
-   row; 960px+ keeps the two-column layout, whose room column can hold four. */
-@media (min-width: 768px) and (max-width: 959px) {
-  .play-main {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .play-main__room {
-    order: 1;
-  }
-
-  .play-main__weapon {
-    order: 2;
-  }
-
-  .weapon-rail {
-    flex-direction: row;
-    justify-content: space-between;
-    gap: var(--space-5);
+/* The play surface keeps the desktop composition at every viewport. Below
+   1000px it scrolls horizontally inside the play screen so the page's layout
+   viewport does not expand on mobile. */
+@media (max-width: 999px) {
+  .play-screen {
     overflow-x: auto;
-    padding-bottom: var(--space-1);
+  }
+
+  .play-screen__content {
+    display: flex;
+    flex-direction: column;
+    min-width: 1000px;
   }
 }
 
+/* ---------- Responsive ---------- */
+
 @media (max-width: 767px) {
-  .play-header {
-    flex-wrap: nowrap;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-4);
-  }
-
-  .play-header__status {
-    flex: 1;
-    width: auto;
-    justify-content: flex-start;
-  }
-
-  .health__track {
-    flex-basis: 160px;
-    width: 160px;
-  }
-
-  .play-header__right {
-    gap: var(--space-2);
-  }
-
-  .play-main {
-    grid-template-columns: minmax(0, 1fr);
-    order: initial;
-    gap: var(--space-4);
-    padding: var(--space-4);
-    padding-bottom: 0;
-  }
-
-  .play-main__room {
-    order: 1;
-  }
-
-  .play-main__weapon {
-    order: 2;
-  }
-
-  .weapon-rail {
-    flex-direction: row;
-    gap: var(--space-5);
-    overflow-x: auto;
-    padding-bottom: var(--space-1);
-  }
-
-  .play-screen__seed {
-    right: var(--space-4);
-    bottom: var(--space-4);
-  }
-
-  .action-bar {
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
-    gap: var(--space-1);
-    min-height: 0;
-    padding: var(--space-2) var(--space-3);
-    padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom));
-  }
-
-  /* Disabled-action rules stay visible at compact (REQ-004, task-6 MAJOR).
-     Two columns keep every action reachable without a ragged single-button row. */
-  .action-bar__actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-2);
-  }
-
-  .action-bar__actions .button {
-    width: 100%;
-  }
-
   .dialog {
     align-items: end;
     padding: 0;
@@ -1793,49 +1683,6 @@ button {
 
   .dialog__actions .button {
     width: 100%;
-  }
-}
-
-/* Below 132px a card cannot carry its 2:3 artwork; switch to metadata rows. */
-@media (max-width: 359px) {
-  .room-grid {
-    grid-template-columns: minmax(0, 1fr);
-    justify-content: stretch;
-  }
-
-  .card {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-2);
-    border: 1px solid var(--border-2);
-    border-radius: var(--radius-2);
-    background: var(--surface-1);
-    text-align: left;
-  }
-
-  .card__frame {
-    display: none;
-  }
-
-  .card__meta {
-    display: flex;
-    min-width: 0;
-  }
-
-  .card__caption {
-    text-align: right;
-    white-space: nowrap;
-  }
-
-  .card--selected {
-    outline: 2px solid var(--selection);
-    outline-offset: 2px;
-  }
-
-  .card--ineligible {
-    border-color: var(--weapon-no);
   }
 }
 

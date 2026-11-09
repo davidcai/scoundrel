@@ -21,7 +21,6 @@ import {
 import { ActionBar } from '../components/ActionBar';
 import { Button } from '../components/Button';
 import { useAnnounce } from '../components/Announcer';
-import { Dialog } from '../components/Dialog';
 import { DungeonStatus } from '../components/DungeonStatus';
 import { HealthMeter } from '../components/HealthMeter';
 import { PreviewPanel } from '../components/PreviewPanel';
@@ -29,7 +28,6 @@ import { RoomGrid } from '../components/RoomGrid';
 import { SeedDisplay } from '../components/SeedDisplay';
 import { WeaponRail } from '../components/WeaponRail';
 import { preloadArtwork } from '../artwork';
-import { useMediaQuery } from '../hooks/useMediaQuery';
 
 export interface PlayScreenProps {
   session: UiSession;
@@ -44,9 +42,10 @@ export interface PlayScreenProps {
  * The play screen: room cards, selection preview, weapon and kill stack,
  * draw-pile status in the header, seed in the action bar, and the room actions.
  *
- * Focus policy (design plan §7): a new room focuses its heading on compact and
- * its first card on wider layouts; clearing a room focuses the enabled "Enter
- * next room"; undo focuses the restored selection.
+ * The play surface always uses the wide desktop composition; narrower viewports
+ * scroll horizontally rather than switching layouts. A new room focuses its
+ * first card; clearing a room focuses the enabled "Enter next room"; undo
+ * focuses the restored selection.
  */
 export function PlayScreen({
   session,
@@ -56,12 +55,9 @@ export function PlayScreen({
 }: PlayScreenProps) {
   const { t } = usePreferences();
   const announce = useAnnounce();
-  const compact = useMediaQuery('(max-width: 767px)');
 
-  const contentRef = useRef<HTMLDivElement>(null);
   const firstCardRef = useRef<HTMLButtonElement>(null);
   const enterButtonRef = useRef<HTMLButtonElement>(null);
-  const headingRef = useRef<HTMLHeadingElement>(null);
   const roomHeadingId = useId();
   const roomHintId = useId();
   const previewTitleId = useId();
@@ -80,7 +76,6 @@ export function PlayScreen({
   // Refs keep the focus effect from re-firing when only the selection changes.
   const selectedRef = useRef(session.selectedCard);
   selectedRef.current = session.selectedCard;
-  const previousRoomsRef = useRef<number | null>(null);
 
   // Announce resolved outcomes once per notice, and invalidity assertively.
   useEffect(() => {
@@ -120,10 +115,6 @@ export function PlayScreen({
   useEffect(() => {
     if (document.querySelector('[role="dialog"]') !== null) return;
 
-    const previousRooms = previousRoomsRef.current;
-    previousRoomsRef.current = state.highlights.roomsExplored;
-    const dealt = previousRooms !== state.highlights.roomsExplored;
-
     const notice = session.notice;
     if (notice !== null && notice.kind === 'event') {
       if (notice.event.type === 'undoRoom') {
@@ -144,23 +135,12 @@ export function PlayScreen({
       }
     }
 
-    if (compact) {
-      // Compact: a freshly dealt room is read from its heading.
-      if (dealt || notice === null) {
-        headingRef.current?.focus();
-        return;
-      }
-      firstCardRef.current?.focus();
-      return;
-    }
-
     firstCardRef.current?.focus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     roomSignature,
     state.highlights.roomsExplored,
     session.noticeSeq,
-    compact,
     availability.enterNextRoom.enabled,
   ]);
 
@@ -180,12 +160,11 @@ export function PlayScreen({
     document.querySelector<HTMLButtonElement>(`.card[data-card="${previous}"]`)?.focus();
   }, [session.selectedCard]);
 
-  // Escape clears a wide-screen selection; the compact sheet handles its own Esc.
+  // Escape clears the current card selection.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       if (session.selectedCard === null) return;
-      if (document.querySelector('[role="dialog"]') !== null) return;
       dispatch({ type: 'clearSelection' });
     };
     document.addEventListener('keydown', onKeyDown);
@@ -201,10 +180,6 @@ export function PlayScreen({
     dispatch({ type: 'resolve', ...(attack === undefined ? {} : { attack }) });
   };
 
-  const handleCancel = () => {
-    dispatch({ type: 'clearSelection' });
-  };
-
   const roomActions = (
     <ActionBar
       enterButtonRef={enterButtonRef}
@@ -214,16 +189,10 @@ export function PlayScreen({
       onUndo={() => dispatch({ type: 'undoRoom' })}
     />
   );
-  const previewProps = {
-    session,
-    titleId: previewTitleId,
-    onConfirm: handleConfirm,
-  } as const;
-  const preview = <PreviewPanel {...previewProps} />;
 
   return (
     <div className="play-screen">
-      <div className="play-screen__content" ref={contentRef}>
+      <div className="play-screen__content">
         <a
           className="skip-link"
           href={`#${skipTargetId}`}
@@ -269,7 +238,7 @@ export function PlayScreen({
           </div>
 
           <section className="play-main__room" aria-labelledby={roomHeadingId}>
-            <h1 className="room-title" id={roomHeadingId} tabIndex={-1} ref={headingRef}>
+            <h1 className="room-title" id={roomHeadingId} tabIndex={-1}>
               {formatRoomLabel(t, roomNumber, state.finalRoom)}
             </h1>
             <p className="room-hint" id={roomHintId}>
@@ -283,13 +252,14 @@ export function PlayScreen({
             >
               <RoomGrid views={cardViews} onSelect={handleSelect} firstCardRef={firstCardRef} />
             </div>
-            {!compact ? (
-              <div className="play-main__preview">
-                <PreviewPanel {...previewProps} roomActions={roomActions} />
-              </div>
-            ) : (
-              <div className="play-main__room-actions">{roomActions}</div>
-            )}
+            <div className="play-main__preview">
+              <PreviewPanel
+                session={session}
+                titleId={previewTitleId}
+                onConfirm={handleConfirm}
+                roomActions={roomActions}
+              />
+            </div>
           </section>
         </main>
       </div>
@@ -297,19 +267,6 @@ export function PlayScreen({
       <div className="play-screen__seed">
         <SeedDisplay seed={state.seed} />
       </div>
-
-      {compact && session.selectedCard !== null ? (
-        <Dialog
-          open
-          titleId={previewTitleId}
-          onClose={handleCancel}
-          closeLabel={t('preview.close')}
-          backgroundRef={contentRef}
-          className="dialog__panel--sheet"
-        >
-          {preview}
-        </Dialog>
-      ) : null}
     </div>
   );
 }

@@ -22,23 +22,10 @@ describe('approved layout rules', () => {
     expect(bar).toContain('align-items: center');
     expect(bar).not.toContain('position: sticky');
     expect(bar).not.toContain('position: fixed');
-    const compactBar = block(
-      /@media \(max-width: 767px\) \{[\s\S]*?\.action-bar \{[\s\S]*?\n {2}\}/,
-    );
-    expect(compactBar).not.toContain('position: fixed');
-    expect(compactBar).not.toContain('display: none');
-    const compactActions = block(
-      /@media \(max-width: 767px\) \{[\s\S]*?\.action-bar__actions \{[\s\S]*?\n {2}\}/,
-    );
-    expect(compactActions).toContain('grid-template-columns: repeat(2, minmax(0, 1fr))');
   });
 
-  it('uses the approved card track clamps and the 2×2 / metadata fallbacks', () => {
+  it('uses the wide card track and keeps the metadata in the markup', () => {
     expect(css).toContain('--card-track-wide: clamp(160px, 14vw, 200px)');
-    expect(css).toContain('--card-track-medium: clamp(140px, 30vw, 180px)');
-    expect(css).toContain('--card-track-compact: clamp(132px, 40vw, 168px)');
-    expect(css).toContain('@container (max-width: 619px)');
-    expect(block(/@media \(max-width: 359px\) \{[\s\S]*?\n\}/)).toContain('.card__meta');
     expect(css).toMatch(/\.card__meta \{\s*display: none/);
   });
 
@@ -47,31 +34,22 @@ describe('approved layout rules', () => {
     expect(css).toMatch(/\.preview__room-actions:empty\s*\{[^}]*padding-top:\s*0/);
   });
 
-  it('keeps tablet portrait room cards in one row', () => {
-    const tablet = block(/@media \(min-width: 768px\) and \(max-width: 959px\) \{[\s\S]*?\n\}/);
-    expect(tablet).toContain('grid-template-columns: minmax(0, 1fr)');
-    expect(tablet).toContain('.play-main__room');
-    expect(tablet).toContain('order: 1');
-    expect(tablet).toContain('.play-main__weapon');
-    expect(tablet).toContain('order: 2');
-    expect(tablet).toContain('flex-direction: row');
+  it('keeps the play surface on the wide layout at every viewport', () => {
+    const narrowPlay = block(/@media \(max-width: 999px\) \{[\s\S]*?\n\}/);
+    expect(narrowPlay).toContain('overflow-x: auto');
+    expect(narrowPlay).toContain('min-width: 1000px');
+    expect(css).not.toContain('@container');
+    expect(css).not.toMatch(/@media \(max-width: 767px\)[\s\S]*?\.play-main/);
   });
 
   it('uses a two-column medium layout with the dungeon count in the header', () => {
-    const mediumBlocks = Array.from(css.matchAll(/@media \(max-width: 1199px\) \{[\s\S]*?\n\}/g))
-      .map((match) => match[0])
-      .join('\n');
-    expect(mediumBlocks).toContain('grid-template-columns: minmax(180px, 240px) minmax(0, 1fr)');
     expect(css).not.toContain('.play-main__dungeon');
     expect(css).not.toContain('.dungeon-chip');
     expect(block(/\.dungeon-status \{[\s\S]*?\n\}/)).toContain('display: inline-flex');
     expect(block(/^\.play-screen__seed \{[\s\S]*?\n\}/m)).toContain('position: fixed');
   });
 
-  it('places the compact preview sheet at the bottom of the viewport', () => {
-    const sheet = block(/\.dialog__panel--sheet \{[\s\S]*?\n\}/);
-    expect(sheet).toContain('bottom: 0');
-    expect(sheet).not.toContain('--action-bar-height');
+  it('keeps a 44px icon close for dialogs', () => {
     const close = block(/\.dialog__close \{[\s\S]*?\n\}/);
     expect(close).toContain('width: 44px');
     expect(close).toContain('height: 44px');

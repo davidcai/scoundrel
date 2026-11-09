@@ -1,19 +1,15 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_RULE_CONFIG, cardKind, type CardId } from '../../src/engine';
-import { createTranslator } from '../../src/i18n';
-import { formatPreviewTitle } from '../../src/i18n/messages';
+import { DEFAULT_RULE_CONFIG } from '../../src/engine';
 import { openRun } from '../helpers/game';
 import { installMatchMedia } from '../helpers/media';
-
-const t = createTranslator('en');
 const SEED = 'compact-seed';
 
 function firstCard(): HTMLElement {
   return document.querySelector<HTMLElement>('[data-card]')!;
 }
 
-describe('play compact layout', () => {
+describe('play layout is always wide', () => {
   it('keeps the wide preview panel outside a dialog', () => {
     installMatchMedia();
     openRun(SEED, DEFAULT_RULE_CONFIG);
@@ -24,69 +20,15 @@ describe('play compact layout', () => {
     expect(document.querySelector('.play-main__preview')).not.toBeNull();
   });
 
-  it('moves the selected-card preview into a modal sheet on compact widths', () => {
-    installMatchMedia({ compact: true });
-    openRun(SEED, DEFAULT_RULE_CONFIG);
-
-    const card = firstCard();
-    const cardId = card.dataset.card as CardId;
-    const kind = cardKind(cardId);
-    fireEvent.click(card);
-
-    const dialog = screen.getByRole('dialog');
-    expect(dialog).toBeInTheDocument();
-    expect(dialog).toHaveClass('dialog__panel--sheet');
-    expect(document.querySelector('.play-main__preview')).toBeNull();
-    expect(dialog.querySelector('.preview')).not.toBeNull();
-
-    // The sheet is named by the preview title: a matchup for monsters, the
-    // card title for weapons/potions.
-    const title = dialog.querySelector('.preview__title')?.textContent ?? '';
-    expect(dialog).toHaveAccessibleName(title);
-    if (kind === 'monster') {
-      expect(title).toMatch(/^Monster \d+ vs\. (?:Weapon \d+|barehanded)$/);
-    } else {
-      expect(title).toBe(formatPreviewTitle(t, cardId));
-    }
-  });
-
-  it('offers a 44px close control with the sheet and action bar in normal flow', () => {
+  it('keeps the inline preview even when compact media matches', () => {
     installMatchMedia({ compact: true });
     openRun(SEED, DEFAULT_RULE_CONFIG);
 
     fireEvent.click(firstCard());
 
-    const dialog = screen.getByRole('dialog');
-    const close = dialog.querySelector('.dialog__close');
-    expect(close).not.toBeNull();
-    expect(close).toHaveAttribute('aria-label', t('preview.close'));
-
-    expect(document.querySelector('.play-screen')?.getAttribute('style')).toBeNull();
-
-    fireEvent.click(close!);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  });
-
-  it('keeps metadata rows in the card markup for sub-132px fallback widths', () => {
-    installMatchMedia({ compact: true });
-    openRun(SEED, DEFAULT_RULE_CONFIG);
-
-    const meta = document.querySelectorAll('.card__meta-name');
-    expect(meta).toHaveLength(4);
-    expect(meta[0]!.textContent?.length).toBeGreaterThan(0);
-  });
-
-  it('closes the compact sheet with Escape and restores focus to the card', () => {
-    installMatchMedia({ compact: true });
-    openRun(SEED, DEFAULT_RULE_CONFIG);
-    const card = firstCard();
-
-    fireEvent.click(card);
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-
-    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Escape' });
-
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(document.activeElement).toBe(card);
+    expect(document.querySelector('.play-main__preview')).not.toBeNull();
+    expect(document.querySelector('.preview__title')).not.toBeNull();
+    expect(document.querySelector('.play-main__room-actions')).toBeNull();
   });
 });

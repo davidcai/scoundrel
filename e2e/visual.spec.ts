@@ -43,11 +43,7 @@ test('captures visual evidence for this viewport', async ({ page }, testInfo) =>
     page.getByRole('button', { name: /Fight barehanded|Use weapon|Equip weapon|Drink potion/ }),
   ).toBeVisible();
   await shot('selected');
-  if (projectLane(testInfo) === 'touch') {
-    await page.getByRole('button', { name: 'Close preview' }).click();
-  } else {
-    await page.keyboard.press('Escape');
-  }
+  await page.keyboard.press('Escape');
 
   await page.goto('/#/stats');
   await expect(page.getByRole('heading', { name: 'Statistics', exact: true })).toBeVisible();
