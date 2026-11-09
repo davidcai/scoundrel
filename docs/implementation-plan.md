@@ -55,7 +55,7 @@ Phase 1 records the verification gate and the Vercel build configuration. This s
 
 ### Continuous integration
 
-`.github/workflows/ci.yml` runs on pushes to `ds/game-implementation` and on manual `workflow_dispatch`. It has no `pull_request` trigger because this standalone branch does not open merge requests, and it has no deploy job. The workflow uses Node.js 22 with pnpm 11.7.0 read from `packageManager`, installs with `pnpm install --frozen-lockfile`, and then runs `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and `pnpm bundle-size` in that order. Browser automation joins CI in a later phase when Playwright is installed; Phase 1 CI verifies only these steps.
+`.github/workflows/ci.yml` runs on pushes to `release/ds-react` and on manual `workflow_dispatch`. It has no `pull_request` trigger because this standalone branch does not open merge requests, and it has no deploy job. The workflow uses Node.js 22 with pnpm 11.7.0 read from `packageManager`, installs with `pnpm install --frozen-lockfile`, and then runs `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and `pnpm bundle-size` in that order. Browser automation joins CI in a later phase when Playwright is installed; Phase 1 CI verifies only these steps.
 
 ### Bundle-size gate
 
