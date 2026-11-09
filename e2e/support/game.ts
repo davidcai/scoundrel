@@ -161,13 +161,6 @@ export async function startSeededRun(
   await expect(page.locator('.room-grid')).toBeVisible();
 }
 
-export async function startSharedLink(page: Page, link: string): Promise<void> {
-  await openTitle(page);
-  await page.getByRole('button', { name: 'Replay link' }).click();
-  await page.getByLabel('Replay link or seed URL', { exact: true }).fill(link);
-  await page.getByRole('button', { name: 'Start from link' }).click();
-}
-
 export interface LossRun extends Simulation {
   readonly result: {
     readonly outcome: string;

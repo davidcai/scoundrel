@@ -1135,8 +1135,7 @@ button {
   line-height: 1.1;
 }
 
-.result-panel__breakdown,
-.result-panel__replay {
+.result-panel__breakdown {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -1548,16 +1547,6 @@ button {
   outline-offset: 2px;
 }
 
-.text-input--link {
-  font-family: var(--font-mono);
-  font-size: var(--text-small);
-  line-height: 1.5;
-  resize: none;
-  overflow: hidden;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
 .settings-section .language-toggle {
   align-self: flex-start;
 }
@@ -1627,27 +1616,6 @@ button {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--space-3);
-}
-
-.result-panel__replay {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--border-1);
-}
-
-.result-panel__replay-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
-}
-
-.result-panel__copy-state {
-  margin: 0;
-  color: var(--text-2);
-  font-size: var(--text-small);
 }
 
 .play-header__unsaved {
@@ -1884,9 +1852,5 @@ button {
 
   .result-panel {
     min-width: 0;
-  }
-
-  .result-panel__replay .text-input--link {
-    max-width: 100%;
   }
 }

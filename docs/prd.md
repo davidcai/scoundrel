@@ -47,7 +47,7 @@ Players using a keyboard or small touchscreen can complete the game. Provide com
 <a id="req-001"></a>
 ### REQ-001: Start and resume
 
-The title screen offers New Run, Enter Seed, Stats, Settings, and About. Continue is prominent when an unfinished saved run exists; in that case the title screen also offers Discard Run. Returning players choose when to resume rather than being placed directly into a run. New Run starts a shuffled dungeon using the player's selected rule options. The game keeps one active run. Starting a fresh attempt through New Run, valid seed entry, history replay, or a valid shared link immediately replaces any unfinished run without confirmation. The replaced run cannot be resumed and is recorded as an abandoned loss under [REQ-013](#req-013). Discard Run requires confirmation, records the unfinished run as an abandoned loss, and leaves no resumable run.
+The title screen offers New Run, Enter Seed, Stats, Settings, and About. Continue is prominent when an unfinished saved run exists; in that case the title screen also offers Discard Run. Returning players choose when to resume rather than being placed directly into a run. New Run starts a shuffled dungeon using the player's selected rule options. The game keeps one active run. Starting a fresh attempt through New Run, valid seed entry, or history replay immediately replaces any unfinished run without confirmation. The replaced run cannot be resumed and is recorded as an abandoned loss under [REQ-013](#req-013). Discard Run requires confirmation, records the unfinished run as an abandoned loss, and leaves no resumable run.
 
 <a id="req-002"></a>
 ### REQ-002: Play by the selected rules
@@ -125,7 +125,7 @@ Players can select English, Simplified Chinese, or automatic language selection 
 
 Statistics show games played, wins, losses, win rate, best score, current streak, and best streak. Games played counts wins plus losses, including abandoned losses; an unfinished active run is not counted. Win rate is wins divided by games played, shown as a whole-number percentage rounded to the nearest percent and shown as "—" before any run is recorded. Best score is the highest score among recorded runs. Recent run history appears newest first and shows each run's seed, rule options, outcome, score, date, and rooms cleared. Dates are stored as UTC ISO 8601 timestamps and displayed in the browser's local time zone as locale-formatted dates. Players can replay a listed dungeon with its original rule options. Keep the newest 50 completed runs, including abandoned losses. When a new entry exceeds that limit, remove the oldest history entry. Trimming history must not change lifetime games played, wins, losses, win rate, best score, current streak, or best streak. An unfinished active run does not occupy a history entry.
 
-An unfinished run is abandoned when it is replaced by a fresh attempt or explicitly discarded. Record it exactly once as a loss, increasing games played and losses and including it in the win-rate calculation. Identify the loss as abandoned in run history. Score it using the normal loss formula at the moment of abandonment: the negative sum of monster values remaining in the draw pile. Ignore remaining health and exclude unresolved room monsters. If no monsters remain in the draw pile, the score is 0; the outcome is still a loss. Include this score in best-score comparisons like any other run. Returning to the title screen, closing the game, or reloading does not abandon a resumable run. Invalid seed entries or shared links that do not start a replacement run do not record a loss.
+An unfinished run is abandoned when it is replaced by a fresh attempt or explicitly discarded. Record it exactly once as a loss, increasing games played and losses and including it in the win-rate calculation. Identify the loss as abandoned in run history. Score it using the normal loss formula at the moment of abandonment: the negative sum of monster values remaining in the draw pile. Ignore remaining health and exclude unresolved room monsters. If no monsters remain in the draw pile, the score is 0; the outcome is still a loss. Include this score in best-score comparisons like any other run. Returning to the title screen, closing the game, or reloading does not abandon a resumable run. Invalid seed entries that do not start a replacement run do not record a loss.
 
 Streaks count consecutive wins across all runs, including replays and house-rule variants. Both streak counters start at 0. Each win increases the current streak by 1; each loss, including abandonment, resets it to 0. The best streak is the highest current streak ever reached and does not decrease. An unfinished run leaves both counters unchanged. Record each outcome once so reloading or opening the run in another tab cannot increase or reset a streak again. For example, win, win, loss, win produces a current streak of 1 and a best streak of 2.
 
@@ -142,7 +142,7 @@ For example, clearing the first room, escaping the second, and dying in the thir
 <a id="req-014"></a>
 ### REQ-014: Share and replay a dungeon
 
-Players can enter a seed or copy a replay link from the result screen. A seed identifies the starting dungeon. A replay link includes both the seed and rule options, so another player can begin the same challenge. It starts a fresh attempt rather than copying moves or current progress. Entering a seed alone uses the recipient's selected rule options. Fresh attempts follow the replacement policy in [REQ-001](#req-001). Invalid seed or link input shows an explanation and leaves the active run and statistics unchanged.
+Players can enter a seed to replay a dungeon from the start. The seed identifies the starting dungeon and applies the player's selected house rules. It starts a fresh attempt rather than copying moves or current progress, following the replacement policy in [REQ-001](#req-001). Invalid seed input shows an explanation and leaves the active run and statistics unchanged. Seeded play URLs remain available as an internal entry point for automated tests and development, not as a player-facing share feature.
 
 <a id="req-015"></a>
 ### REQ-015: Learn through contextual help
@@ -179,7 +179,7 @@ The following are outside the core product:
 <a id="dec-003"></a>
 ### DEC-003: Fresh release
 
-Define save, preference, seed, and replay-link formats for this product. Data import and compatibility work are outside scope. Preserve data created by this game as described in [REQ-010](#req-010).
+Define save, preference, seed, and play/test URL formats for this product. Data import and compatibility work are outside scope. Preserve data created by this game as described in [REQ-010](#req-010).
 
 <a id="product-acceptance"></a>
 ## Product acceptance
@@ -199,7 +199,7 @@ Previews explain confirmed outcomes; undo and save/resume restore the expected r
 <a id="ac-003"></a>
 ### AC-003: Review and reproduce runs
 
-Results are final, with undo unavailable after a win or loss, and survive reloads without duplicate statistics. History replays and shared links start the intended dungeon with the intended rules. Invalid seed or link input is explained without changing the active run or statistics. Covers [REQ-009](#req-009), [REQ-013](#req-013), and [REQ-014](#req-014).
+Results are final, with undo unavailable after a win or loss, and survive reloads without duplicate statistics. History replays and seed entry start the intended dungeon with the intended rules. Invalid seed input is explained without changing the active run or statistics. Covers [REQ-009](#req-009), [REQ-013](#req-013), and [REQ-014](#req-014).
 
 <a id="ac-004"></a>
 ### AC-004: Respect preferences

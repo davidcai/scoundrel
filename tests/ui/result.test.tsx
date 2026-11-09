@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { RunResult } from '../../src/engine';
 import { createTranslator } from '../../src/i18n';
@@ -136,41 +136,10 @@ describe('result screen', () => {
     expect(onBackToTitle).toHaveBeenCalledTimes(1);
   });
 
-  it('shows a replay link that reproduces the seed and rules', () => {
+  it('does not show a replay link on the result screen', () => {
     renderResult(lostResult);
 
-    const input = screen.getByRole('textbox', { name: t('result.replayLinkLabel') });
-    expect(input).toHaveAttribute('readonly');
-    expect((input as HTMLInputElement).value).toContain('#/play?seed=result-seed&config=0');
-  });
-
-  it('copies the replay link and announces the result', async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, 'clipboard', {
-      value: { writeText },
-      configurable: true,
-    });
-
-    renderResult(wonResult);
-    fireEvent.click(screen.getByRole('button', { name: t('result.copyLink') }));
-
-    await waitFor(() =>
-      expect(screen.getByTestId('copy-state')).toHaveTextContent(t('result.linkCopied')),
-    );
-    expect(writeText).toHaveBeenCalledWith(expect.stringContaining('seed=victory-seed'));
-    expect(screen.getByTestId('live-polite').textContent).toContain(t('result.linkCopied'));
-  });
-
-  it('reports a failed copy without a clipboard', () => {
-    Object.defineProperty(navigator, 'clipboard', {
-      value: undefined,
-      configurable: true,
-    });
-
-    renderResult(wonResult);
-    fireEvent.click(screen.getByRole('button', { name: t('result.copyLink') }));
-
-    expect(screen.getByTestId('copy-state')).toHaveTextContent(t('result.linkCopyFailed'));
-    expect(screen.getByTestId('live-assertive').textContent).toContain(t('result.linkCopyFailed'));
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.queryByText(/replay link/i)).not.toBeInTheDocument();
   });
 });

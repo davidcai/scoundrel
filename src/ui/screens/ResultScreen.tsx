@@ -1,12 +1,10 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import type { RunResult } from '../../engine';
 import { formatNumber } from '../../i18n';
 import { formatRulesDescription } from '../../i18n/messages';
 import { usePreferences } from '../../store/preferences';
-import { useScoundrelStore } from '../../store/useScoundrelStore';
 import { useAnnounce } from '../components/Announcer';
 import { Button } from '../components/Button';
-import { useMediaQuery } from '../hooks/useMediaQuery';
 import { cn } from '../cn';
 
 export interface ResultScreenProps {
@@ -16,11 +14,6 @@ export interface ResultScreenProps {
   onNewRun: () => void;
   onBackToTitle: () => void;
   onViewStatistics: () => void;
-}
-
-function replayBaseUrl(): string {
-  if (typeof window === 'undefined') return '';
-  return `${window.location.origin}${window.location.pathname}`;
 }
 
 /** Trophy mark for a won run; paired with the outcome text, never alone. */
@@ -48,8 +41,8 @@ function LostIcon() {
 }
 
 /**
- * Final result: outcome, score, a breakdown table, seed, rules, replay link,
- * and the follow-up actions (REQ-009/REQ-014). Reloaded results render from
+ * Final result: outcome, score, a breakdown table, seed, rules, and the
+ * follow-up actions (REQ-009). Reloaded results render from
  * the saved completed result instead of an in-memory session.
  */
 export function ResultScreen({
@@ -60,21 +53,15 @@ export function ResultScreen({
   onViewStatistics,
 }: ResultScreenProps) {
   const { t, locale } = usePreferences();
-  const store = useScoundrelStore();
   const announce = useAnnounce();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const breakdownTitleId = useId();
-  const replayTitleId = useId();
-  const replayInputId = useId();
-  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
-  const compact = useMediaQuery('(max-width: 767px)');
 
   const won = result.outcome === 'won';
   const title = won ? t('result.wonTitle') : t('result.lostTitle');
   const scoreText = formatNumber(locale, result.score);
   // Death ends the run at or below zero health; never show negative health.
   const finalHealth = Math.max(0, result.health);
-  const replayLink = store.buildReplayUrl(result.seed, result.config, replayBaseUrl());
 
   useEffect(() => {
     headingRef.current?.focus();
@@ -87,25 +74,6 @@ export function ResultScreen({
     // Announce once per mounted result screen.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const handleCopy = () => {
-    const clipboard = typeof navigator === 'undefined' ? undefined : navigator.clipboard;
-    if (clipboard === undefined || typeof clipboard.writeText !== 'function') {
-      setCopyState('failed');
-      announce(t('result.linkCopyFailed'), 'assertive');
-      return;
-    }
-    void clipboard
-      .writeText(replayLink)
-      .then(() => {
-        setCopyState('copied');
-        announce(t('result.linkCopied'), 'polite');
-      })
-      .catch(() => {
-        setCopyState('failed');
-        announce(t('result.linkCopyFailed'), 'assertive');
-      });
-  };
 
   return (
     <div className="result-screen">
@@ -196,42 +164,6 @@ export function ResultScreen({
             <dd>{formatRulesDescription(t, locale, result.config)}</dd>
           </div>
         </dl>
-
-        <section className="result-panel__replay" aria-labelledby={replayTitleId}>
-          <h2 className="result-panel__section-title" id={replayTitleId}>
-            {t('result.replayLinkLabel')}
-          </h2>
-          <label className="visually-hidden" htmlFor={replayInputId}>
-            {t('result.replayLinkLabel')}
-          </label>
-          <textarea
-            className="text-input text-input--link"
-            id={replayInputId}
-            readOnly
-            rows={compact ? 3 : 1}
-            value={replayLink}
-            onFocus={(event) => event.currentTarget.select()}
-          />
-          <div className="result-panel__replay-actions">
-            <Button variant="secondary" onClick={handleCopy}>
-              {t('result.copyLink')}
-            </Button>
-            <p
-              className={
-                copyState === 'failed'
-                  ? 'result-panel__copy-state field-error'
-                  : 'result-panel__copy-state'
-              }
-              data-testid="copy-state"
-            >
-              {copyState === 'copied'
-                ? t('result.linkCopied')
-                : copyState === 'failed'
-                  ? t('result.linkCopyFailed')
-                  : ''}
-            </p>
-          </div>
-        </section>
 
         <div className="result-panel__actions">
           <Button variant="primary" onClick={onNewRun}>

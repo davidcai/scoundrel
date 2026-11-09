@@ -136,7 +136,7 @@ describe('persistence and run lifecycle', () => {
     expect(screen.queryByRole('button', { name: t('title.continue') })).not.toBeInTheDocument();
   });
 
-  it('explains invalid seed and link entries without changing saved data', () => {
+  it('explains an invalid seed without changing saved data', () => {
     renderAppAt('#/');
 
     fireEvent.click(screen.getByRole('button', { name: t('title.enterSeed') }));
@@ -147,14 +147,6 @@ describe('persistence and run lifecycle', () => {
     expect(screen.getByTestId('seed-error')).toHaveTextContent(t('error.invalidSeed'));
     expect(window.location.hash).toBe('#/');
     expect(probe().activeRun).toBeNull();
-
-    fireEvent.click(screen.getByRole('button', { name: t('title.replayLink') }));
-    const linkInput = screen.getByRole('textbox', { name: t('title.linkLabel') });
-    fireEvent.change(linkInput, { target: { value: 'not a link' } });
-    fireEvent.click(screen.getByRole('button', { name: t('title.openLink') }));
-
-    expect(screen.getByTestId('link-error')).toHaveTextContent(t('error.invalidLink'));
-    expect(window.location.hash).toBe('#/');
     expect(probe().statistics.gamesPlayed).toBe(0);
   });
 

@@ -91,15 +91,16 @@ test('rejects an invalid seed without changing the active run', async ({ page })
   );
 });
 
-test('rejects invalid replay links and unknown routes without creating a run', async ({ page }) => {
+test('starts a deterministic run from a testing play URL', async ({ page }) => {
+  await page.goto('/#/play?seed=testing-url&config=1');
+
+  await expect(page.getByRole('heading', { name: 'Room 1' })).toBeVisible();
+  await expect(page.getByLabel('Run seed testing-url')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Replay link' })).toHaveCount(0);
+});
+
+test('rejects unknown and invalid play routes without creating a run', async ({ page }) => {
   await openTitle(page);
-  await page.getByRole('button', { name: 'Replay link' }).click();
-  await page
-    .getByLabel('Replay link or seed URL', { exact: true })
-    .fill('https://example.com/not-a-replay-link');
-  await page.getByRole('button', { name: 'Start from link' }).click();
-  await expect(page.getByTestId('link-error')).toBeVisible();
-  expect(await readStorage(page, RUN_KEY)).toBeNull();
 
   await page.goto('/#/playground?seed=abc&config=0');
   await expect(page.getByRole('button', { name: 'New run' })).toBeVisible();

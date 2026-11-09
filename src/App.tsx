@@ -183,6 +183,8 @@ function AppRoot() {
       return; // rendered from the saved completed result
     }
 
+    // Direct play URLs remain an internal/testing entry point; the player UI
+    // exposes seed entry only.
     const started = store.startFromSharedLink(
       `#${playPath(route.seed, route.config)}`,
       route.config,
@@ -336,17 +338,6 @@ function AppRoot() {
     [store, beginSession, pushNotice, t],
   );
 
-  const handleStartLink = useCallback(
-    (input: string, config: RuleConfig): StartOutcome => {
-      const result = store.startFromSharedLink(input, config);
-      if (!result.ok) return result.reason;
-      if (result.abandonedLossRecorded) pushNotice('info', t('title.runReplaced'));
-      beginSession(result.run);
-      return null;
-    },
-    [store, beginSession, pushNotice, t],
-  );
-
   const handleDiscard = useCallback((): StartOutcome => {
     const result = store.discardActiveRun();
     if (!result.ok) return 'discard-failed' as StartFailureReason;
@@ -432,7 +423,6 @@ function AppRoot() {
           onNewRun={handleNewRun}
           onContinue={handleContinue}
           onStartSeed={handleStartSeed}
-          onStartLink={handleStartLink}
           ruleOptions={ruleOptionsState}
           onDiscard={handleDiscard}
           onViewLastResult={handleViewLastResult}

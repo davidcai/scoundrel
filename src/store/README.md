@@ -1,7 +1,7 @@
 # Persisted store layer (Phase 4a)
 
 Saved-data boundary for the Phase 4 interface: run persistence, statistics,
-history, replay/share links, preferences, and REQ-010 recovery. Rules stay in
+history, seeded testing URLs, preferences, and REQ-010 recovery. Rules stay in
 `../engine`; transient selection stays in `gameSession.ts`; this directory owns
 everything that survives a reload.
 
@@ -38,7 +38,7 @@ everything that survives a reload.
 ## Guaranteed behaviour
 
 - One saved run at a time. Starting a fresh attempt through any entry point
-  (New Run, seed, history replay, valid share link) replaces an unfinished run
+  (New Run, seed, history replay) replaces an unfinished run
   without confirmation and records exactly one abandoned loss. The score is the
   engine's loss score for the outgoing draw pile: unresolved room cards and
   remaining health are ignored, an empty/no-monster pile scores 0.
@@ -93,9 +93,8 @@ everything that survives a reload.
   `GameState` (e.g. `createSessionFromState(state)`) before the play screen can
   mount on reload; that helper belongs with `gameSession.ts`, not here.
 - Reloading a completed result should render the result screen from
-  `completedResult`; opening a share link is an explicit fresh attempt and calls
-  `startFromSharedLink(...)`. The route/UI decision for result restoration is
-  part of the Phase 4 interface task.
-- Wire the existing `PreferencesProvider` to `settings` / `updateSettings`, and
-  use `buildReplayLink(...)` for the copy-link action. History timestamps are
+  `completedResult`. Seeded `#/play?seed=...&config=...` URLs remain an internal
+  testing entry point and call `startFromSharedLink(...)`; there is no
+  player-facing replay-link form or copy action.
+- Wire the existing `PreferencesProvider` to `settings` / `updateSettings`. History timestamps are
   stored as canonical UTC ISO strings; the interface formats them locally.

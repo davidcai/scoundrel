@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test';
-import { DEFAULT_RULE_CONFIG, createInitialState } from '../src/engine';
 import {
   findLostScenario,
   openTitle,
@@ -84,46 +83,4 @@ test('replays a listed run as a fresh attempt', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Room 1' })).toBeVisible();
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '20');
   await expect(page.getByRole('heading', { name: 'You fell' })).toHaveCount(0);
-});
-
-test('copies a replay link that reproduces the dungeon', async ({ page, context }, testInfo) => {
-  test.skip(testInfo.project.name !== 'chromium-wide', 'Clipboard copy is Chromium-only here.');
-  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-
-  const loss = await playLossRun(page);
-  const linkInput = page.locator('textarea[readonly]');
-  await expect(linkInput).toHaveCount(1);
-  const link = await linkInput.inputValue();
-  expect(link).toContain('#/play?seed=');
-
-  await page.getByRole('button', { name: 'Copy replay link' }).click();
-  await expect(page.getByTestId('copy-state')).toHaveText('Replay link copied.');
-  const copied = await page.evaluate(() => navigator.clipboard.readText());
-  expect(copied).toBe(link);
-
-  // Open the link in a fresh browser profile: reopening it in the same profile
-  // restores the saved completed result that matches the play route instead of
-  // starting a new attempt.
-  const browser = context.browser();
-  if (browser === null) throw new Error('A browser instance is required.');
-  const recipient = await browser.newContext();
-  try {
-    const recipientPage = await recipient.newPage();
-    await recipientPage.goto(link);
-    await expect(recipientPage.getByRole('heading', { name: 'Room 1' })).toBeVisible();
-    await expect(recipientPage.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '20');
-    const expectedCards = createInitialState(loss.seed, DEFAULT_RULE_CONFIG)
-      .room.cards.map((card) => card.card)
-      .sort();
-    const renderedCards = (
-      await recipientPage
-        .locator('.card[data-card]')
-        .evaluateAll((elements) =>
-          elements.map((element) => element.getAttribute('data-card') ?? ''),
-        )
-    ).sort();
-    expect(renderedCards).toEqual(expectedCards);
-  } finally {
-    await recipient.close();
-  }
 });
