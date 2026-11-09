@@ -60,7 +60,7 @@ describe('persistence and run lifecycle', () => {
 
     renderAppAt('#/');
     expect(screen.getByRole('button', { name: t('title.continue') })).toBeInTheDocument();
-    expect(screen.getByText(new RegExp(seed))).toBeInTheDocument();
+    expect(screen.queryByText(new RegExp(seed))).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: t('title.continue') }));
     expect(roomCards()).toHaveLength(3);
   });

@@ -27,15 +27,18 @@ describe('title screen', () => {
     expect(screen.queryByRole('button', { name: t('title.lastResult') })).not.toBeInTheDocument();
   });
 
-  it('shows the three house-rule options, unchecked by default', () => {
+  it('moves the three house-rule options into settings, unchecked by default', () => {
     renderTitle();
+    fireEvent.click(screen.getByRole('button', { name: t('title.settings') }));
 
-    const checkboxes = screen.getAllByRole('checkbox');
-    expect(checkboxes).toHaveLength(3);
-    for (const checkbox of checkboxes) expect(checkbox).not.toBeChecked();
-    expect(screen.getByText(t('rule.consecutiveEscapesAllowed'))).toBeInTheDocument();
-    expect(screen.getByText(t('rule.unlimitedPotions'))).toBeInTheDocument();
-    expect(screen.getByText(t('rule.degradationOff'))).toBeInTheDocument();
+    for (const rule of [
+      t('rule.consecutiveEscapesAllowed'),
+      t('rule.unlimitedPotions'),
+      t('rule.degradationOff'),
+    ]) {
+      const checkbox = screen.getByRole('checkbox', { name: new RegExp(rule) });
+      expect(checkbox).not.toBeChecked();
+    }
   });
 
   it('renders a decorative artwork fan and a real build version', () => {
@@ -59,10 +62,11 @@ describe('title screen', () => {
 
   it('passes enabled house rules into the new run link', () => {
     renderTitle();
-
+    fireEvent.click(screen.getByRole('button', { name: t('title.settings') }));
     fireEvent.click(
       screen.getByRole('checkbox', { name: new RegExp(t('rule.consecutiveEscapesAllowed')) }),
     );
+    fireEvent.click(screen.getByRole('button', { name: t('settings.close') }));
     fireEvent.click(screen.getByRole('button', { name: t('title.newRun') }));
 
     expect(window.location.hash).toContain('config=1');

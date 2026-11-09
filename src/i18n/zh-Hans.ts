@@ -8,7 +8,7 @@ import type { MessageKey } from './en';
 
 export const zhHans = {
   'app.title': 'Scoundrel',
-  'app.premise': '一款单人轻度 Roguelike 地牢探险卡牌游戏，使用一副标准扑克牌。',
+  'app.premise': '一款单人地牢探险卡牌游戏，使用一副标准扑克牌。',
   'app.skipLink': '跳到房间卡牌',
 
   'title.newRun': '开始新游戏',
@@ -188,7 +188,7 @@ export const zhHans = {
   'a11y.storageNotice': '存档数据提示',
 
   'title.continue': '继续游戏',
-  'title.continueDetail': '房间 {room} · 生命值 {health} / {max} · 种子 {seed}',
+  'title.continueDetail': '房间 {room} · 生命值 {health} / {max}',
   'title.discardRun': '放弃本局',
   'title.discardTitle': '放弃未完成的游戏？',
   'title.discardBody': '本局将记为放弃失败，且无法继续。',
@@ -242,7 +242,7 @@ export const zhHans = {
   'stats.emptyBody': '完成一局后会显示在这里。',
 
   'settings.title': '设置',
-  'settings.backToTitle': '返回标题',
+  'settings.close': '关闭设置',
   'settings.language': '语言',
   'settings.motionTitle': '动画',
   'settings.reduceMotion': '减少动画',

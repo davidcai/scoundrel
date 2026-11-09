@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
-import { DEFAULT_RULE_CONFIG, isMonster, type GameState, type RuleConfig } from './engine';
+import {
+  DEFAULT_RULE_CONFIG,
+  isMonster,
+  ruleOptions,
+  type GameState,
+  type RuleConfig,
+  type RuleOptionName,
+  type RuleOptions,
+} from './engine';
 import { resolveLocale } from './i18n';
 import {
   saveFailureText,
@@ -86,6 +94,9 @@ function AppRoot() {
 
   const [session, dispatch] = useReducer(sessionReducer, null as UiSession | null);
   const [route, setRoute] = useState<Route>(currentRoute);
+  const [ruleOptionsState, setRuleOptionsState] = useState<RuleOptions>(() =>
+    ruleOptions(DEFAULT_RULE_CONFIG),
+  );
   const [notice, setNotice] = useState<ShellNotice | null>(null);
   const bindingRef = useRef<RunBinding | null>(null);
   const noticeIdRef = useRef(0);
@@ -102,6 +113,10 @@ function AppRoot() {
   const clearSession = useCallback(() => {
     bindingRef.current = null;
     dispatch({ type: 'clear' });
+  }, []);
+
+  const toggleRuleOption = useCallback((name: RuleOptionName) => {
+    setRuleOptionsState((previous) => ({ ...previous, [name]: !previous[name] }));
   }, []);
 
   const beginSession = useCallback((run: StartedRun) => {
@@ -418,6 +433,7 @@ function AppRoot() {
           onContinue={handleContinue}
           onStartSeed={handleStartSeed}
           onStartLink={handleStartLink}
+          ruleOptions={ruleOptionsState}
           onDiscard={handleDiscard}
           onViewLastResult={handleViewLastResult}
           onOpenStatistics={openStatistics}
@@ -429,7 +445,13 @@ function AppRoot() {
         <StatsScreen onBackToTitle={backToTitle} onReplay={handleReplay} />
       ) : null}
 
-      {route.name === 'settings' ? <SettingsScreen onBackToTitle={backToTitle} /> : null}
+      {route.name === 'settings' ? (
+        <SettingsScreen
+          ruleOptions={ruleOptionsState}
+          onToggleRule={toggleRuleOption}
+          onClose={backToTitle}
+        />
+      ) : null}
 
       {route.name === 'play' && sessionMatchesRoute ? (
         sessionResult === null ? (

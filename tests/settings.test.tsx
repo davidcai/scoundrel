@@ -72,11 +72,11 @@ describe('settings screen and persisted preferences', () => {
     expect(store.getSnapshot().settings.reducedMotion).toBe(false);
   });
 
-  it('returns to the title from settings', () => {
+  it('closes settings back to the title', () => {
     const storage = createMemoryStorage();
     const store = createScoundrelStore({ storage });
     renderAt('#/settings', store);
-    fireEvent.click(screen.getByRole('button', { name: t('settings.backToTitle') }));
+    fireEvent.click(screen.getByRole('button', { name: t('settings.close') }));
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(t('app.title'));
     expect(window.location.hash).toBe('#/');
   });
