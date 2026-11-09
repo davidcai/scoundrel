@@ -211,7 +211,7 @@ export const zhHans = {
   'title.closeDialog': '关闭',
 
   'stats.title': '统计',
-  'stats.backToTitle': '返回标题',
+  'stats.close': '关闭统计',
   'stats.summaryTitle': '生涯统计',
   'stats.gamesPlayed': '已玩局数',
   'stats.wins': '胜利',

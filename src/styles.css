@@ -1334,13 +1334,6 @@ button {
   margin-top: auto;
 }
 
-.screen-panel__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  padding-top: var(--space-2);
-}
-
 .stats-summary,
 .history {
   display: flex;

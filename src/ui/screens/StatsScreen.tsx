@@ -39,6 +39,14 @@ export function StatsScreen({ onBackToTitle, onReplay }: StatsScreenProps) {
   return (
     <div className="screen-screen">
       <main className="screen-panel" aria-labelledby="stats-heading">
+        <Button
+          variant="ghost"
+          className="screen-panel__close"
+          aria-label={t('stats.close')}
+          onClick={onBackToTitle}
+        >
+          <span aria-hidden="true">×</span>
+        </Button>
         <h1 className="screen-panel__title" id="stats-heading" tabIndex={-1} ref={headingRef}>
           {t('stats.title')}
         </h1>
@@ -160,12 +168,6 @@ export function StatsScreen({ onBackToTitle, onReplay }: StatsScreenProps) {
         </section>
 
         <p className="screen-panel__note">{t('settings.version', { version: APP_VERSION })}</p>
-
-        <div className="screen-panel__actions">
-          <Button variant="secondary" onClick={onBackToTitle}>
-            {t('stats.backToTitle')}
-          </Button>
-        </div>
       </main>
     </div>
   );

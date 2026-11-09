@@ -164,7 +164,7 @@ describe('statistics and history screen', () => {
   it('returns to the title from statistics', () => {
     const { store } = createMemoryStoreFixture();
     renderAt('#/stats', store);
-    fireEvent.click(screen.getByRole('button', { name: t('stats.backToTitle') }));
+    fireEvent.click(screen.getByRole('button', { name: t('stats.close') }));
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(t('app.title'));
     expect(window.location.hash).toBe('#/');
   });

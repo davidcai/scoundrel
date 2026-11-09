@@ -54,6 +54,8 @@ The written style guide was first approved on 2026-11-01 with the scope recorded
 
 **Post-approval correction recorded 2026-11-08 (round 22, user-directed).** The Rules and help dialog uses the shared 44×44 icon close control in the panel's top-right corner instead of a text "Close" button; its accessible name remains "Close". This supersedes the help close-control line in §6; it does not change tokens, typography, the dark-green approval, or D1–D4.
 
+**Post-approval correction recorded 2026-11-08 (round 23, user-directed).** The statistics screen uses the shared 44×44 icon close control in the panel's top-right corner (accessible name "Close statistics") instead of the bottom "Back to title" button. This supersedes the statistics-screen action line in §6; it does not change tokens, typography, the dark-green approval, or D1–D4.
+
 ## Visual treatment
 
 Supports [DEC-001](prd.md#dec-001) and [REQ-016](prd.md#req-016).

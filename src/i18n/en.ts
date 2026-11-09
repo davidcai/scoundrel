@@ -218,7 +218,7 @@ export const en = {
   'title.closeDialog': 'Close',
 
   'stats.title': 'Statistics',
-  'stats.backToTitle': 'Back to title',
+  'stats.close': 'Close statistics',
   'stats.summaryTitle': 'Lifetime statistics',
   'stats.gamesPlayed': 'Games played',
   'stats.wins': 'Wins',
