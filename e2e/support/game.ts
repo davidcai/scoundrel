@@ -117,7 +117,7 @@ export function confirmLabel(step: Extract<UiStep, { kind: 'resolve' }>): string
     case 'weapon':
       return 'Equip weapon';
     case 'potion':
-      return 'Drink potion';
+      return /^Drink potion/;
     default:
       return /^Fight barehanded/;
   }

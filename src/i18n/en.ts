@@ -102,6 +102,7 @@ export const en = {
   'action.useWeaponWithDamage': 'Use weapon (-{damage} HP)',
   'action.equipWeapon': 'Equip weapon',
   'action.drinkPotion': 'Drink potion',
+  'action.drinkPotionWithHeal': 'Drink potion (+{healing} HP)',
 
   'status.resolvedBarehanded': 'Fought {cardName} barehanded: {damage} damage, health {health}.',
   'status.resolvedWeapon':

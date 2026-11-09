@@ -99,7 +99,10 @@ export function PreviewPanel({ session, titleId, onConfirm, roomActions }: Previ
   });
 
   let confirmLabel = t('action.equipWeapon');
-  if (cardKind === 'potion') confirmLabel = t('action.drinkPotion');
+  if (cardKind === 'potion') {
+    const healing = event.type === 'cardResolved' ? event.healing : 0;
+    confirmLabel = t('action.drinkPotionWithHeal', { healing });
+  }
   if (cardKind === 'monster') confirmLabel = t('action.fightBarehanded');
 
   return (

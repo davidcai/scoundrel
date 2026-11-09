@@ -130,7 +130,13 @@ describe('play preview', () => {
       state.health >= 20 ? t('preview.potionWastedFull') : t('preview.potionWastedUsed'),
     );
 
-    fireEvent.click(screen.getByRole('button', { name: t('action.drinkPotion') }));
+    const healing =
+      resolution.ok && resolution.event.type === 'cardResolved' ? resolution.event.healing : 0;
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: t('action.drinkPotionWithHeal', { healing }),
+      }),
+    );
 
     const wasteText = t('status.potionWasted', {
       health:

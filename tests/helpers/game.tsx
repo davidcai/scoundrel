@@ -170,7 +170,7 @@ function confirmLabel(step: Extract<UiStep, { kind: 'resolve' }>): string | RegE
     case 'weapon':
       return t('action.equipWeapon');
     case 'potion':
-      return t('action.drinkPotion');
+      return /^Drink potion/;
     default:
       return /^Fight barehanded/;
   }

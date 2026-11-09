@@ -101,6 +101,7 @@ export const zhHans = {
   'action.useWeaponWithDamage': '使用武器（-{damage} HP）',
   'action.equipWeapon': '装备武器',
   'action.drinkPotion': '喝下药水',
+  'action.drinkPotionWithHeal': '喝下药水（+{healing} HP）',
 
   'status.resolvedBarehanded': '徒手迎战 {cardName}：受到 {damage} 点伤害，生命值 {health}。',
   'status.resolvedWeapon':
