@@ -50,6 +50,8 @@ describe('approved layout rules', () => {
     expect(phone).toContain('order: 2');
     expect(phone).toContain('flex-direction: row');
     expect(phone).toContain('flex: 0 0 33.333%');
+    expect(phone).toContain('flex: 1 1 0');
+    expect(phone).toContain('align-items: flex-start');
   });
 
   it('lets the play room shrink and grow without horizontal scrolling', () => {

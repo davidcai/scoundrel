@@ -1645,6 +1645,12 @@ button {
     max-width: 33.333%;
   }
 
+  .weapon-rail > .kill-stack {
+    flex: 1 1 0;
+    min-width: 0;
+    align-items: flex-start;
+  }
+
   .weapon__card,
   .weapon__card .card__frame {
     width: 100%;
