@@ -58,6 +58,47 @@ describe('settings screen and persisted preferences', () => {
     );
   });
 
+  it('offers Auto and follows the browser language preference', () => {
+    const original = Object.getOwnPropertyDescriptor(window.navigator, 'languages');
+    Object.defineProperty(window.navigator, 'languages', {
+      configurable: true,
+      get: () => ['zh-CN', 'en'],
+    });
+    try {
+      const storage = createMemoryStorage();
+      const store = createScoundrelStore({ storage });
+      const view = renderAt('#/settings', store);
+
+      const auto = screen.getByRole('button', { name: t('language.auto') });
+      expect(auto).toHaveAttribute('aria-pressed', 'false');
+      expect(screen.getByRole('button', { name: t('language.english') })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+
+      fireEvent.click(auto);
+      expect(store.getSnapshot().settings.locale).toBe('auto');
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(zh('settings.title'));
+      expect(screen.getByRole('button', { name: zh('language.auto') })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      expect(screen.getByRole('button', { name: zh('language.english') })).toHaveAttribute(
+        'aria-pressed',
+        'false',
+      );
+      expect(document.documentElement.lang).toBe('zh-Hans');
+      view.unmount();
+
+      const reloaded = createScoundrelStore({ storage });
+      renderAt('#/settings', reloaded);
+      expect(reloaded.getSnapshot().settings.locale).toBe('auto');
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(zh('settings.title'));
+    } finally {
+      if (original !== undefined) Object.defineProperty(window.navigator, 'languages', original);
+    }
+  });
+
   it('turns reduced motion back to full when the preference is cleared', () => {
     const storage = createMemoryStorage();
     const store = createScoundrelStore({ storage });

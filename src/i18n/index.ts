@@ -9,6 +9,7 @@ import { en, type MessageKey } from './en';
 import { zhHans } from './zh-Hans';
 
 export type Locale = 'en' | 'zh-Hans';
+export type LocalePreference = Locale | 'auto';
 export type MessageParams = Readonly<Record<string, string | number>>;
 export type Messages = Readonly<Record<MessageKey, string>>;
 export type Translate = (key: MessageKey, params?: MessageParams) => string;
@@ -19,6 +20,7 @@ export type { MessageKey };
 export const DEFAULT_LOCALE: Locale = 'en';
 
 export const LOCALES: readonly Locale[] = ['en', 'zh-Hans'];
+export const LOCALE_PREFERENCES: readonly LocalePreference[] = ['auto', ...LOCALES];
 
 export const CATALOGS: Readonly<Record<Locale, Messages>> = {
   en,
@@ -33,6 +35,10 @@ export const LOCALE_TAGS: Readonly<Record<Locale, string>> = {
 
 export function isLocale(value: string): value is Locale {
   return (LOCALES as readonly string[]).includes(value);
+}
+
+export function isLocalePreference(value: string): value is LocalePreference {
+  return (LOCALE_PREFERENCES as readonly string[]).includes(value);
 }
 
 /**

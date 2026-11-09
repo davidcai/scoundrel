@@ -6,11 +6,11 @@
  * per-run and belong to the run payload; changing settings never changes an
  * active run's rules.
  */
-import { DEFAULT_LOCALE, isLocale, type Locale } from '../i18n';
+import { DEFAULT_LOCALE, isLocalePreference, type LocalePreference } from '../i18n';
 import { isRecord } from './validation';
 
 export interface StoredSettings {
-  readonly locale: Locale;
+  readonly locale: LocalePreference;
   /** `true` forces reduced motion, `false` forces full motion, `null` follows the system. */
   readonly reducedMotion: boolean | null;
 }
@@ -24,7 +24,7 @@ export function isStoredSettings(value: unknown): value is StoredSettings {
   if (!isRecord(value)) return false;
   return (
     typeof value.locale === 'string' &&
-    isLocale(value.locale) &&
+    isLocalePreference(value.locale) &&
     (value.reducedMotion === null || typeof value.reducedMotion === 'boolean')
   );
 }
@@ -32,7 +32,7 @@ export function isStoredSettings(value: unknown): value is StoredSettings {
 /** Merge a partial preference change, keeping the previous values for omitted keys. */
 export function mergeSettings(
   current: StoredSettings,
-  patch: { readonly locale?: Locale; readonly reducedMotion?: boolean | null },
+  patch: { readonly locale?: LocalePreference; readonly reducedMotion?: boolean | null },
 ): StoredSettings {
   return {
     locale: patch.locale ?? current.locale,

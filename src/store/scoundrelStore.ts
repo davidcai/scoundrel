@@ -26,7 +26,7 @@ import {
   type RuleConfig,
   type RunResult,
 } from '../engine';
-import type { Locale } from '../i18n';
+import type { LocalePreference } from '../i18n';
 import { createPersistedRun, isGameState, isPersistedRun, type PersistedRun } from './activeRun';
 import type { HistoryEntry } from './history';
 import {
@@ -208,7 +208,7 @@ export interface ScoundrelStore {
 
   saveSettings(settings: StoredSettings): SaveSettingsResult;
   updateSettings(patch: {
-    readonly locale?: Locale;
+    readonly locale?: LocalePreference;
     readonly reducedMotion?: boolean | null;
   }): SaveSettingsResult;
 
@@ -965,7 +965,7 @@ export function createScoundrelStore(options: ScoundrelStoreOptions = {}): Scoun
   }
 
   function updateSettings(patch: {
-    readonly locale?: Locale;
+    readonly locale?: LocalePreference;
     readonly reducedMotion?: boolean | null;
   }): SaveSettingsResult {
     const current = readSettingsForMutation();

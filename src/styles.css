@@ -357,10 +357,9 @@ button {
   gap: var(--space-3);
   width: 100%;
   margin: 0;
-  padding: var(--space-4);
-  border: 1px solid var(--border-2);
-  border-radius: var(--radius-3);
-  background: var(--surface-1);
+  padding: 0;
+  border: 0;
+  background: transparent;
   text-align: left;
 }
 
@@ -1336,6 +1335,10 @@ button {
   font-size: var(--text-small);
 }
 
+.screen-panel__version {
+  margin-top: auto;
+}
+
 .screen-panel__actions {
   display: flex;
   flex-wrap: wrap;
@@ -1503,6 +1506,11 @@ button {
   gap: var(--space-3);
   padding-bottom: var(--space-4);
   border-bottom: 1px solid var(--border-1);
+}
+
+.settings-section:last-of-type {
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 
 .settings-checkbox {

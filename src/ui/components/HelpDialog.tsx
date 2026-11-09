@@ -7,7 +7,7 @@ const HELP_TITLE_ID = 'help-dialog-title';
 
 /** Contextual rules help plus language and reduced-motion preferences (REQ-015). */
 export function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { t, locale, setLocale, reducedMotion, setReducedMotion } = usePreferences();
+  const { t, localePreference, setLocale, reducedMotion, setReducedMotion } = usePreferences();
 
   return (
     <Dialog open={open} titleId={HELP_TITLE_ID} onClose={onClose} className="dialog__panel--help">
@@ -53,12 +53,16 @@ export function HelpDialog({ open, onClose }: { open: boolean; onClose: () => vo
         <section className="help__preferences">
           <h3>{t('language.group')}</h3>
           <div className="language-toggle" role="group" aria-label={t('language.group')}>
-            <Button variant="ghost" aria-pressed={locale === 'en'} onClick={() => setLocale('en')}>
+            <Button
+              variant="ghost"
+              aria-pressed={localePreference === 'en'}
+              onClick={() => setLocale('en')}
+            >
               {t('language.english')}
             </Button>
             <Button
               variant="ghost"
-              aria-pressed={locale === 'zh-Hans'}
+              aria-pressed={localePreference === 'zh-Hans'}
               onClick={() => setLocale('zh-Hans')}
             >
               {t('language.chinese')}

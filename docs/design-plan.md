@@ -38,6 +38,8 @@ The written style guide was first approved on 2026-11-01 with the scope recorded
 
 **Post-approval correction recorded 2026-11-08 (round 14, user-directed).** House rules moved off the title screen into Settings: the same three options are now held by the app shell so they apply to the next new run, seed, or replay link and survive a round trip through Settings. The title premise no longer says "rogue-like", the Continue detail drops the seed ("Room N · HP H / 20"), and Settings gains a 44px close control in the panel's top-right corner instead of the bottom "Back to title" button. This supersedes the corresponding title/settings lines in §6; it does not change tokens, typography, the dark-green approval, or D1–D4.
 
+**Post-approval correction recorded 2026-11-08 (round 15, user-directed).** Settings gained an explicit "Auto" language option (REQ-012): it stores the auto preference, resolves the interface language from `navigator.languages`, and falls back to English when no supported language matches; English and Simplified Chinese remain explicit choices. The House-rules fieldset lost its frame border, the last Settings section lost its bottom divider, and the version line now sits at the bottom of the panel. This supersedes the corresponding Settings lines in §6; it does not change tokens, typography, the dark-green approval, or D1–D4.
+
 ## Visual treatment
 
 Supports [DEC-001](prd.md#dec-001) and [REQ-016](prd.md#req-016).

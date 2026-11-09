@@ -25,6 +25,7 @@ export const en = {
   'rule.degradationOffHint': 'Weapons can fight any monster',
   'rule.defaults': 'Default rules',
 
+  'language.auto': 'Auto',
   'language.english': 'English',
   'language.chinese': '简体中文',
   'language.group': 'Language',
@@ -251,6 +252,7 @@ export const en = {
   'settings.title': 'Settings',
   'settings.close': 'Close settings',
   'settings.language': 'Language',
+  'settings.languageAutoHint': 'Auto follows your browser language.',
   'settings.motionTitle': 'Motion',
   'settings.reduceMotion': 'Reduce motion',
   'settings.motionHint': 'Follows your system setting until you change it.',

@@ -25,6 +25,7 @@ export const zhHans = {
   'rule.degradationOffHint': '武器可以攻击任何怪物',
   'rule.defaults': '默认规则',
 
+  'language.auto': '自动',
   'language.english': 'English',
   'language.chinese': '简体中文',
   'language.group': '语言',
@@ -244,6 +245,7 @@ export const zhHans = {
   'settings.title': '设置',
   'settings.close': '关闭设置',
   'settings.language': '语言',
+  'settings.languageAutoHint': '自动跟随浏览器语言。',
   'settings.motionTitle': '动画',
   'settings.reduceMotion': '减少动画',
   'settings.motionHint': '在更改之前跟随系统设置。',
