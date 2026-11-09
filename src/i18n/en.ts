@@ -194,7 +194,6 @@ export const en = {
 
   // Phase 4: persistence, statistics, settings, and recovery.
   'title.continue': 'Continue run',
-  'title.continueDetail': 'Room {room} · Health {health} / {max}',
   'title.discardRun': 'Discard run',
   'title.discardTitle': 'Discard unfinished run?',
   'title.discardBody': 'The run will be recorded as an abandoned loss and cannot be resumed.',

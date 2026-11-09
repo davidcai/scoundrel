@@ -1557,13 +1557,6 @@ button {
   gap: var(--space-2);
 }
 
-.title-screen__continue-detail {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: var(--text-small);
-  text-align: center;
-}
-
 .title-screen__entries {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

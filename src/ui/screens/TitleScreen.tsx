@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
-import { MAX_HEALTH, type CardId, type RuleConfig, type RuleOptions } from '../../engine';
+import { type CardId, type RuleConfig, type RuleOptions } from '../../engine';
 import { startFailureText, type StartFailureReason } from '../../i18n/messages';
 import type { ActiveRunView } from '../../store';
 import { configFromOptions } from '../../store/selectors';
@@ -127,13 +127,6 @@ export function TitleScreen({
               <Button variant="primary" onClick={handleContinue}>
                 {t('title.continue')}
               </Button>
-              <p className="title-screen__continue-detail">
-                {t('title.continueDetail', {
-                  room: activeRun.state.highlights.roomsExplored,
-                  health: activeRun.state.health,
-                  max: MAX_HEALTH,
-                })}
-              </p>
               <Button variant="danger" onClick={() => setDiscardOpen(true)}>
                 {t('title.discardRun')}
               </Button>
