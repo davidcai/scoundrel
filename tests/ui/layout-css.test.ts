@@ -49,6 +49,7 @@ describe('approved layout rules', () => {
     expect(phone).toContain('.play-main__weapon');
     expect(phone).toContain('order: 2');
     expect(phone).toContain('flex-direction: row');
+    expect(phone).toContain('flex: 0 0 33.333%');
   });
 
   it('lets the play room shrink and grow without horizontal scrolling', () => {

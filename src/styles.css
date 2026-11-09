@@ -1639,6 +1639,20 @@ button {
     justify-content: space-between;
     gap: var(--space-4);
   }
+
+  .weapon-rail > .weapon {
+    flex: 0 0 33.333%;
+    max-width: 33.333%;
+  }
+
+  .weapon__card,
+  .weapon__card .card__frame {
+    width: 100%;
+  }
+
+  .weapon__empty-slot {
+    width: 100%;
+  }
 }
 
 @media (max-width: 767px) {
