@@ -1650,6 +1650,22 @@ button {
 
 /* ---------- Responsive ---------- */
 
+/* Tablet portrait: stack the rail below the room so all four cards fit in one
+   row; 960px+ keeps the two-column layout, whose room column can hold four. */
+@media (min-width: 768px) and (max-width: 959px) {
+  .play-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .play-main__room {
+    order: 1;
+  }
+
+  .play-main__weapon {
+    order: 2;
+  }
+}
+
 @media (max-width: 767px) {
   .play-header {
     flex-wrap: nowrap;

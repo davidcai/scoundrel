@@ -200,7 +200,6 @@ export const zhHans = {
   'title.statistics': '统计',
   'title.settings': '设置',
   'title.lastResult': '上次结果',
-  'title.runReplaced': '未完成的游戏已记为放弃失败。',
   'title.closeDialog': '关闭',
 
   'stats.title': '统计',

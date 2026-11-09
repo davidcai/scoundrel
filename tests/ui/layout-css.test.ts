@@ -47,6 +47,15 @@ describe('approved layout rules', () => {
     expect(css).toMatch(/\.preview__room-actions:empty\s*\{[^}]*padding-top:\s*0/);
   });
 
+  it('keeps tablet portrait room cards in one row', () => {
+    const tablet = block(/@media \(min-width: 768px\) and \(max-width: 959px\) \{[\s\S]*?\n\}/);
+    expect(tablet).toContain('grid-template-columns: minmax(0, 1fr)');
+    expect(tablet).toContain('.play-main__room');
+    expect(tablet).toContain('order: 1');
+    expect(tablet).toContain('.play-main__weapon');
+    expect(tablet).toContain('order: 2');
+  });
+
   it('uses a two-column medium layout with the dungeon count in the header', () => {
     const mediumBlocks = Array.from(css.matchAll(/@media \(max-width: 1199px\) \{[\s\S]*?\n\}/g))
       .map((match) => match[0])

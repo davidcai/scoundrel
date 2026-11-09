@@ -186,7 +186,6 @@ function AppRoot() {
     );
     if (started.ok) {
       beginSession(started.run);
-      if (started.abandonedLossRecorded) pushNotice('info', t('title.runReplaced'));
       return;
     }
     pushNotice('error', startFailureText(t, started.reason));
@@ -298,7 +297,6 @@ function AppRoot() {
     (config: RuleConfig): StartOutcome => {
       const result = store.startNewRun(config);
       if (!result.ok) return result.reason;
-      if (result.abandonedLossRecorded) pushNotice('info', t('title.runReplaced'));
       beginSession(result.run);
       return null;
     },
@@ -326,7 +324,6 @@ function AppRoot() {
     (seed: string, config: RuleConfig): StartOutcome => {
       const result = store.startRunWithSeed(seed, config);
       if (!result.ok) return result.reason;
-      if (result.abandonedLossRecorded) pushNotice('info', t('title.runReplaced'));
       beginSession(result.run);
       return null;
     },
@@ -348,7 +345,6 @@ function AppRoot() {
         pushNotice('error', startFailureText(t, result.reason));
         return;
       }
-      if (result.abandonedLossRecorded) pushNotice('info', t('title.runReplaced'));
       beginSession(result.run);
     },
     [store, beginSession, pushNotice, t],

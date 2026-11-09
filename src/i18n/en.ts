@@ -207,7 +207,6 @@ export const en = {
   'title.statistics': 'Statistics',
   'title.settings': 'Settings',
   'title.lastResult': 'Last result',
-  'title.runReplaced': 'Your unfinished run was recorded as an abandoned loss.',
   'title.closeDialog': 'Close',
 
   'stats.title': 'Statistics',
