@@ -351,25 +351,17 @@ button {
   color: var(--text-1);
 }
 
-.title-screen__rules {
+.rules-options {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   width: 100%;
-  max-width: 480px;
   margin: 0;
   padding: var(--space-4);
   border: 1px solid var(--border-2);
   border-radius: var(--radius-3);
   background: var(--surface-1);
   text-align: left;
-}
-
-.title-screen__rules-title {
-  padding: 0 var(--space-2);
-  color: var(--text-2);
-  font-size: var(--text-label);
-  font-weight: 600;
 }
 
 .rule-option {
@@ -1292,6 +1284,7 @@ button {
 }
 
 .screen-panel {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
@@ -1301,6 +1294,19 @@ button {
   border-radius: var(--radius-3);
   background: var(--surface-1);
   box-shadow: var(--shadow-3);
+}
+
+.screen-panel__close {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .screen-panel__title {

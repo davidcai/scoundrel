@@ -8,7 +8,7 @@
  */
 export const en = {
   'app.title': 'Scoundrel',
-  'app.premise': 'A single-player rogue-like dungeon crawl played with a standard deck.',
+  'app.premise': 'A single-player dungeon crawl played with a standard deck.',
   'app.skipLink': 'Skip to room cards',
 
   'title.newRun': 'New run',
@@ -195,7 +195,7 @@ export const en = {
 
   // Phase 4: persistence, statistics, settings, and recovery.
   'title.continue': 'Continue run',
-  'title.continueDetail': 'Room {room} · Health {health} / {max} · Seed {seed}',
+  'title.continueDetail': 'Room {room} · Health {health} / {max}',
   'title.discardRun': 'Discard run',
   'title.discardTitle': 'Discard unfinished run?',
   'title.discardBody': 'The run will be recorded as an abandoned loss and cannot be resumed.',
@@ -249,7 +249,7 @@ export const en = {
   'stats.emptyBody': 'Finish a run and it will appear here.',
 
   'settings.title': 'Settings',
-  'settings.backToTitle': 'Back to title',
+  'settings.close': 'Close settings',
   'settings.language': 'Language',
   'settings.motionTitle': 'Motion',
   'settings.reduceMotion': 'Reduce motion',

@@ -1,20 +1,6 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
-import {
-  DEFAULT_RULE_CONFIG,
-  MAX_HEALTH,
-  ruleOptions,
-  type CardId,
-  type RuleConfig,
-  type RuleOptionName,
-  type RuleOptions,
-} from '../../engine';
-import {
-  RULE_HINT_KEYS,
-  RULE_LABEL_KEYS,
-  RULE_OPTION_ORDER,
-  startFailureText,
-  type StartFailureReason,
-} from '../../i18n/messages';
+import { MAX_HEALTH, type CardId, type RuleConfig, type RuleOptions } from '../../engine';
+import { startFailureText, type StartFailureReason } from '../../i18n/messages';
 import type { ActiveRunView } from '../../store';
 import { configFromOptions } from '../../store/selectors';
 import { usePreferences } from '../../store/preferences';
@@ -38,6 +24,7 @@ export interface TitleScreenProps {
   onViewLastResult: () => void;
   onOpenStatistics: () => void;
   onOpenSettings: () => void;
+  ruleOptions: RuleOptions;
 }
 
 /** Decorative, aria-hidden fan of current PNG artwork outside the text column. */
@@ -45,7 +32,7 @@ const TITLE_FAN: readonly CardId[] = ['spade-k', 'club-q', 'diamond-10'];
 
 /**
  * Title screen: resume or start runs, enter a seed or replay link, open
- * statistics/settings/help, and choose house rules. Starting a run replaces an
+ * statistics/settings/help; house rules live in settings. Starting a run replaces an
  * unfinished one without confirmation and records exactly one abandoned loss
  * (REQ-001); discarding asks first.
  */
@@ -60,9 +47,9 @@ export function TitleScreen({
   onViewLastResult,
   onOpenStatistics,
   onOpenSettings,
+  ruleOptions,
 }: TitleScreenProps) {
   const { t, locale, setLocale } = usePreferences();
-  const [options, setOptions] = useState<RuleOptions>(() => ruleOptions(DEFAULT_RULE_CONFIG));
   const [helpOpen, setHelpOpen] = useState(false);
   const [seedOpen, setSeedOpen] = useState(false);
   const [seedValue, setSeedValue] = useState('');
@@ -88,11 +75,7 @@ export function TitleScreen({
     headingRef.current?.focus();
   }, []);
 
-  const toggle = (name: RuleOptionName) => {
-    setOptions((previous) => ({ ...previous, [name]: !previous[name] }));
-  };
-
-  const config = () => configFromOptions(options);
+  const config = () => configFromOptions(ruleOptions);
 
   const handleContinue = () => {
     const failure = onContinue();
@@ -159,7 +142,6 @@ export function TitleScreen({
                   room: activeRun.state.highlights.roomsExplored,
                   health: activeRun.state.health,
                   max: MAX_HEALTH,
-                  seed: activeRun.state.seed,
                 })}
               </p>
               <Button variant="danger" onClick={() => setDiscardOpen(true)}>
@@ -291,17 +273,6 @@ export function TitleScreen({
             </Button>
           </form>
         ) : null}
-
-        <fieldset className="title-screen__rules">
-          <legend className="title-screen__rules-title">{t('title.rulesOptions')}</legend>
-          {RULE_OPTION_ORDER.map((name) => (
-            <label key={name} className="rule-option">
-              <input type="checkbox" checked={options[name]} onChange={() => toggle(name)} />
-              <span className="rule-option__label">{t(RULE_LABEL_KEYS[name])}</span>
-              <span className="rule-option__hint">{t(RULE_HINT_KEYS[name])}</span>
-            </label>
-          ))}
-        </fieldset>
       </main>
 
       <footer className="title-screen__footer">

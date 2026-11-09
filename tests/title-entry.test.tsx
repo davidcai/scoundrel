@@ -33,9 +33,11 @@ describe('title entry points', () => {
     const store = createScoundrelStore({ storage: createMemoryStorage() });
     renderAt('#/', store);
 
+    fireEvent.click(screen.getByRole('button', { name: t('title.settings') }));
     fireEvent.click(
       screen.getByRole('checkbox', { name: new RegExp(t('rule.consecutiveEscapesAllowed')) }),
     );
+    fireEvent.click(screen.getByRole('button', { name: t('settings.close') }));
     fireEvent.click(screen.getByRole('button', { name: t('title.enterSeed') }));
     fireEvent.change(screen.getByRole('textbox', { name: t('title.seedLabel') }), {
       target: { value: 'entry-seed' },
