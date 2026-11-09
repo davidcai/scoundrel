@@ -117,9 +117,6 @@ describe('statistics and history screen', () => {
 
     const rows = historyRows();
     expect(rows).toHaveLength(3);
-    expect(rows[0]).toHaveTextContent('seed-abandoned');
-    expect(rows[1]).toHaveTextContent('seed-won-2');
-    expect(rows[2]).toHaveTextContent('seed-won-1');
     expect(within(rows[0]!).getByTestId('history-outcome')).toHaveClass(
       'history-outcome--abandoned',
     );
@@ -145,9 +142,10 @@ describe('statistics and history screen', () => {
       t('stats.columnDate'),
       t('stats.columnOutcome'),
       t('stats.columnScore'),
-      t('stats.columnSeed'),
+      t('stats.columnRules'),
     ]);
-    expect(headers).toHaveLength(6);
+    expect(headers).toHaveLength(5);
+    expect(headers).not.toContain('Seed');
     expect(headers).not.toContain('Rooms cleared');
   });
 

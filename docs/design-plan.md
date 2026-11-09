@@ -124,6 +124,8 @@ The written style guide was first approved on 2026-11-01 with the scope recorded
 
 **Post-approval correction recorded 2026-11-08 (round 57, user-directed).** The statistics history table drops the Rooms cleared column; its columns are Date, Outcome, Score, Seed, Rules, Replay. This supersedes the column list in §5/§6; it does not change tokens, typography, the dark-green approval, or D1–D4.
 
+**Post-approval correction recorded 2026-11-08 (round 58, user-directed).** The statistics history table drops the Seed column; its columns are Date, Outcome, Score, Rules, Replay. This supersedes the column list in §5/§6; it does not change tokens, typography, the dark-green approval, or D1–D4.
+
 ## Visual treatment
 
 Supports [DEC-001](prd.md#dec-001) and [REQ-016](prd.md#req-016).

@@ -223,7 +223,6 @@ export const zhHans = {
   'stats.historyNote': '仅保留最新 30 局。',
   'stats.historyCaption': '已完成的对局，最新在前',
   'stats.columnDate': '日期',
-  'stats.columnSeed': '种子',
   'stats.columnRules': '规则',
   'stats.columnOutcome': '结果',
   'stats.columnScore': '得分',

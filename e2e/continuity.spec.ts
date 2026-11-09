@@ -62,7 +62,6 @@ test('keeps a completed result after reload and records statistics once', async 
     page.locator('dt', { hasText: 'Losses' }).locator('xpath=following-sibling::dd'),
   ).toHaveText('1');
   await expect(page.getByTestId('history-outcome')).toHaveText('Lost');
-  await expect(page.getByText(loss.seed).first()).toBeVisible();
 
   await page.reload();
   await expect(

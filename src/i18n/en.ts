@@ -230,7 +230,6 @@ export const en = {
   'stats.historyNote': 'The newest 30 runs are kept.',
   'stats.historyCaption': 'Completed runs, newest first',
   'stats.columnDate': 'Date',
-  'stats.columnSeed': 'Seed',
   'stats.columnRules': 'Rules',
   'stats.columnOutcome': 'Outcome',
   'stats.columnScore': 'Score',
