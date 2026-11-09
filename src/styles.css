@@ -1697,6 +1697,10 @@ button {
     padding-inline: 0;
   }
 
+  .room-grid {
+    gap: var(--space-2);
+  }
+
   .preview__title {
     font-size: var(--text-body-strong);
   }
