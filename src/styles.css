@@ -544,6 +544,7 @@ button {
 }
 
 .health__value {
+  margin-left: var(--space-1);
   color: var(--health);
 }
 
@@ -1658,9 +1659,13 @@ button {
     gap: var(--space-4);
   }
 
+  .weapon-rail {
+    --phone-weapon-width: min(96px, calc((100vw - 2 * var(--space-6)) / 3.75));
+  }
+
   .weapon-rail > .weapon {
-    flex: 0 0 33.333%;
-    max-width: 33.333%;
+    flex: 0 0 calc(var(--phone-weapon-width) + var(--space-3));
+    max-width: calc(var(--phone-weapon-width) + var(--space-3));
   }
 
   .weapon-rail > .kill-stack {
@@ -1671,8 +1676,8 @@ button {
 
   /* Never let a defeated card grow taller than the equipped weapon card. */
   .kill-stack__thumb {
-    flex: 0 0 min(96px, calc((100vw - 2 * var(--space-6)) / 3.75));
-    width: min(96px, calc((100vw - 2 * var(--space-6)) / 3.75));
+    flex: 0 0 var(--phone-weapon-width);
+    width: var(--phone-weapon-width);
     max-height: calc((100vw - 2 * var(--space-6)) / 2.5);
   }
 
@@ -1684,17 +1689,18 @@ button {
     width: 100%;
   }
 
-  .weapon__card .card__frame {
-    width: 80%;
-  }
-
+  .weapon__card .card__frame,
   .weapon__empty-slot {
-    width: 80%;
+    width: var(--phone-weapon-width);
   }
 
   .rail-title {
-    font-size: var(--text-body);
+    font-size: var(--text-small);
     white-space: nowrap;
+  }
+
+  .weapon--empty .rail-title {
+    white-space: normal;
   }
 }
 

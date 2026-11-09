@@ -30,6 +30,7 @@ describe('approved layout rules', () => {
 
   it('colors the HP value like the fill and removes the seed frame', () => {
     expect(block(/^\.health__value \{[\s\S]*?\n\}/m)).toContain('color: var(--health)');
+    expect(block(/^\.health__value \{[\s\S]*?\n\}/m)).toContain('margin-left: var(--space-1)');
     expect(css).toMatch(/\.health--low \.health__value \{\s*color: var\(--wasted\);/);
     const seed = block(/^\.play-screen__seed \{[\s\S]*?\n\}/m);
     expect(seed).toContain('border: 0');
@@ -65,11 +66,11 @@ describe('approved layout rules', () => {
     expect(phone).toContain('.play-main__weapon');
     expect(phone).toContain('order: 2');
     expect(phone).toContain('flex-direction: row');
-    expect(phone).toContain('flex: 0 0 33.333%');
     expect(phone).toContain('flex: 1 1 0');
     expect(phone).toContain('align-content: start');
-    expect(phone).toContain('width: 80%');
-    expect(phone).toContain('font-size: var(--text-body)');
+    expect(phone).toContain('--phone-weapon-width: min(96px');
+    expect(phone).toContain('flex: 0 0 calc(var(--phone-weapon-width) + var(--space-3))');
+    expect(phone).toContain('font-size: var(--text-small)');
     expect(phone).toContain('max-height: calc((100vw - 2 * var(--space-6)) / 2.5)');
     expect(phone).toContain('align-items: flex-start');
   });

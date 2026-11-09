@@ -32,7 +32,10 @@ export function WeaponRail({ view }: { view: WeaponView }) {
 
   return (
     <div className="weapon-rail" ref={railRef}>
-      <section className="weapon" aria-label={t('a11y.weapon')}>
+      <section
+        className={view.weapon === null ? 'weapon weapon--empty' : 'weapon'}
+        aria-label={t('a11y.weapon')}
+      >
         <h2 className="rail-title">
           {view.weapon === null
             ? t('a11y.weapon')
