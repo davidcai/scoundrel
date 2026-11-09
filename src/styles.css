@@ -493,6 +493,22 @@ button {
   gap: var(--space-4);
 }
 
+.play-header__right {
+  flex: 0 0 auto;
+}
+
+.play-header__menu {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+}
+
+.play-header__menu svg {
+  width: 20px;
+  height: 20px;
+}
+
 /* Draw-pile count sits immediately after the health label/bar. */
 .dungeon-status {
   display: inline-flex;
@@ -1636,14 +1652,16 @@ button {
 
 @media (max-width: 767px) {
   .play-header {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    align-items: flex-start;
     justify-content: space-between;
     gap: var(--space-2);
     padding: var(--space-2) var(--space-4);
   }
 
   .play-header__status {
-    width: 100%;
+    flex: 1;
+    width: auto;
     justify-content: flex-start;
   }
 

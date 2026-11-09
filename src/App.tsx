@@ -437,6 +437,7 @@ function AppRoot() {
             session={session}
             dispatch={dispatch}
             sessionOnly={sessionOnlyFor(snapshot)}
+            onBackToTitle={backToTitle}
           />
         ) : (
           <ResultScreen

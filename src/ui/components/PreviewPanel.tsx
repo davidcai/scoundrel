@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import type { AttackMode } from '../../engine';
 import {
   describeCardPreview,
@@ -25,6 +25,7 @@ export interface PreviewPanelProps {
  */
 export function PreviewPanel({ session, titleId, onConfirm, roomActions }: PreviewPanelProps) {
   const { t } = usePreferences();
+  const weaponHintId = useId();
   const { preview, previewRejection, state } = session;
   const weaponValue = state.weapon?.value ?? null;
   const roomActionsSlot =
@@ -58,6 +59,13 @@ export function PreviewPanel({ session, titleId, onConfirm, roomActions }: Previ
   if (preview.kind === 'monster') {
     const monster = preview.preview;
     const weaponEligible = monster.weapon !== null && monster.weapon.eligible;
+    const weaponReason =
+      monster.weapon !== null && !weaponEligible
+        ? t('preview.weaponIneligible', {
+            weaponValue: weaponValue ?? 0,
+            limit: monster.weapon.limit ?? 0,
+          })
+        : null;
     return (
       <section className="preview" aria-labelledby={titleId}>
         <h2 className="preview__title" id={titleId}>
@@ -72,6 +80,7 @@ export function PreviewPanel({ session, titleId, onConfirm, roomActions }: Previ
             <Button
               variant={weaponEligible ? 'primary' : 'secondary'}
               aria-disabled={weaponEligible ? undefined : true}
+              aria-describedby={weaponReason === null ? undefined : weaponHintId}
               onClick={weaponEligible ? () => onConfirm('weapon') : undefined}
             >
               {weaponEligible
@@ -86,6 +95,11 @@ export function PreviewPanel({ session, titleId, onConfirm, roomActions }: Previ
             {t('action.fightBarehandedWithDamage', { damage: monster.barehanded.damage })}
           </Button>
         </div>
+        {weaponReason !== null ? (
+          <p className="preview__hint" id={weaponHintId}>
+            {weaponReason}
+          </p>
+        ) : null}
         {roomActionsSlot}
       </section>
     );

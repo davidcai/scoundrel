@@ -44,6 +44,7 @@ export const zhHans = {
   'play.roomHint': '每个房间处理三张牌；在最后一个房间中处理所有牌。',
   'play.roomHintCleared': '房间已清空。准备好后进入下一个房间。',
   'play.actionBar': '房间操作',
+  'play.backToTitle': '返回标题',
   'play.disabledAction': '{action}：{reason}',
   'play.enterNextRoom': '进入下一个房间',
   'play.runAway': '逃跑',
