@@ -90,7 +90,7 @@ describe('persistence and run lifecycle', () => {
     expect(snapshot.completedResult).not.toBeNull();
   });
 
-  it('replaces an unfinished run without confirmation and records one abandoned loss', () => {
+  it('asks before New run replaces an unfinished run and records one abandoned loss', () => {
     renderAppAt('#/');
     fireEvent.click(screen.getByRole('button', { name: t('title.newRun') }));
     const firstSeed = seedFromHash();
@@ -101,6 +101,15 @@ describe('persistence and run lifecycle', () => {
     expect(screen.getByRole('button', { name: t('title.continue') })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: t('title.newRun') }));
 
+    let dialog = screen.getByRole('dialog', { name: t('title.discardTitle') });
+    fireEvent.click(within(dialog).getByRole('button', { name: t('title.discardCancel') }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(probe().activeRun?.seed).toBe(firstSeed);
+
+    fireEvent.click(screen.getByRole('button', { name: t('title.newRun') }));
+    dialog = screen.getByRole('dialog', { name: t('title.discardTitle') });
+    fireEvent.click(within(dialog).getByRole('button', { name: t('title.discardConfirm') }));
+
     const secondSeed = seedFromHash();
     expect(secondSeed).not.toBe(firstSeed);
 
@@ -110,6 +119,14 @@ describe('persistence and run lifecycle', () => {
     expect(snapshot.history).toHaveLength(1);
     expect(snapshot.history[0]?.abandoned).toBe(true);
     expect(snapshot.history[0]?.seed).toBe(firstSeed);
+  });
+
+  it('starts a new run directly when no unfinished run exists', () => {
+    renderAppAt('#/');
+    fireEvent.click(screen.getByRole('button', { name: t('title.newRun') }));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(window.location.hash).toContain('#/play?seed=');
   });
 
   it('asks before discarding and records one abandoned loss on confirm', () => {

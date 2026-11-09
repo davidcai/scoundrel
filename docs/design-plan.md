@@ -64,6 +64,8 @@ The written style guide was first approved on 2026-11-01 with the scope recorded
 
 **Post-approval correction recorded 2026-11-08 (round 27, user-directed).** The title screen no longer shows the "Room N · Health H / 20" line beneath Continue run; Continue stands alone with Discard run. This supersedes the Continue-detail line in §6; it does not change tokens, typography, the dark-green approval, or D1–D4.
 
+**Post-approval correction recorded 2026-11-08 (round 28, user-directed).** Clicking New run while an unfinished run exists opens the existing "Discard unfinished run?" dialog before replacing it. Keep run leaves the active run untouched; Discard run records the abandoned loss and starts the new run. With no unfinished run, New run starts immediately with no dialog. This supersedes the title replacement-confirmation line in §6; it does not change tokens, typography, the dark-green approval, or D1–D4.
+
 ## Visual treatment
 
 Supports [DEC-001](prd.md#dec-001) and [REQ-016](prd.md#req-016).

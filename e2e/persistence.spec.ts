@@ -21,6 +21,8 @@ test('records one abandoned loss when a new run replaces an unfinished run', asy
   await expect(page.getByRole('button', { name: 'Continue run' })).toBeVisible();
 
   await page.getByRole('button', { name: 'New run' }).click();
+  await expect(page.getByRole('heading', { name: 'Discard unfinished run?' })).toBeVisible();
+  await page.getByRole('dialog').getByRole('button', { name: 'Discard run' }).click();
   await expect(page.getByTestId('shell-notice')).toContainText('recorded as an abandoned loss');
   await expect(page.locator('.room-grid')).toBeVisible();
 
