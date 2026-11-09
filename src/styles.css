@@ -1573,6 +1573,10 @@ button {
 /* Secondary title actions are outlined in a dimmed accent; the label uses the
    same color as the border. Hover uses the danger button's surface. Primary
    and danger buttons keep their own treatments. */
+.title-screen__actions .button--danger {
+  background: transparent;
+}
+
 .title-screen__actions .button--ghost,
 .title-screen__actions .button--secondary {
   --title-secondary: color-mix(in srgb, var(--accent) 60%, var(--border-2));
@@ -1590,6 +1594,13 @@ button {
 
 .title-screen__entries .button {
   width: 100%;
+}
+
+.title-screen__form.title-screen__form--dialog {
+  max-width: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .title-screen__form {

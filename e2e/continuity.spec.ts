@@ -83,6 +83,8 @@ test('rejects an invalid seed without changing the active run', async ({ page })
   await page.getByRole('button', { name: 'Start with this seed' }).click();
 
   await expect(page.getByTestId('seed-error')).toBeVisible();
+  await page.getByRole('button', { name: 'Close' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Continue run' })).toBeVisible();
   await page.getByRole('button', { name: 'Continue run' }).click();
   await expect(page.getByRole('progressbar')).toHaveAttribute(
