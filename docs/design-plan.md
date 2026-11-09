@@ -76,6 +76,8 @@ The written style guide was first approved on 2026-11-01 with the scope recorded
 
 **Post-approval correction recorded 2026-11-08 (round 33, user-directed).** Responsive branching is removed from the play screen: it always uses the wide desktop composition. Below 1000px the play screen scrolls horizontally inside its own surface while the page's layout viewport stays at the device width; the title, settings, statistics, result, and dialogs keep their responsive behavior. The tablet/compact play layouts, compact preview sheet, narrow card fallback, and compact action-bar rules are removed. This supersedes the play-screen responsive lines in §4 and §6; it does not change tokens, typography, the dark-green approval, or D1–D4.
 
+**Post-approval correction recorded 2026-11-08 (round 34, user-directed).** The play main body now uses the full 1440px content width instead of stopping at 1200px, so the room/preview column expands into the page's right side on large screens. This supersedes the play main max-width line in §6; it does not change tokens, typography, the dark-green approval, or D1–D4.
+
 ## Visual treatment
 
 Supports [DEC-001](prd.md#dec-001) and [REQ-016](prd.md#req-016).

@@ -587,7 +587,7 @@ button {
   grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
   gap: var(--space-6);
   width: 100%;
-  max-width: 1200px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: var(--space-6);
 }

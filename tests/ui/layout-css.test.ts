@@ -34,6 +34,11 @@ describe('approved layout rules', () => {
     expect(css).toMatch(/\.preview__room-actions:empty\s*\{[^}]*padding-top:\s*0/);
   });
 
+  it('lets the play main body use the full content width', () => {
+    const main = block(/^\.play-main \{[\s\S]*?\n\}/m);
+    expect(main).toContain('max-width: 1440px');
+  });
+
   it('keeps the play surface on the wide layout at every viewport', () => {
     const narrowPlay = block(/@media \(max-width: 999px\) \{[\s\S]*?\n\}/);
     expect(narrowPlay).toContain('overflow-x: auto');
