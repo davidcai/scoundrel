@@ -44,6 +44,7 @@ export const en = {
   'play.roomHint': 'Resolve three cards per room; in the final room, resolve every card.',
   'play.roomHintCleared': 'Room cleared. Enter the next room when ready.',
   'play.actionBar': 'Room actions',
+  'play.backToTitle': 'Back to title',
   'play.disabledAction': '{action}: {reason}',
   'play.enterNextRoom': 'Enter next room',
   'play.runAway': 'Run away',

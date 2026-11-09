@@ -19,6 +19,7 @@ import {
   getWeaponView,
 } from '../../store/selectors';
 import { ActionBar } from '../components/ActionBar';
+import { Button } from '../components/Button';
 import { useAnnounce } from '../components/Announcer';
 import { Dialog } from '../components/Dialog';
 import { DungeonStatus } from '../components/DungeonStatus';
@@ -35,6 +36,8 @@ export interface PlayScreenProps {
   dispatch: Dispatch<UiAction>;
   /** True when this session cannot be persisted (storage unavailable or a bad run shard). */
   sessionOnly?: boolean;
+  /** Return to the title without discarding the saved run. */
+  onBackToTitle: () => void;
 }
 
 /**
@@ -45,7 +48,12 @@ export interface PlayScreenProps {
  * its first card on wider layouts; clearing a room focuses the enabled "Enter
  * next room"; undo focuses the restored selection.
  */
-export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScreenProps) {
+export function PlayScreen({
+  session,
+  dispatch,
+  sessionOnly = false,
+  onBackToTitle,
+}: PlayScreenProps) {
   const { t } = usePreferences();
   const announce = useAnnounce();
   const compact = useMediaQuery('(max-width: 767px)');
@@ -232,11 +240,27 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
             <HealthMeter health={health.health} max={health.max} />
             <DungeonStatus count={dungeonCount} />
           </div>
-          {sessionOnly ? (
-            <div className="play-header__right">
+          <div className="play-header__right">
+            {sessionOnly ? (
               <span className="play-header__unsaved">{t('play.sessionOnly')}</span>
-            </div>
-          ) : null}
+            ) : null}
+            <Button
+              variant="ghost"
+              className="play-header__menu"
+              aria-label={t('play.backToTitle')}
+              onClick={onBackToTitle}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                aria-hidden="true"
+              >
+                <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
+              </svg>
+            </Button>
+          </div>
         </header>
 
         <main className="play-main">

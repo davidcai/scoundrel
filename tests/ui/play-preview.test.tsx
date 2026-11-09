@@ -97,6 +97,12 @@ describe('play preview', () => {
     const weaponChoice = screen.getByRole('button', { name: t('action.useWeapon') });
     expect(weaponChoice).toHaveAttribute('aria-disabled', 'true');
     expect(weaponChoice).toHaveTextContent(t('action.useWeapon'));
+    const weaponReason = t('preview.weaponIneligible', {
+      weaponValue: state.weapon?.value ?? 0,
+      limit: preview.preview.weapon?.limit ?? 0,
+    });
+    expect(screen.getByText(weaponReason)).toBeInTheDocument();
+    expect(weaponChoice).toHaveAccessibleDescription(weaponReason);
     expect(document.querySelector('.preview__title')?.textContent).toBe(
       formatMonsterMatchupTitle(t, preview.preview, state.weapon?.value ?? null),
     );

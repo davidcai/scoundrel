@@ -18,6 +18,15 @@ function typeKey(cardId: CardId): MessageKey {
 }
 
 describe('play accessibility', () => {
+  it('returns to the title from the header menu and keeps the run resumable', () => {
+    openRun(SEED, DEFAULT_RULE_CONFIG);
+
+    fireEvent.click(screen.getByRole('button', { name: t('play.backToTitle') }));
+
+    expect(screen.getByRole('heading', { level: 1, name: t('app.title') })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: t('title.continue') })).toBeInTheDocument();
+  });
+
   it('exposes card identity and the type caption in the accessible name', () => {
     openRun(SEED, DEFAULT_RULE_CONFIG);
 
