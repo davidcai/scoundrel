@@ -1679,6 +1679,17 @@ button {
     align-items: flex-start;
   }
 
+  /* Never let a defeated card grow taller than the equipped weapon card. */
+  .kill-stack__thumb {
+    flex: 0 0 min(96px, calc((100vw - 2 * var(--space-6)) / 3));
+    width: min(96px, calc((100vw - 2 * var(--space-6)) / 3));
+    max-height: calc((100vw - 2 * var(--space-6)) / 2);
+  }
+
+  .kill-stack__thumb .card__frame {
+    max-height: inherit;
+  }
+
   .weapon__card,
   .weapon__card .card__frame {
     width: 100%;
