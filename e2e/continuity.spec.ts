@@ -46,7 +46,7 @@ test('resumes an active run after reload', async ({ page }) => {
 });
 
 test('keeps a completed result after reload and records statistics once', async ({ page }) => {
-  const loss = await playLossRun(page);
+  await playLossRun(page);
 
   await page.reload();
   await expect(page.getByRole('heading', { name: 'You fell' })).toBeVisible();
