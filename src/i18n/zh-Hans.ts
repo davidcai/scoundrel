@@ -220,7 +220,7 @@ export const zhHans = {
   'stats.winRateValue': '{percent}%',
   'stats.historyTitle': '对局历史',
   'stats.historyEmpty': '还没有已完成的对局。',
-  'stats.historyNote': '仅保留最新 50 局。',
+  'stats.historyNote': '仅保留最新 30 局。',
   'stats.historyCaption': '已完成的对局，最新在前',
   'stats.columnDate': '日期',
   'stats.columnSeed': '种子',

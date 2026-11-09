@@ -2,7 +2,7 @@
  * Lifetime statistics and run history (REQ-013).
  *
  * Everything rendered here comes from the committed store snapshot: lifetime
- * counters, the newest-first history (already trimmed to 50), and one replay
+ * counters, the newest-first history (already trimmed to 30), and one replay
  * action per readable history entry.
  */
 import { useEffect, useId, useRef } from 'react';
@@ -112,10 +112,10 @@ export function StatsScreen({ onBackToTitle, onReplay }: StatsScreenProps) {
                   <thead>
                     <tr>
                       <th scope="col">{t('stats.columnDate')}</th>
-                      <th scope="col">{t('stats.columnSeed')}</th>
-                      <th scope="col">{t('stats.columnRules')}</th>
                       <th scope="col">{t('stats.columnOutcome')}</th>
                       <th scope="col">{t('stats.columnScore')}</th>
+                      <th scope="col">{t('stats.columnSeed')}</th>
+                      <th scope="col">{t('stats.columnRules')}</th>
                       <th scope="col">{t('stats.columnRoomsCleared')}</th>
                       <th scope="col">
                         <span className="visually-hidden">{t('stats.replay')}</span>
@@ -128,10 +128,6 @@ export function StatsScreen({ onBackToTitle, onReplay }: StatsScreenProps) {
                         <td className="history-table__date">
                           {formatHistoryDate(locale, entry.finishedAt)}
                         </td>
-                        <td className="history-table__seed">
-                          <code>{entry.seed}</code>
-                        </td>
-                        <td>{formatRulesDescription(t, locale, entry.config)}</td>
                         <td>
                           <span
                             className={cnOutcome(entry.outcome, entry.abandoned)}
@@ -143,6 +139,10 @@ export function StatsScreen({ onBackToTitle, onReplay }: StatsScreenProps) {
                         <td className="history-table__score data-table__numeric">
                           {formatNumber(locale, entry.score)}
                         </td>
+                        <td className="history-table__seed">
+                          <code>{entry.seed}</code>
+                        </td>
+                        <td>{formatRulesDescription(t, locale, entry.config)}</td>
                         <td className="data-table__numeric">
                           {formatNumber(locale, entry.roomsCleared)}
                         </td>

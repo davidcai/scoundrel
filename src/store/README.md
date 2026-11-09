@@ -13,7 +13,7 @@ everything that survives a reload.
 | `persistence.ts` | Schema version, storage keys, versioned envelopes, ordered migrations, shard reads/writes |
 | `validation.ts` | Small shape guards shared by the payload validators |
 | `activeRun.ts` | Saved-run payload (`PersistedRun`) and deep validation of a saved `GameState` |
-| `history.ts` | History entry shape and newest-first, 50-entry trim |
+| `history.ts` | History entry shape and newest-first, 30-entry trim |
 | `stats.ts` | Lifetimes statistics, streak/best-score updates, win rate, once-only recording ledger |
 | `settings.ts` | Persisted locale and reduced-motion preference |
 | `share.ts` | `#/play?seed=…&config=…` build/parse (REQ-014) |
@@ -28,7 +28,7 @@ everything that survives a reload.
   `persistence.ts`. A schema change bumps it and adds the matching upgrade step
   to `SHARD_MIGRATIONS`; otherwise older/newer payloads are reported as
   `unsupported-version` and preserved.
-- `stats` holds lifetime statistics, the newest 50 history entries, and a
+- `stats` holds lifetime statistics, the newest 30 history entries, and a
   bounded ledger of recorded run ids (200). The ledger is what makes outcome
   recording idempotent across reloads and tabs.
 - `run` holds one payload: either an unfinished run (resumable, including the

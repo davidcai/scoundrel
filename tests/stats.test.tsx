@@ -132,6 +132,23 @@ describe('statistics and history screen', () => {
     expect(scrollRegion).toBeDefined();
   });
 
+  it('places outcome and score immediately after the date column', () => {
+    const { storage } = createMemoryStoreFixture();
+    writeShard(storage, 'stats', sampleStats());
+    const store = createScoundrelStore({ storage });
+    renderAt('#/stats', store);
+
+    const headers = Array.from(document.querySelectorAll('.history-table thead th')).map(
+      (cell) => cell.textContent,
+    );
+    expect(headers.slice(0, 4)).toEqual([
+      t('stats.columnDate'),
+      t('stats.columnOutcome'),
+      t('stats.columnScore'),
+      t('stats.columnSeed'),
+    ]);
+  });
+
   it('replays a listed run with its original seed and options', () => {
     const { storage } = createMemoryStoreFixture();
     writeShard(storage, 'stats', sampleStats());
@@ -149,15 +166,15 @@ describe('statistics and history screen', () => {
     expect(store.getSnapshot().activeRun?.seed).toBe('seed-won-1');
   });
 
-  it('shows fifty rows when more than fifty runs were recorded', () => {
+  it('shows thirty rows when more than thirty runs were recorded', () => {
     const { store } = createMemoryStoreFixture();
-    recordCompletedRuns(store, 51);
-    expect(store.getSnapshot().statistics.gamesPlayed).toBe(51);
-    expect(store.getSnapshot().history).toHaveLength(50);
+    recordCompletedRuns(store, 31);
+    expect(store.getSnapshot().statistics.gamesPlayed).toBe(31);
+    expect(store.getSnapshot().history).toHaveLength(30);
 
     renderAt('#/stats', store);
-    expect(historyRows()).toHaveLength(50);
-    expect(summaryValue(t('stats.gamesPlayed'))).toBe('51');
+    expect(historyRows()).toHaveLength(30);
+    expect(summaryValue(t('stats.gamesPlayed'))).toBe('31');
     expect(screen.getByText(t('stats.historyNote'))).toBeInTheDocument();
   });
 

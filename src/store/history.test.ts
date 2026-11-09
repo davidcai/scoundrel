@@ -97,8 +97,8 @@ describe('addHistoryEntry', () => {
     const next = addHistoryEntry(history, newest);
     expect(next).toHaveLength(HISTORY_LIMIT);
     expect(next[0]?.runId).toBe('run-newest');
-    expect(next.some((entry) => entry.runId === 'run-50')).toBe(false);
-    expect(next.at(-1)?.runId).toBe('run-49');
+    expect(next.some((entry) => entry.runId === `run-${HISTORY_LIMIT}`)).toBe(false);
+    expect(next.at(-1)?.runId).toBe(`run-${HISTORY_LIMIT - 1}`);
   });
 
   it('moves a replaced run id to the front without duplicating it', () => {

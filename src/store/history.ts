@@ -1,7 +1,7 @@
 /**
  * Recent run history (REQ-013).
  *
- * History is a newest-first list capped at the newest 50 completed runs,
+ * History is a newest-first list capped at the newest 30 completed runs,
  * including abandoned losses. An unfinished active run never occupies an
  * entry. Trimming only removes list entries; lifetime statistics live in the
  * same stats shard and are updated from the same recorded outcome.
@@ -9,7 +9,7 @@
 import { isRuleConfig, parseSeed, type RuleConfig, type RunOutcome } from '../engine';
 import { isIsoTimestamp, isNonEmptyString, isRecord } from './validation';
 
-export const HISTORY_LIMIT = 50;
+export const HISTORY_LIMIT = 30;
 
 /** One recorded run: a completed win/loss or an abandoned unfinished run. */
 export interface HistoryEntry {

@@ -779,10 +779,10 @@ describe('statistics, streaks, and history', () => {
     });
   });
 
-  it('trims history to the newest 50 while lifetime statistics keep 51 games', () => {
+  it('trims history to the newest 30 while lifetime statistics keep 31 games', () => {
     const first = createHarness();
     const completedRunIds: string[] = [];
-    for (let index = 0; index < 51; index += 1) {
+    for (let index = 0; index < 31; index += 1) {
       const run = expectStarted(first.store.startRunWithSeed('plain-257', 0));
       completedRunIds.push(run.runId);
       const result = first.store.completeRun(run.runId, winningState());
@@ -790,17 +790,17 @@ describe('statistics, streaks, and history', () => {
     }
 
     const snapshot = first.store.getSnapshot();
-    expect(snapshot.history).toHaveLength(50);
-    expect(snapshot.statistics.gamesPlayed).toBe(51);
-    expect(snapshot.statistics.wins).toBe(51);
-    expect(snapshot.statistics.currentStreak).toBe(51);
-    expect(snapshot.statistics.bestStreak).toBe(51);
+    expect(snapshot.history).toHaveLength(30);
+    expect(snapshot.statistics.gamesPlayed).toBe(31);
+    expect(snapshot.statistics.wins).toBe(31);
+    expect(snapshot.statistics.currentStreak).toBe(31);
+    expect(snapshot.statistics.bestStreak).toBe(31);
     expect(snapshot.history[0]?.runId).toBe(completedRunIds.at(-1));
     expect(snapshot.history.some((entry) => entry.runId === completedRunIds[0])).toBe(false);
 
     const reloaded = createHarness({ storage: first.storage, idPrefix: 'reload' });
-    expect(reloaded.store.getSnapshot().history).toHaveLength(50);
-    expect(reloaded.store.getSnapshot().statistics.gamesPlayed).toBe(51);
+    expect(reloaded.store.getSnapshot().history).toHaveLength(30);
+    expect(reloaded.store.getSnapshot().statistics.gamesPlayed).toBe(31);
     expect(reloaded.store.getSnapshot().history[0]?.runId).toBe(completedRunIds.at(-1));
   });
 });

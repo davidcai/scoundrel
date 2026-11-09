@@ -227,7 +227,7 @@ export const en = {
   'stats.winRateValue': '{percent}%',
   'stats.historyTitle': 'Run history',
   'stats.historyEmpty': 'No completed runs yet.',
-  'stats.historyNote': 'The newest 50 runs are kept.',
+  'stats.historyNote': 'The newest 30 runs are kept.',
   'stats.historyCaption': 'Completed runs, newest first',
   'stats.columnDate': 'Date',
   'stats.columnSeed': 'Seed',

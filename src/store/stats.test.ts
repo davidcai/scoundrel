@@ -168,25 +168,25 @@ describe('recordOutcome', () => {
     expect(abandoned.next.history[0]?.score).toBe(-38);
   });
 
-  it('keeps lifetime stats while trimming history to the newest 50', () => {
-    const entries = Array.from({ length: 51 }, (_value, index) =>
+  it('keeps lifetime stats while trimming history to the newest 30', () => {
+    const entries = Array.from({ length: 31 }, (_value, index) =>
       makeEntry({
         runId: `run-${index + 1}`,
-        outcome: index === 50 ? 'lost' : 'won',
+        outcome: index === 30 ? 'lost' : 'won',
         score: index,
         finishedAt: `2026-10-31T12:${String(Math.floor(index / 60)).padStart(2, '0')}:${String(index % 60).padStart(2, '0')}.000Z`,
       }),
     );
     const stats = recordAll(entries);
 
-    expect(stats.statistics.gamesPlayed).toBe(51);
-    expect(stats.statistics.wins).toBe(50);
+    expect(stats.statistics.gamesPlayed).toBe(31);
+    expect(stats.statistics.wins).toBe(30);
     expect(stats.statistics.losses).toBe(1);
-    expect(stats.statistics.bestScore).toBe(50);
-    expect(stats.history).toHaveLength(50);
-    expect(stats.history[0]?.runId).toBe('run-51');
+    expect(stats.statistics.bestScore).toBe(30);
+    expect(stats.history).toHaveLength(30);
+    expect(stats.history[0]?.runId).toBe('run-31');
     expect(stats.history.some((entry) => entry.runId === 'run-1')).toBe(false);
-    expect(stats.recordedRunIds).toHaveLength(51);
+    expect(stats.recordedRunIds).toHaveLength(31);
   });
 
   it('caps the recorded-run ledger while keeping the newest ids', () => {
@@ -231,7 +231,7 @@ describe('isStoredStats', () => {
 
   it('accepts a trimmed history whose entries are all in the ledger', () => {
     const stats = recordAll(
-      Array.from({ length: 51 }, (_value, index) => makeEntry({ runId: `run-${index}` })),
+      Array.from({ length: 31 }, (_value, index) => makeEntry({ runId: `run-${index}` })),
     );
     expect(isStoredStats(stats)).toBe(true);
   });
