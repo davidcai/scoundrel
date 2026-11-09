@@ -79,10 +79,10 @@ run.
 
 Per-project coverage: complete-run (winning fixture replay and doomed-policy loss through the real
 interface), continuity (active-run resume after reload, completed-result reload, invalid
-seed/link/route no-ops, corrupt and newer-version recovery with raw payload preservation,
-session-only mode), persistence (replacement records exactly one abandoned loss, discard requires
-confirmation, statistics recorded once across reload and a second tab, history replay starts a
-fresh attempt, replay-link copy and fresh-profile deck round-trip), preferences (language and
+seed/route no-ops, seeded testing URL entry, corrupt and newer-version recovery with raw payload
+preservation, session-only mode), persistence (replacement records exactly one abandoned loss,
+discard requires confirmation, statistics recorded once across reload and a second tab, history
+replay starts a fresh attempt), preferences (language and
 reduce-motion persistence, unsupported browser-language fallback), keyboard-only complete winning
 playthrough with visible focus and dialog focus trapping, compact touch targets and sheet
 placement, and strict axe scans on title, help, statistics, settings, play, selected preview, and
@@ -118,12 +118,12 @@ unverified item; they are not a release blocker.
 | REQ-006 explain item outcomes | preview and card tests | automated — passing |
 | REQ-007 run away | engine escape tests, winning fixture includes a run-away step | automated — passing |
 | REQ-008 undo to room start | engine undo tests, e2e keyboard and touch undo | automated — passing |
-| REQ-009 finish and review | result tests, e2e result reload, replay-link copy | automated — passing |
+| REQ-009 finish and review | result tests, e2e result reload | automated — passing |
 | REQ-010 preserve progress and preferences | store persistence tests, e2e continuity/recovery/session-only | automated — passing |
 | REQ-011 house rules | engine house-rule tests, title tests | automated — passing |
 | REQ-012 language and motion | preferences tests, e2e preferences spec | automated — passing |
 | REQ-013 statistics and history | `tests/stats.test.tsx`, store stats tests, e2e abandonment/once-only/history | automated — passing (51-run trim unit-tested only) |
-| REQ-014 share and replay | share tests, e2e replay link round-trip | automated — passing (same-profile edge noted below) |
+| REQ-014 seed replay | share/seed tests, e2e seeded testing URL | automated — passing |
 | REQ-015 contextual help | help tests, e2e axe scans | automated — passing |
 | REQ-016 browsers and layouts | matrix above | Chromium wide/medium/compact/narrow pass locally and in CI; Chrome-only scope |
 | REQ-017 accessibility | strict axe WCAG 2.2 AA scans, keyboard and touch checks | automated scans pass; manual Safari/AT spot checks pending |
@@ -198,9 +198,6 @@ authorized** and were not performed.
 - **Cross-tab**: adoption of another tab's replacement/finish is covered by unit/integration tests,
   not by an e2e two-tab scenario; the e2e second-tab check covers statistics once-only.
 - **History trim**: the 51-run trim is unit-tested but not exercised end-to-end.
-- **Same-profile replay link**: opening your own replay link in the same profile restores the saved
-  completed result instead of starting a fresh attempt; a fresh profile replays correctly. Recorded
-  as a known limitation/follow-up candidate.
 - **Potion wording**: "Potions wasted" is the recorded accepted deviation from the guide's
   illustrative "potion used/wasted" wording.
 - **Screen reader**: basic semantics/labels are covered by axe and automated checks; extensive

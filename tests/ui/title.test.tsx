@@ -19,7 +19,7 @@ describe('title screen', () => {
     expect(screen.getByRole('button', { name: t('title.statistics') })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: t('title.settings') })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: t('title.enterSeed') })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: t('title.replayLink') })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /replay link/i })).not.toBeInTheDocument();
 
     // Nothing is saved yet, so there is nothing to continue or discard.
     expect(screen.queryByRole('button', { name: t('title.continue') })).not.toBeInTheDocument();

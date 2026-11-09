@@ -198,11 +198,6 @@ export const zhHans = {
   'title.seedPlaceholder': '输入种子',
   'title.seedHint': '1–64 个字符，去除首尾空格；区分大小写。',
   'title.startWithSeed': '使用该种子开始',
-  'title.replayLink': '回放链接',
-  'title.linkLabel': '回放链接或种子链接',
-  'title.linkPlaceholder': '粘贴回放链接',
-  'title.linkHint': '回放链接以 #/play?seed= 开头',
-  'title.openLink': '从链接开始',
   'title.statistics': '统计',
   'title.settings': '设置',
   'title.lastResult': '上次结果',
@@ -249,10 +244,6 @@ export const zhHans = {
   'settings.motionHint': '在更改之前跟随系统设置。',
   'settings.version': '版本 {version}',
 
-  'result.replayLinkLabel': '回放链接',
-  'result.copyLink': '复制回放链接',
-  'result.linkCopied': '回放链接已复制。',
-  'result.linkCopyFailed': '无法自动复制链接，请选中后手动复制。',
   'result.viewStatistics': '查看统计',
 
   'error.invalidSeed': '种子无效。请使用 1–64 个字符。',

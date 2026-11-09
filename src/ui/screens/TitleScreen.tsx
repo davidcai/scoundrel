@@ -19,7 +19,6 @@ export interface TitleScreenProps {
   onNewRun: (config: RuleConfig) => StartOutcome;
   onContinue: () => StartOutcome;
   onStartSeed: (seed: string, config: RuleConfig) => StartOutcome;
-  onStartLink: (input: string, config: RuleConfig) => StartOutcome;
   onDiscard: () => StartOutcome;
   onViewLastResult: () => void;
   onOpenStatistics: () => void;
@@ -31,7 +30,7 @@ export interface TitleScreenProps {
 const TITLE_FAN: readonly CardId[] = ['spade-k', 'club-q', 'diamond-10'];
 
 /**
- * Title screen: resume or start runs, enter a seed or replay link, open
+ * Title screen: resume or start runs, enter a seed, open
  * statistics/settings/help; house rules live in settings. Starting a run replaces an
  * unfinished one without confirmation and records exactly one abandoned loss
  * (REQ-001); discarding asks first.
@@ -42,7 +41,6 @@ export function TitleScreen({
   onNewRun,
   onContinue,
   onStartSeed,
-  onStartLink,
   onDiscard,
   onViewLastResult,
   onOpenStatistics,
@@ -54,9 +52,6 @@ export function TitleScreen({
   const [seedOpen, setSeedOpen] = useState(false);
   const [seedValue, setSeedValue] = useState('');
   const [seedError, setSeedError] = useState<StartOutcome>(null);
-  const [linkOpen, setLinkOpen] = useState(false);
-  const [linkValue, setLinkValue] = useState('');
-  const [linkError, setLinkError] = useState<StartOutcome>(null);
   const [startError, setStartError] = useState<StartOutcome>(null);
   const [discardOpen, setDiscardOpen] = useState(false);
   const [discardError, setDiscardError] = useState<string | null>(null);
@@ -66,10 +61,6 @@ export function TitleScreen({
   const seedInputId = useId();
   const seedHintId = useId();
   const seedErrorId = useId();
-  const linkFormId = useId();
-  const linkInputId = useId();
-  const linkHintId = useId();
-  const linkErrorId = useId();
 
   useEffect(() => {
     headingRef.current?.focus();
@@ -86,12 +77,6 @@ export function TitleScreen({
     event.preventDefault();
     const failure = onStartSeed(seedValue, config());
     setSeedError(failure);
-  };
-
-  const handleLinkSubmit = (event: FormEvent) => {
-    event.preventDefault();
-    const failure = onStartLink(linkValue, config());
-    setLinkError(failure);
   };
 
   const handleDiscardConfirm = () => {
@@ -177,14 +162,6 @@ export function TitleScreen({
             >
               {t('title.enterSeed')}
             </Button>
-            <Button
-              variant="ghost"
-              aria-expanded={linkOpen}
-              aria-controls={linkFormId}
-              onClick={() => setLinkOpen((open) => !open)}
-            >
-              {t('title.replayLink')}
-            </Button>
             <Button variant="secondary" onClick={onOpenStatistics}>
               {t('title.statistics')}
             </Button>
@@ -225,38 +202,6 @@ export function TitleScreen({
             ) : null}
             <Button type="submit" variant="primary">
               {t('title.startWithSeed')}
-            </Button>
-          </form>
-        ) : null}
-
-        {linkOpen ? (
-          <form className="title-screen__form" id={linkFormId} onSubmit={handleLinkSubmit}>
-            <label className="field-label" htmlFor={linkInputId}>
-              {t('title.linkLabel')}
-            </label>
-            <input
-              className="text-input"
-              id={linkInputId}
-              type="text"
-              value={linkValue}
-              placeholder={t('title.linkPlaceholder')}
-              aria-invalid={linkError !== null}
-              aria-describedby={`${linkHintId}${linkError !== null ? ` ${linkErrorId}` : ''}`}
-              onChange={(event) => {
-                setLinkValue(event.target.value);
-                setLinkError(null);
-              }}
-            />
-            <p className="field-hint" id={linkHintId}>
-              {t('title.linkHint')}
-            </p>
-            {linkError !== null ? (
-              <p className="field-error" id={linkErrorId} data-testid="link-error">
-                {startFailureText(t, linkError)}
-              </p>
-            ) : null}
-            <Button type="submit" variant="primary">
-              {t('title.openLink')}
             </Button>
           </form>
         ) : null}

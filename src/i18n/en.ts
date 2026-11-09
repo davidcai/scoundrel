@@ -205,11 +205,6 @@ export const en = {
   'title.seedPlaceholder': 'Enter a seed',
   'title.seedHint': '1–64 characters, trimmed; case-sensitive.',
   'title.startWithSeed': 'Start with this seed',
-  'title.replayLink': 'Replay link',
-  'title.linkLabel': 'Replay link or seed URL',
-  'title.linkPlaceholder': 'Paste a replay link',
-  'title.linkHint': 'Replay links start with #/play?seed=',
-  'title.openLink': 'Start from link',
   'title.statistics': 'Statistics',
   'title.settings': 'Settings',
   'title.lastResult': 'Last result',
@@ -256,10 +251,6 @@ export const en = {
   'settings.motionHint': 'Follows your system setting until you change it.',
   'settings.version': 'Version {version}',
 
-  'result.replayLinkLabel': 'Replay link',
-  'result.copyLink': 'Copy replay link',
-  'result.linkCopied': 'Replay link copied.',
-  'result.linkCopyFailed': 'The link could not be copied. Select it and copy manually.',
   'result.viewStatistics': 'View statistics',
 
   'error.invalidSeed': 'That seed is not valid. Use 1–64 characters.',

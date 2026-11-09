@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import App from '../src/App';
 import { createTranslator } from '../src/i18n';
-import { buildReplayHash, createScoundrelStore } from '../src/store';
+import { createScoundrelStore } from '../src/store';
 import { createMemoryStorage } from '../src/store/storage';
 
 const t = createTranslator('en');
@@ -49,38 +49,6 @@ describe('title entry points', () => {
     expect(screen.getByLabelText(t('a11y.seed', { seed: 'entry-seed' }))).toBeInTheDocument();
     expect(roomCards()).toHaveLength(4);
     expect(store.getSnapshot().activeRun?.config).toBe(1);
-  });
-
-  it('starts from a replay link with the options carried by the link', () => {
-    const store = createScoundrelStore({ storage: createMemoryStorage() });
-    renderAt('#/', store);
-
-    fireEvent.click(screen.getByRole('button', { name: t('title.replayLink') }));
-    fireEvent.change(screen.getByRole('textbox', { name: t('title.linkLabel') }), {
-      target: { value: buildReplayHash('link-seed', 2) },
-    });
-    fireEvent.click(screen.getByRole('button', { name: t('title.openLink') }));
-
-    expect(window.location.hash).toContain('seed=link-seed');
-    expect(window.location.hash).toContain('config=2');
-    expect(screen.getByLabelText(t('a11y.seed', { seed: 'link-seed' }))).toBeInTheDocument();
-    expect(store.getSnapshot().activeRun?.config).toBe(2);
-  });
-
-  it('rejects an invalid link without losing the unfinished run', () => {
-    const storage = createMemoryStorage();
-    const store = openStoredRun(storage);
-
-    fireEvent.click(screen.getByRole('button', { name: t('title.replayLink') }));
-    fireEvent.change(screen.getByRole('textbox', { name: t('title.linkLabel') }), {
-      target: { value: 'not a link' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: t('title.openLink') }));
-
-    expect(screen.getByTestId('link-error')).toHaveTextContent(t('error.invalidLink'));
-    expect(window.location.hash).toBe('#/');
-    expect(screen.getByRole('button', { name: t('title.continue') })).toBeInTheDocument();
-    expect(store.getSnapshot().activeRun).not.toBeNull();
   });
 
   it('traps focus in the discard dialog and restores it on Escape', () => {
