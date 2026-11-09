@@ -1619,6 +1619,28 @@ button {
   display: contents;
 }
 
+/* Phone: put the rail below the room/preview/actions, with the weapon and
+   defeated-monsters sections side by side. Tablets keep the desktop rail. */
+@media (max-width: 767px) {
+  .play-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .play-main__room {
+    order: 1;
+  }
+
+  .play-main__weapon {
+    order: 2;
+  }
+
+  .weapon-rail {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+}
+
 @media (max-width: 767px) {
   .dialog {
     align-items: end;

@@ -38,13 +38,25 @@ describe('approved layout rules', () => {
     expect(main).toContain('max-width: 1440px');
   });
 
+  it('moves the rail below the room on phones', () => {
+    const start = css.indexOf('/* Phone: put the rail below');
+    expect(start).toBeGreaterThanOrEqual(0);
+    const phoneStart = css.indexOf('@media (max-width: 767px) {', start);
+    const phone = css.slice(start, css.indexOf('@media (max-width: 767px) {', phoneStart + 1));
+    expect(phone).toContain('grid-template-columns: minmax(0, 1fr)');
+    expect(phone).toContain('.play-main__room');
+    expect(phone).toContain('order: 1');
+    expect(phone).toContain('.play-main__weapon');
+    expect(phone).toContain('order: 2');
+    expect(phone).toContain('flex-direction: row');
+  });
+
   it('lets the play room shrink and grow without horizontal scrolling', () => {
     const grid = block(/^\.room-grid \{[\s\S]*?\n\}/m);
     expect(grid).toContain('grid-template-columns: repeat(4, minmax(0, 1fr))');
     expect(grid).not.toContain('max-width');
     expect(css).not.toContain('min-width: 1000px');
     expect(css).not.toContain('@container');
-    expect(css).not.toMatch(/@media \(max-width: 767px\)[\s\S]*?\.play-main/);
   });
 
   it('uses a two-column medium layout with the dungeon count in the header', () => {
