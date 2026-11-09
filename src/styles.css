@@ -1664,6 +1664,14 @@ button {
   .play-main__weapon {
     order: 2;
   }
+
+  .weapon-rail {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: var(--space-5);
+    overflow-x: auto;
+    padding-bottom: var(--space-1);
+  }
 }
 
 @media (max-width: 767px) {

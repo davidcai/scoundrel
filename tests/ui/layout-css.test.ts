@@ -54,6 +54,7 @@ describe('approved layout rules', () => {
     expect(tablet).toContain('order: 1');
     expect(tablet).toContain('.play-main__weapon');
     expect(tablet).toContain('order: 2');
+    expect(tablet).toContain('flex-direction: row');
   });
 
   it('uses a two-column medium layout with the dungeon count in the header', () => {
