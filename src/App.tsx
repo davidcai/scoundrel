@@ -9,12 +9,7 @@ import {
   type RuleOptions,
 } from './engine';
 import { resolveLocale } from './i18n';
-import {
-  saveFailureText,
-  startFailureText,
-  type SaveFailureReason,
-  type StartFailureReason,
-} from './i18n/messages';
+import { saveFailureText, startFailureText, type SaveFailureReason } from './i18n/messages';
 import {
   ScoundrelStoreProvider,
   createScoundrelStore,
@@ -338,13 +333,6 @@ function AppRoot() {
     [store, beginSession, pushNotice, t],
   );
 
-  const handleDiscard = useCallback((): StartOutcome => {
-    const result = store.discardActiveRun();
-    if (!result.ok) return 'discard-failed' as StartFailureReason;
-    pushNotice('info', t('title.runDiscarded'));
-    return null;
-  }, [store, pushNotice, t]);
-
   const handleViewLastResult = useCallback(() => {
     const completed = store.getSnapshot().completedResult;
     if (completed === null) return;
@@ -424,7 +412,6 @@ function AppRoot() {
           onContinue={handleContinue}
           onStartSeed={handleStartSeed}
           ruleOptions={ruleOptionsState}
-          onDiscard={handleDiscard}
           onViewLastResult={handleViewLastResult}
           onOpenStatistics={openStatistics}
           onOpenSettings={openSettings}

@@ -129,30 +129,6 @@ describe('persistence and run lifecycle', () => {
     expect(window.location.hash).toContain('#/play?seed=');
   });
 
-  it('asks before discarding and records one abandoned loss on confirm', () => {
-    renderAppAt('#/');
-    fireEvent.click(screen.getByRole('button', { name: t('title.newRun') }));
-    cleanup();
-
-    renderAppAt('#/');
-    fireEvent.click(screen.getByRole('button', { name: t('title.discardRun') }));
-    expect(screen.getByRole('dialog', { name: t('title.discardTitle') })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: t('title.discardCancel') }));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(probe().activeRun).not.toBeNull();
-
-    fireEvent.click(screen.getByRole('button', { name: t('title.discardRun') }));
-    const dialog = screen.getByRole('dialog', { name: t('title.discardTitle') });
-    fireEvent.click(within(dialog).getByRole('button', { name: t('title.discardConfirm') }));
-
-    const snapshot = probe();
-    expect(snapshot.activeRun).toBeNull();
-    expect(snapshot.statistics).toMatchObject({ gamesPlayed: 1, losses: 1 });
-    expect(screenshotText()).not.toContain(t('title.continue'));
-    expect(screen.queryByRole('button', { name: t('title.continue') })).not.toBeInTheDocument();
-  });
-
   it('explains an invalid seed without changing saved data', () => {
     renderAppAt('#/');
 
@@ -224,7 +200,3 @@ describe('persistence and run lifecycle', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(t('app.title'));
   });
 });
-
-function screenshotText(): string {
-  return document.body.textContent ?? '';
-}

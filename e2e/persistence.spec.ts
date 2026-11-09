@@ -36,26 +36,6 @@ test('records one abandoned loss when a new run replaces an unfinished run', asy
   await expect(statsDetail(page, 'Games played')).toHaveText('1');
 });
 
-test('discards an unfinished run only after confirmation and records one loss', async ({
-  page,
-}) => {
-  const scenario = findLostScenario();
-  await startSeededRun(page, scenario.seed);
-  await replaySteps(page, scenario.steps.slice(0, 1));
-  await openTitle(page);
-
-  await page.getByRole('button', { name: 'Discard run' }).click();
-  await expect(page.getByRole('heading', { name: 'Discard unfinished run?' })).toBeVisible();
-  await page.getByRole('dialog').getByRole('button', { name: 'Discard run' }).click();
-  await expect(page.getByTestId('shell-notice')).toContainText('abandoned loss');
-  await expect(page.getByRole('button', { name: 'Continue run' })).toHaveCount(0);
-
-  await page.goto('/#/stats');
-  await expect(statsDetail(page, 'Games played')).toHaveText('1');
-  await expect(statsDetail(page, 'Losses')).toHaveText('1');
-  await expect(page.getByTestId('history-outcome')).toHaveText('Abandoned');
-});
-
 test('records a completed result once across reloads and a second tab', async ({
   page,
   context,

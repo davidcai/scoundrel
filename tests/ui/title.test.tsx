@@ -23,7 +23,7 @@ describe('title screen', () => {
 
     // Nothing is saved yet, so there is nothing to continue or discard.
     expect(screen.queryByRole('button', { name: t('title.continue') })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: t('title.discardRun') })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /discard run/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: t('title.lastResult') })).not.toBeInTheDocument();
   });
 

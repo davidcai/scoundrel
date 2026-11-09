@@ -194,7 +194,6 @@ export const en = {
 
   // Phase 4: persistence, statistics, settings, and recovery.
   'title.continue': 'Continue run',
-  'title.discardRun': 'Discard run',
   'title.discardTitle': 'Discard unfinished run?',
   'title.discardBody': 'The run will be recorded as an abandoned loss and cannot be resumed.',
   'title.discardConfirm': 'Discard run',
@@ -208,7 +207,6 @@ export const en = {
   'title.settings': 'Settings',
   'title.lastResult': 'Last result',
   'title.runReplaced': 'Your unfinished run was recorded as an abandoned loss.',
-  'title.runDiscarded': 'Run discarded and recorded as an abandoned loss.',
   'title.closeDialog': 'Close',
 
   'stats.title': 'Statistics',

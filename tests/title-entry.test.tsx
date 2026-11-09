@@ -54,7 +54,7 @@ describe('title entry points', () => {
   it('traps focus in the discard dialog and restores it on Escape', () => {
     const store = openStoredRun(createMemoryStorage());
 
-    const trigger = screen.getByRole('button', { name: t('title.discardRun') });
+    const trigger = screen.getByRole('button', { name: t('title.newRun') });
     trigger.focus();
     fireEvent.click(trigger);
 

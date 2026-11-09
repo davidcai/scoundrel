@@ -19,7 +19,6 @@ export interface TitleScreenProps {
   onNewRun: (config: RuleConfig) => StartOutcome;
   onContinue: () => StartOutcome;
   onStartSeed: (seed: string, config: RuleConfig) => StartOutcome;
-  onDiscard: () => StartOutcome;
   onViewLastResult: () => void;
   onOpenStatistics: () => void;
   onOpenSettings: () => void;
@@ -32,8 +31,8 @@ const TITLE_FAN: readonly CardId[] = ['spade-k', 'club-q', 'diamond-10'];
 /**
  * Title screen: resume or start runs, enter a seed, open
  * statistics/settings/help; house rules live in settings. Starting a run replaces an
- * unfinished one without confirmation and records exactly one abandoned loss
- * (REQ-001); discarding asks first.
+ * unfinished one after a discard confirmation and records exactly one abandoned
+ * loss (REQ-001).
  */
 export function TitleScreen({
   activeRun,
@@ -41,7 +40,6 @@ export function TitleScreen({
   onNewRun,
   onContinue,
   onStartSeed,
-  onDiscard,
   onViewLastResult,
   onOpenStatistics,
   onOpenSettings,
@@ -54,7 +52,6 @@ export function TitleScreen({
   const [seedError, setSeedError] = useState<StartOutcome>(null);
   const [startError, setStartError] = useState<StartOutcome>(null);
   const [discardOpen, setDiscardOpen] = useState(false);
-  const [replacePending, setReplacePending] = useState(false);
   const [discardError, setDiscardError] = useState<string | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -71,16 +68,10 @@ export function TitleScreen({
   const startNewRun = () => {
     setStartError(null);
     if (activeRun !== null) {
-      setReplacePending(true);
       setDiscardOpen(true);
       return;
     }
     setStartError(onNewRun(config()));
-  };
-
-  const requestDiscard = () => {
-    setReplacePending(false);
-    setDiscardOpen(true);
   };
 
   const handleContinue = () => {
@@ -100,19 +91,7 @@ export function TitleScreen({
   };
 
   const handleDiscardConfirm = () => {
-    if (replacePending) {
-      const failure = onNewRun(config());
-      if (failure === null) {
-        setDiscardOpen(false);
-        setReplacePending(false);
-        setDiscardError(null);
-        return;
-      }
-      setDiscardError(startFailureText(t, failure));
-      return;
-    }
-
-    const failure = onDiscard();
+    const failure = onNewRun(config());
     if (failure === null) {
       setDiscardOpen(false);
       setDiscardError(null);
@@ -153,9 +132,6 @@ export function TitleScreen({
             <div className="title-screen__continue">
               <Button variant="primary" onClick={handleContinue}>
                 {t('title.continue')}
-              </Button>
-              <Button variant="danger" onClick={requestDiscard}>
-                {t('title.discardRun')}
               </Button>
             </div>
           ) : null}
@@ -249,7 +225,6 @@ export function TitleScreen({
         titleId="discard-run-title"
         onClose={() => {
           setDiscardOpen(false);
-          setReplacePending(false);
           setDiscardError(null);
         }}
         closeLabel={t('title.closeDialog')}
