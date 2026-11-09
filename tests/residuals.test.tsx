@@ -28,14 +28,13 @@ describe('Phase 3 review residuals', () => {
     );
     expect(screen.queryByTestId('action-reasons')).toBeNull();
 
-    // After one resolution Undo becomes available while Enter next room stays
-    // hidden; Run away is now restricted, so its reason line is the only one.
+    // After one resolution Undo becomes available while Enter next room and
+    // Run away stay hidden.
     resolveFirstCard();
     expect(screen.getByRole('button', { name: t('play.undo') })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: t('play.enterNextRoom') })).toBeNull();
-    const helper = screen.getByTestId('action-reasons');
-    expect(helper).toHaveTextContent(t('play.runAway'));
-    expect(helper).toHaveTextContent(t('rejection.escape-after-resolution'));
+    expect(screen.queryByRole('button', { name: t('play.runAway') })).toBeNull();
+    expect(screen.queryByTestId('action-reasons')).toBeNull();
   });
 
   it('marks the compact play surface inert while the preview sheet is open', () => {

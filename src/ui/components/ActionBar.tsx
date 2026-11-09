@@ -1,5 +1,4 @@
-import { useId, type RefObject } from 'react';
-import { rejectionText } from '../../i18n/messages';
+import type { RefObject } from 'react';
 import { usePreferences } from '../../store/preferences';
 import type { ActionAvailability } from '../../store/selectors';
 import { Button } from './Button';
@@ -14,10 +13,9 @@ export interface ActionBarProps {
 }
 
 /**
- * Room actions. Enter next room and Undo are rendered only while available;
- * Run away stays visible and, when the rules forbid it, references the visible
- * restriction line (REQ-004, design plan §5/§7). The run seed fills the
- * bottom-right corner of the same panel.
+ * Room actions. Each action is rendered only while available; when none are
+ * available the panel is omitted entirely. The run seed lives separately in
+ * the page corner.
  */
 export function ActionBar({
   availability,
@@ -27,12 +25,12 @@ export function ActionBar({
   enterButtonRef,
 }: ActionBarProps) {
   const { t } = usePreferences();
-  const helperId = useId();
+  const hasActions =
+    availability.enterNextRoom.enabled ||
+    availability.runAway.enabled ||
+    availability.undoRoom.enabled;
 
-  const runAwayReason =
-    !availability.runAway.enabled && availability.runAway.reason !== null
-      ? rejectionText(t, availability.runAway.reason)
-      : null;
+  if (!hasActions) return null;
 
   return (
     <div className="action-bar" role="group" aria-label={t('play.actionBar')}>
@@ -42,27 +40,17 @@ export function ActionBar({
             {t('play.enterNextRoom')}
           </Button>
         ) : null}
-        <Button
-          variant="secondary"
-          aria-disabled={availability.runAway.enabled ? undefined : true}
-          aria-describedby={runAwayReason === null ? undefined : helperId}
-          onClick={availability.runAway.enabled ? onRunAway : undefined}
-        >
-          {t('play.runAway')}
-        </Button>
+        {availability.runAway.enabled ? (
+          <Button variant="secondary" onClick={onRunAway}>
+            {t('play.runAway')}
+          </Button>
+        ) : null}
         {availability.undoRoom.enabled ? (
           <Button variant="ghost" onClick={onUndo}>
             {t('play.undo')}
           </Button>
         ) : null}
       </div>
-      {runAwayReason !== null ? (
-        <p className="action-bar__helper" id={helperId} data-testid="action-reasons">
-          <span className="action-bar__reason">
-            {t('play.disabledAction', { action: t('play.runAway'), reason: runAwayReason })}
-          </span>
-        </p>
-      ) : null}
     </div>
   );
 }

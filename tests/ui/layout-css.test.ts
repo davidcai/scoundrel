@@ -22,7 +22,6 @@ describe('approved layout rules', () => {
     expect(bar).toContain('align-items: center');
     expect(bar).not.toContain('position: sticky');
     expect(bar).not.toContain('position: fixed');
-    expect(css).not.toMatch(/\.action-bar__reason\s*\{[^}]*display:\s*none/);
     const compactBar = block(
       /@media \(max-width: 767px\) \{[\s\S]*?\.action-bar \{[\s\S]*?\n {2}\}/,
     );

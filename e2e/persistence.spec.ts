@@ -23,7 +23,7 @@ test('records one abandoned loss when a new run replaces an unfinished run', asy
 
   await page.getByRole('button', { name: 'New run' }).click();
   await expect(page.getByTestId('shell-notice')).toContainText('recorded as an abandoned loss');
-  await expect(page.getByRole('button', { name: 'Run away' })).toBeVisible();
+  await expect(page.locator('.room-grid')).toBeVisible();
 
   await page.goto('/#/stats');
   await expect(statsDetail(page, 'Games played')).toHaveText('1');

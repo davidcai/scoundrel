@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_RULE_CONFIG } from '../../src/engine';
@@ -17,7 +15,7 @@ function resolveFirstCard(): void {
 }
 
 describe('room actions hide unavailable controls', () => {
-  it('shows Enter next room and Undo only while they are available', () => {
+  it('shows each room action only while it is available', () => {
     installMatchMedia();
     openRun(SEED, DEFAULT_RULE_CONFIG);
 
@@ -30,13 +28,8 @@ describe('room actions hide unavailable controls', () => {
     resolveFirstCard();
     expect(screen.getByRole('button', { name: t('play.undo') })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: t('play.enterNextRoom') })).toBeNull();
-  });
-
-  it('never hides the restriction line in the stylesheet', () => {
-    const css = readFileSync(join(process.cwd(), 'src', 'styles.css'), 'utf8');
-    for (const rule of css.matchAll(/\.action-bar__(?:reason|helper)\s*\{[^}]*\}/g)) {
-      expect(rule[0]).not.toMatch(/display:\s*none/);
-    }
+    expect(screen.queryByRole('button', { name: t('play.runAway') })).toBeNull();
+    expect(screen.queryByTestId('action-reasons')).toBeNull();
   });
 
   it('applies the same hidden-action rule in Chinese', () => {
