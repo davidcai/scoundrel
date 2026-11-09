@@ -1593,21 +1593,22 @@ button {
   gap: var(--space-2);
 }
 
-/* Secondary title actions are outlined: transparent fill, accent border, and
-   the same accent-hover fill as the primary button on hover. Primary and
+/* Secondary title actions are outlined: transparent fill, a slightly dimmed
+   accent border, and the same surface hover as the danger button. Primary and
    danger buttons keep their own treatments. */
 .title-screen__actions .button--ghost,
 .title-screen__actions .button--secondary {
   background: transparent;
-  border-color: var(--accent);
+  border-color: var(--border-2);
+  border-color: color-mix(in srgb, var(--accent) 78%, var(--border-2));
   color: var(--text-1);
 }
 
 .title-screen__actions .button--ghost:not([aria-disabled='true']):hover,
 .title-screen__actions .button--secondary:not([aria-disabled='true']):hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-  color: var(--accent-ink);
+  background: var(--surface-3);
+  border-color: color-mix(in srgb, var(--accent) 78%, var(--border-2));
+  color: var(--text-1);
 }
 
 .title-screen__entries .button {
