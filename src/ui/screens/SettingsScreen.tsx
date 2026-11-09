@@ -18,7 +18,7 @@ export interface SettingsScreenProps {
 }
 
 export function SettingsScreen({ ruleOptions, onToggleRule, onClose }: SettingsScreenProps) {
-  const { t, locale, reducedMotion, setLocale, setReducedMotion } = usePreferences();
+  const { t, localePreference, reducedMotion, setLocale, setReducedMotion } = usePreferences();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const languageTitleId = useId();
   const motionTitleId = useId();
@@ -49,17 +49,29 @@ export function SettingsScreen({ ruleOptions, onToggleRule, onClose }: SettingsS
             {t('settings.language')}
           </h2>
           <div className="language-toggle" role="group" aria-label={t('language.group')}>
-            <Button variant="ghost" aria-pressed={locale === 'en'} onClick={() => setLocale('en')}>
+            <Button
+              variant="ghost"
+              aria-pressed={localePreference === 'auto'}
+              onClick={() => setLocale('auto')}
+            >
+              {t('language.auto')}
+            </Button>
+            <Button
+              variant="ghost"
+              aria-pressed={localePreference === 'en'}
+              onClick={() => setLocale('en')}
+            >
               {t('language.english')}
             </Button>
             <Button
               variant="ghost"
-              aria-pressed={locale === 'zh-Hans'}
+              aria-pressed={localePreference === 'zh-Hans'}
               onClick={() => setLocale('zh-Hans')}
             >
               {t('language.chinese')}
             </Button>
           </div>
+          <p className="screen-panel__note">{t('settings.languageAutoHint')}</p>
         </section>
 
         <section className="settings-section" aria-labelledby={motionTitleId}>
@@ -100,7 +112,9 @@ export function SettingsScreen({ ruleOptions, onToggleRule, onClose }: SettingsS
           </fieldset>
         </section>
 
-        <p className="screen-panel__note">{t('settings.version', { version: APP_VERSION })}</p>
+        <p className="screen-panel__note screen-panel__version">
+          {t('settings.version', { version: APP_VERSION })}
+        </p>
       </main>
     </div>
   );

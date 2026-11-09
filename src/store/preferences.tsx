@@ -7,7 +7,13 @@
  */
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { createContext, useContext } from 'react';
-import { createTranslator, type Locale, type Translate } from '../i18n';
+import {
+  createTranslator,
+  resolveLocale,
+  type Locale,
+  type LocalePreference,
+  type Translate,
+} from '../i18n';
 import { useScoundrelSnapshot, useScoundrelStore } from './useScoundrelStore';
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
@@ -19,11 +25,12 @@ function getSystemReducedMotion(): boolean {
 
 export interface PreferencesApi {
   readonly locale: Locale;
+  readonly localePreference: LocalePreference;
   readonly t: Translate;
   /** Effective reduced-motion choice: in-app preference, else the system setting. */
   readonly reducedMotion: boolean;
   readonly systemReducedMotion: boolean;
-  setLocale(locale: Locale): void;
+  setLocale(locale: LocalePreference): void;
   setReducedMotion(value: boolean | null): void;
 }
 
@@ -32,7 +39,11 @@ const PreferencesContext = createContext<PreferencesApi | null>(null);
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   const store = useScoundrelStore();
   const snapshot = useScoundrelSnapshot();
-  const locale = snapshot.settings.locale;
+  const localePreference = snapshot.settings.locale;
+  const locale =
+    localePreference === 'auto'
+      ? resolveLocale(typeof navigator === 'undefined' ? undefined : navigator.languages)
+      : localePreference;
   const reducedMotionSetting = snapshot.settings.reducedMotion;
   const [systemReducedMotion, setSystemReducedMotion] = useState<boolean>(getSystemReducedMotion);
 
@@ -55,7 +66,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   }, [locale, reducedMotion]);
 
   const setLocale = useCallback(
-    (next: Locale) => {
+    (next: LocalePreference) => {
       store.updateSettings({ locale: next });
     },
     [store],
@@ -72,13 +83,14 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const value = useMemo<PreferencesApi>(
     () => ({
       locale,
+      localePreference,
       t,
       reducedMotion,
       systemReducedMotion,
       setLocale,
       setReducedMotion,
     }),
-    [locale, t, reducedMotion, systemReducedMotion, setLocale, setReducedMotion],
+    [locale, localePreference, t, reducedMotion, systemReducedMotion, setLocale, setReducedMotion],
   );
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;

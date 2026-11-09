@@ -7,6 +7,7 @@ describe('saved settings', () => {
     expect(isStoredSettings(DEFAULT_SETTINGS)).toBe(true);
     expect(isStoredSettings({ locale: 'zh-Hans', reducedMotion: false })).toBe(true);
     expect(isStoredSettings({ locale: 'zh-Hans', reducedMotion: true })).toBe(true);
+    expect(isStoredSettings({ locale: 'auto', reducedMotion: null })).toBe(true);
   });
 
   it.each([
@@ -22,6 +23,10 @@ describe('saved settings', () => {
   it('merges partial updates without mutating the current settings', () => {
     const current = { locale: 'zh-Hans' as const, reducedMotion: true };
     expect(mergeSettings(current, { locale: 'en' })).toEqual({ locale: 'en', reducedMotion: true });
+    expect(mergeSettings(current, { locale: 'auto' })).toEqual({
+      locale: 'auto',
+      reducedMotion: true,
+    });
     expect(mergeSettings(current, { reducedMotion: null })).toEqual({
       locale: 'zh-Hans',
       reducedMotion: null,
