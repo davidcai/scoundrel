@@ -1686,7 +1686,7 @@ button {
   .play-main {
     grid-template-columns: minmax(0, 1fr);
     align-content: start;
-    padding-inline: 0;
+    padding-inline: var(--space-1);
   }
 
   .room-title {
@@ -1712,7 +1712,7 @@ button {
   }
 
   .weapon-rail {
-    --phone-weapon-width: min(96px, calc(100vw / 3.75));
+    --phone-weapon-width: min(96px, calc((100vw - 2 * var(--space-1)) / 3.75));
   }
 
   .card__badge {
@@ -1735,7 +1735,7 @@ button {
   .kill-stack__thumb {
     flex: 0 0 var(--phone-weapon-width);
     width: var(--phone-weapon-width);
-    max-height: calc(100vw / 2.5);
+    max-height: calc((100vw - 2 * var(--space-1)) / 2.5);
   }
 
   .kill-stack__thumb .card__frame {
