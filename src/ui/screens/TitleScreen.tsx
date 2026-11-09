@@ -73,6 +73,11 @@ export function TitleScreen({
     if (failure !== null) setStartError(failure);
   };
 
+  const closeSeedDialog = () => {
+    setSeedOpen(false);
+    setSeedError(null);
+  };
+
   const handleSeedSubmit = (event: FormEvent) => {
     event.preventDefault();
     const failure = onStartSeed(seedValue, config());
@@ -154,12 +159,7 @@ export function TitleScreen({
           ) : null}
 
           <div className="title-screen__entries">
-            <Button
-              variant="ghost"
-              aria-expanded={seedOpen}
-              aria-controls={seedFormId}
-              onClick={() => setSeedOpen((open) => !open)}
-            >
+            <Button variant="ghost" aria-haspopup="dialog" onClick={() => setSeedOpen(true)}>
               {t('title.enterSeed')}
             </Button>
             <Button variant="secondary" onClick={onOpenStatistics}>
@@ -173,38 +173,6 @@ export function TitleScreen({
             </Button>
           </div>
         </div>
-
-        {seedOpen ? (
-          <form className="title-screen__form" id={seedFormId} onSubmit={handleSeedSubmit}>
-            <label className="field-label" htmlFor={seedInputId}>
-              {t('title.seedLabel')}
-            </label>
-            <input
-              className="text-input"
-              id={seedInputId}
-              type="text"
-              value={seedValue}
-              placeholder={t('title.seedPlaceholder')}
-              aria-invalid={seedError !== null}
-              aria-describedby={`${seedHintId}${seedError !== null ? ` ${seedErrorId}` : ''}`}
-              onChange={(event) => {
-                setSeedValue(event.target.value);
-                setSeedError(null);
-              }}
-            />
-            <p className="field-hint" id={seedHintId}>
-              {t('title.seedHint')}
-            </p>
-            {seedError !== null ? (
-              <p className="field-error" id={seedErrorId} data-testid="seed-error">
-                {startFailureText(t, seedError)}
-              </p>
-            ) : null}
-            <Button type="submit" variant="primary">
-              {t('title.startWithSeed')}
-            </Button>
-          </form>
-        ) : null}
       </main>
 
       <footer className="title-screen__footer">
@@ -212,6 +180,52 @@ export function TitleScreen({
       </footer>
 
       <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
+
+      <Dialog
+        open={seedOpen}
+        titleId="seed-dialog-title"
+        onClose={closeSeedDialog}
+        closeLabel={t('title.closeDialog')}
+      >
+        <div className="dialog__header">
+          <h2 className="dialog__title" id="seed-dialog-title">
+            {t('title.enterSeed')}
+          </h2>
+        </div>
+        <form
+          className="title-screen__form title-screen__form--dialog"
+          id={seedFormId}
+          onSubmit={handleSeedSubmit}
+        >
+          <label className="field-label" htmlFor={seedInputId}>
+            {t('title.seedLabel')}
+          </label>
+          <input
+            className="text-input"
+            id={seedInputId}
+            type="text"
+            value={seedValue}
+            placeholder={t('title.seedPlaceholder')}
+            aria-invalid={seedError !== null}
+            aria-describedby={`${seedHintId}${seedError !== null ? ` ${seedErrorId}` : ''}`}
+            onChange={(event) => {
+              setSeedValue(event.target.value);
+              setSeedError(null);
+            }}
+          />
+          <p className="field-hint" id={seedHintId}>
+            {t('title.seedHint')}
+          </p>
+          {seedError !== null ? (
+            <p className="field-error" id={seedErrorId} data-testid="seed-error">
+              {startFailureText(t, seedError)}
+            </p>
+          ) : null}
+          <Button type="submit" variant="primary">
+            {t('title.startWithSeed')}
+          </Button>
+        </form>
+      </Dialog>
 
       <Dialog
         open={discardOpen}

@@ -41,6 +41,25 @@ describe('title screen', () => {
     }
   });
 
+  it('opens seed entry in a dialog with an icon close and restores focus', () => {
+    renderTitle();
+    const trigger = screen.getByRole('button', { name: t('title.enterSeed') });
+    trigger.focus();
+
+    fireEvent.click(trigger);
+
+    const dialog = screen.getByRole('dialog', { name: t('title.enterSeed') });
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(dialog).toContainElement(screen.getByRole('textbox', { name: t('title.seedLabel') }));
+
+    const close = screen.getByRole('button', { name: t('title.closeDialog') });
+    expect(close).toHaveClass('dialog__close');
+    fireEvent.click(close);
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(document.activeElement).toBe(trigger);
+  });
+
   it('renders a decorative artwork fan and a real build version', () => {
     renderTitle();
 
