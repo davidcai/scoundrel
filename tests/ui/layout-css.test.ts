@@ -68,6 +68,9 @@ describe('approved layout rules', () => {
     expect(phone).toContain('flex-direction: row');
     expect(phone).toContain('flex: 1 1 0');
     expect(phone).toContain('align-content: start');
+    expect(phone).toContain('.play-header__status');
+    expect(phone).toContain('flex: 1 1 64px');
+    expect(phone).toContain('min-width: 26px');
     expect(phone).toContain('--phone-weapon-width: min(96px');
     expect(phone).toContain('flex: 0 0 calc(var(--phone-weapon-width) + var(--space-3))');
     expect(phone).toContain('font-size: var(--text-small)');

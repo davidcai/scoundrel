@@ -1640,6 +1640,31 @@ button {
 /* Phone: put the rail below the room/preview/actions, with the weapon and
    defeated-monsters sections side by side. Tablets keep the desktop rail. */
 @media (max-width: 767px) {
+  .play-header {
+    flex-wrap: nowrap;
+    gap: var(--space-2);
+    padding-inline: var(--space-3);
+  }
+
+  .play-header__status {
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    gap: var(--space-2);
+  }
+
+  .health {
+    flex: 1 1 auto;
+    gap: var(--space-2);
+    max-width: none;
+  }
+
+  .health__track {
+    flex: 1 1 64px;
+    width: auto;
+    min-width: 26px;
+    max-width: 200px;
+  }
+
   .play-main {
     grid-template-columns: minmax(0, 1fr);
     align-content: start;
