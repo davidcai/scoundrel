@@ -5,6 +5,7 @@
 node_modules/
 dist/
 coverage/
+.pnpm-store/
 
 # Browser-test artifacts (Playwright is introduced in a later phase)
 playwright-report/
