@@ -107,6 +107,31 @@ describe('play preview', () => {
     expect(document.querySelectorAll('[data-card]')).toHaveLength(cardsBefore);
   });
 
+  it('omits the redundant heal sentence for a usable potion', () => {
+    const scenario = findScenario(
+      (state) =>
+        state.status === 'playing' &&
+        state.health < 20 &&
+        !state.potionUsedThisRoom &&
+        canResolveAnyCard(state) &&
+        state.room.cards.some((roomCard) => cardKind(roomCard.card) === 'potion'),
+    );
+    replayScenario(scenario);
+    const state = scenario.state;
+    const potion = state.room.cards.find((roomCard) => cardKind(roomCard.card) === 'potion')!.card;
+    const resolution = previewCardResolution(state, potion);
+    expect(resolution.ok).toBe(true);
+    if (!resolution.ok) return;
+
+    fireEvent.click(document.querySelector<HTMLElement>(`[data-card="${potion}"]`)!);
+
+    expect(document.querySelector('.preview__description')).toBeNull();
+    const healing = resolution.event.type === 'cardResolved' ? resolution.event.healing : 0;
+    expect(
+      screen.getByRole('button', { name: t('action.drinkPotionWithHeal', { healing }) }),
+    ).toBeInTheDocument();
+  });
+
   it('explains that a used potion is wasted and announces the waste on confirmation', () => {
     const scenario = findScenario(
       (state) =>

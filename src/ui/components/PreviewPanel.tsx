@@ -110,7 +110,9 @@ export function PreviewPanel({ session, titleId, onConfirm, roomActions }: Previ
       <h2 className="preview__title" id={titleId}>
         {formatPreviewTitle(t, preview.card)}
       </h2>
-      <p className="preview__description">{description}</p>
+      {cardKind === 'potion' && event.type === 'cardResolved' && !event.potionWasted ? null : (
+        <p className="preview__description">{description}</p>
+      )}
       <div className="preview__actions">
         <Button variant="primary" onClick={() => onConfirm()}>
           {confirmLabel}
