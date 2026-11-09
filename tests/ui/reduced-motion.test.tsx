@@ -26,12 +26,12 @@ describe('reduced motion', () => {
     expect(document.documentElement.dataset.motion).toBe('reduced');
   });
 
-  it('lets the preferences dialog override the system preference', () => {
+  it('lets settings override the system preference', () => {
     installMatchMedia();
     renderTitle();
 
-    fireEvent.click(screen.getByRole('button', { name: t('title.rulesHelp') }));
-    const reduceMotion = screen.getByRole('checkbox', { name: t('help.reduceMotion') });
+    fireEvent.click(screen.getByRole('button', { name: t('title.settings') }));
+    const reduceMotion = screen.getByRole('checkbox', { name: t('settings.reduceMotion') });
     expect(reduceMotion).not.toBeChecked();
 
     fireEvent.click(reduceMotion);
@@ -41,14 +41,14 @@ describe('reduced motion', () => {
     expect(document.documentElement.dataset.motion).toBe('full');
   });
 
-  it('lets the player opt into reduced motion from the dialog', () => {
+  it('lets the player opt into reduced motion from settings', () => {
     installMatchMedia({ reducedMotion: true });
     renderTitle();
 
     expect(document.documentElement.dataset.motion).toBe('reduced');
 
-    fireEvent.click(screen.getByRole('button', { name: t('title.rulesHelp') }));
-    const reduceMotion = screen.getByRole('checkbox', { name: t('help.reduceMotion') });
+    fireEvent.click(screen.getByRole('button', { name: t('title.settings') }));
+    const reduceMotion = screen.getByRole('checkbox', { name: t('settings.reduceMotion') });
     expect(reduceMotion).toBeChecked();
 
     fireEvent.click(reduceMotion);

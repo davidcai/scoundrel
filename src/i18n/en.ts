@@ -177,8 +177,6 @@ export const en = {
   'help.aboutTitle': 'About',
   'help.about':
     'Scoundrel is a single-player dungeon crawl played with 44 cards and the current PNG artwork.',
-  'help.reduceMotion': 'Reduce motion',
-  'help.version': 'Version {version}',
 
   'a11y.healthBar': 'HP {health} / {max}',
   'a11y.roomCards': 'Room cards',

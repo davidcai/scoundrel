@@ -378,8 +378,7 @@ button {
 }
 
 .rule-option input,
-.settings-checkbox input,
-.help__motion input {
+.settings-checkbox input {
   appearance: none;
   display: grid;
   place-content: center;
@@ -395,21 +394,18 @@ button {
 }
 
 .rule-option input:hover,
-.settings-checkbox input:hover,
-.help__motion input:hover {
+.settings-checkbox input:hover {
   border-color: var(--accent);
 }
 
 .rule-option input:checked,
-.settings-checkbox input:checked,
-.help__motion input:checked {
+.settings-checkbox input:checked {
   border-color: var(--accent);
   background: var(--accent);
 }
 
 .rule-option input:checked::before,
-.settings-checkbox input:checked::before,
-.help__motion input:checked::before {
+.settings-checkbox input:checked::before {
   content: '';
   width: 12px;
   height: 7px;
@@ -419,8 +415,7 @@ button {
 }
 
 .rule-option input:focus-visible,
-.settings-checkbox input:focus-visible,
-.help__motion input:focus-visible {
+.settings-checkbox input:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }

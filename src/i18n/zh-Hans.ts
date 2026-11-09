@@ -171,8 +171,6 @@ export const zhHans = {
   'help.undo': '撤销会把房间恢复到进入时的状态。进入下一个房间后失效，游戏结束后也不可用。',
   'help.aboutTitle': '关于',
   'help.about': 'Scoundrel 是一款使用 44 张牌和当前 PNG 插图的单人地牢探险游戏。',
-  'help.reduceMotion': '减少动画',
-  'help.version': '版本 {version}',
 
   'a11y.healthBar': 'HP {health} / {max}',
   'a11y.roomCards': '房间卡牌',
