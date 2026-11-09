@@ -16,7 +16,6 @@ import {
 import { usePreferences } from '../../store/preferences';
 import { useScoundrelSnapshot } from '../../store/useScoundrelStore';
 import { Button } from '../components/Button';
-import { APP_VERSION } from '../version';
 
 export interface StatsScreenProps {
   onBackToTitle: () => void;
@@ -166,8 +165,6 @@ export function StatsScreen({ onBackToTitle, onReplay }: StatsScreenProps) {
             </>
           )}
         </section>
-
-        <p className="screen-panel__note">{t('settings.version', { version: APP_VERSION })}</p>
       </main>
     </div>
   );
