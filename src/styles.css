@@ -1593,14 +1593,14 @@ button {
   gap: var(--space-2);
 }
 
-/* Title actions share the primary treatment: accent fill, accent border,
-   accent-ink label, and the same hover colors as "New run". Danger keeps its
-   own treatment. */
+/* Secondary title actions are outlined: transparent fill, accent border, and
+   the same accent-hover fill as the primary button on hover. Primary and
+   danger buttons keep their own treatments. */
 .title-screen__actions .button--ghost,
 .title-screen__actions .button--secondary {
-  background: var(--accent);
+  background: transparent;
   border-color: var(--accent);
-  color: var(--accent-ink);
+  color: var(--text-1);
 }
 
 .title-screen__actions .button--ghost:not([aria-disabled='true']):hover,
