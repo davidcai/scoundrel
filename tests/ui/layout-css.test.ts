@@ -28,6 +28,12 @@ describe('approved layout rules', () => {
     expect(css).toMatch(/\.card__meta \{\s*display: none/);
   });
 
+  it('matches the health track border to its fill tone', () => {
+    expect(block(/^\.health__track \{[\s\S]*?\n\}/m)).toContain('border: 1px solid var(--health)');
+    expect(css).toMatch(/\.health--wounded \.health__track \{\s*border-color: var\(--wasted\);/);
+    expect(css).toMatch(/\.health--critical \.health__track \{\s*border-color: var\(--damage\);/);
+  });
+
   it('drops the empty room-actions divider', () => {
     expect(css).toMatch(/\.preview__room-actions:empty\s*\{[^}]*border-top:\s*0/);
     expect(css).toMatch(/\.preview__room-actions:empty\s*\{[^}]*padding-top:\s*0/);

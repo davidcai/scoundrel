@@ -551,7 +551,7 @@ button {
   height: 12px;
   overflow: hidden;
   background: var(--health-track);
-  border: 1px solid var(--border-2);
+  border: 1px solid var(--health);
   border-radius: var(--radius-pill);
 }
 
@@ -567,8 +567,16 @@ button {
   background: var(--wasted);
 }
 
+.health--wounded .health__track {
+  border-color: var(--wasted);
+}
+
 .health--critical .health__fill {
   background: var(--damage);
+}
+
+.health--critical .health__track {
+  border-color: var(--damage);
 }
 
 .seed {
