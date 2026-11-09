@@ -563,6 +563,14 @@ button {
   transition: width var(--motion-2) var(--ease-enter);
 }
 
+.health--wounded .health__fill {
+  background: var(--wasted);
+}
+
+.health--critical .health__fill {
+  background: var(--damage);
+}
+
 .seed {
   display: inline-flex;
   align-items: baseline;

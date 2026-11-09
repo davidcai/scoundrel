@@ -26,7 +26,7 @@ describe('room actions hide unavailable controls', () => {
     expect(screen.queryByTestId('action-reasons')).toBeNull();
 
     resolveFirstCard();
-    expect(screen.getByRole('button', { name: t('play.undo') })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: t('play.undo') })).toHaveClass('button--secondary');
     expect(screen.queryByRole('button', { name: t('play.enterNextRoom') })).toBeNull();
     expect(screen.queryByRole('button', { name: t('play.runAway') })).toBeNull();
     expect(screen.queryByTestId('action-reasons')).toBeNull();

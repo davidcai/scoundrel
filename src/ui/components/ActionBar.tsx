@@ -46,7 +46,7 @@ export function ActionBar({
           </Button>
         ) : null}
         {availability.undoRoom.enabled ? (
-          <Button variant="ghost" onClick={onUndo}>
+          <Button variant="secondary" onClick={onUndo}>
             {t('play.undo')}
           </Button>
         ) : null}
