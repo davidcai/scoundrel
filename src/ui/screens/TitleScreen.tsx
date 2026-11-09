@@ -54,6 +54,7 @@ export function TitleScreen({
   const [seedError, setSeedError] = useState<StartOutcome>(null);
   const [startError, setStartError] = useState<StartOutcome>(null);
   const [discardOpen, setDiscardOpen] = useState(false);
+  const [replacePending, setReplacePending] = useState(false);
   const [discardError, setDiscardError] = useState<string | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -67,6 +68,20 @@ export function TitleScreen({
   }, []);
 
   const config = () => configFromOptions(ruleOptions);
+  const startNewRun = () => {
+    setStartError(null);
+    if (activeRun !== null) {
+      setReplacePending(true);
+      setDiscardOpen(true);
+      return;
+    }
+    setStartError(onNewRun(config()));
+  };
+
+  const requestDiscard = () => {
+    setReplacePending(false);
+    setDiscardOpen(true);
+  };
 
   const handleContinue = () => {
     const failure = onContinue();
@@ -85,6 +100,18 @@ export function TitleScreen({
   };
 
   const handleDiscardConfirm = () => {
+    if (replacePending) {
+      const failure = onNewRun(config());
+      if (failure === null) {
+        setDiscardOpen(false);
+        setReplacePending(false);
+        setDiscardError(null);
+        return;
+      }
+      setDiscardError(startFailureText(t, failure));
+      return;
+    }
+
     const failure = onDiscard();
     if (failure === null) {
       setDiscardOpen(false);
@@ -127,16 +154,13 @@ export function TitleScreen({
               <Button variant="primary" onClick={handleContinue}>
                 {t('title.continue')}
               </Button>
-              <Button variant="danger" onClick={() => setDiscardOpen(true)}>
+              <Button variant="danger" onClick={requestDiscard}>
                 {t('title.discardRun')}
               </Button>
             </div>
           ) : null}
 
-          <Button
-            variant={activeRun === null ? 'primary' : 'secondary'}
-            onClick={() => setStartError(onNewRun(config()))}
-          >
+          <Button variant={activeRun === null ? 'primary' : 'secondary'} onClick={startNewRun}>
             {t('title.newRun')}
           </Button>
           {startError !== null ? (
@@ -223,7 +247,11 @@ export function TitleScreen({
       <Dialog
         open={discardOpen}
         titleId="discard-run-title"
-        onClose={() => setDiscardOpen(false)}
+        onClose={() => {
+          setDiscardOpen(false);
+          setReplacePending(false);
+          setDiscardError(null);
+        }}
         closeLabel={t('title.closeDialog')}
       >
         <div className="dialog__header">
