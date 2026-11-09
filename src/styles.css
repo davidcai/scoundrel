@@ -658,6 +658,24 @@ button {
   line-height: 1.3;
 }
 
+.rail-title__short {
+  display: none;
+}
+
+@media (max-width: 359px) {
+  .health__track {
+    display: none;
+  }
+
+  .kill-stack .rail-title__full {
+    display: none;
+  }
+
+  .kill-stack .rail-title__short {
+    display: inline;
+  }
+}
+
 .rail-caption {
   color: var(--text-2);
   font-size: var(--text-small);
@@ -1668,6 +1686,7 @@ button {
   .play-main {
     grid-template-columns: minmax(0, 1fr);
     align-content: start;
+    padding-inline: var(--space-3);
   }
 
   .play-main__room {
@@ -1685,7 +1704,7 @@ button {
   }
 
   .weapon-rail {
-    --phone-weapon-width: min(96px, calc((100vw - 2 * var(--space-6)) / 3.75));
+    --phone-weapon-width: min(96px, calc((100vw - 2 * var(--space-3)) / 3.75));
   }
 
   .weapon-rail > .weapon {
@@ -1703,7 +1722,7 @@ button {
   .kill-stack__thumb {
     flex: 0 0 var(--phone-weapon-width);
     width: var(--phone-weapon-width);
-    max-height: calc((100vw - 2 * var(--space-6)) / 2.5);
+    max-height: calc((100vw - 2 * var(--space-3)) / 2.5);
   }
 
   .kill-stack__thumb .card__frame {

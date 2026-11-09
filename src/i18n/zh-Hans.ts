@@ -38,6 +38,7 @@ export const zhHans = {
   'play.weaponValue': '武器 {value}',
   'play.noWeapon': '没有武器',
   'play.noWeaponHint': '你只能徒手战斗',
+  'play.killStackShort': '已击败',
   'play.killStackTitle': '已击败的怪物',
   'play.killStackNone': '尚未击败怪物',
   'play.dungeonTitle': '地牢',

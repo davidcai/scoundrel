@@ -38,6 +38,7 @@ export const en = {
   'play.weaponValue': 'Weapon {value}',
   'play.noWeapon': 'No weapon',
   'play.noWeaponHint': 'You fight barehanded',
+  'play.killStackShort': 'Defeated',
   'play.killStackTitle': 'Defeated monsters',
   'play.killStackNone': 'No monsters defeated',
   'play.dungeonTitle': 'Dungeon',

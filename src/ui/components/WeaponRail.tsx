@@ -55,7 +55,10 @@ export function WeaponRail({ view }: { view: WeaponView }) {
       </section>
 
       <section className="kill-stack" aria-label={t('a11y.killStack')}>
-        <h2 className="rail-title">{t('play.killStackTitle')}</h2>
+        <h2 className="rail-title" aria-label={t('play.killStackTitle')}>
+          <span className="rail-title__full">{t('play.killStackTitle')}</span>
+          <span className="rail-title__short">{t('play.killStackShort')}</span>
+        </h2>
         {view.kills.length === 0 ? (
           <p className="rail-caption">{t('play.killStackNone')}</p>
         ) : (

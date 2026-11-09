@@ -45,6 +45,14 @@ describe('approved layout rules', () => {
     expect(css).not.toContain('.health--wounded');
   });
 
+  it('hides the tiny health bar and shortens the defeated title on small phones', () => {
+    const narrow = block(/@media \(max-width: 359px\) \{[\s\S]*?\n\}/);
+    expect(narrow).toContain('.health__track');
+    expect(narrow).toContain('display: none');
+    expect(narrow).toContain('.kill-stack .rail-title__short');
+    expect(narrow).toContain('display: inline');
+  });
+
   it('drops the empty room-actions divider', () => {
     expect(css).toMatch(/\.preview__room-actions:empty\s*\{[^}]*border-top:\s*0/);
     expect(css).toMatch(/\.preview__room-actions:empty\s*\{[^}]*padding-top:\s*0/);
@@ -72,9 +80,10 @@ describe('approved layout rules', () => {
     expect(phone).toContain('flex: 1 1 64px');
     expect(phone).toContain('min-width: 26px');
     expect(phone).toContain('--phone-weapon-width: min(96px');
+    expect(phone).toContain('padding-inline: var(--space-3)');
     expect(phone).toContain('flex: 0 0 calc(var(--phone-weapon-width) + var(--space-3))');
     expect(phone).toContain('font-size: var(--text-small)');
-    expect(phone).toContain('max-height: calc((100vw - 2 * var(--space-6)) / 2.5)');
+    expect(phone).toContain('max-height: calc((100vw - 2 * var(--space-3)) / 2.5)');
     expect(phone).toContain('align-items: flex-start');
   });
 
