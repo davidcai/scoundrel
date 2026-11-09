@@ -51,7 +51,7 @@ describe('approved layout rules', () => {
     expect(css).not.toContain('.play-main__dungeon');
     expect(css).not.toContain('.dungeon-chip');
     expect(block(/\.dungeon-status \{[\s\S]*?\n\}/)).toContain('display: inline-flex');
-    expect(block(/^\.action-bar__end \{[\s\S]*?\n\}/m)).toContain('align-items: flex-end');
+    expect(block(/^\.play-screen__seed \{[\s\S]*?\n\}/m)).toContain('position: fixed');
   });
 
   it('places the compact preview sheet at the bottom of the viewport', () => {

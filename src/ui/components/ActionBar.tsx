@@ -3,12 +3,9 @@ import { rejectionText } from '../../i18n/messages';
 import { usePreferences } from '../../store/preferences';
 import type { ActionAvailability } from '../../store/selectors';
 import { Button } from './Button';
-import { SeedDisplay } from './SeedDisplay';
 
 export interface ActionBarProps {
   availability: ActionAvailability;
-  /** Run seed shown at the bottom-right corner of this panel. */
-  seed: string;
   onEnterNextRoom: () => void;
   onRunAway: () => void;
   onUndo: () => void;
@@ -24,7 +21,6 @@ export interface ActionBarProps {
  */
 export function ActionBar({
   availability,
-  seed,
   onEnterNextRoom,
   onRunAway,
   onUndo,
@@ -60,16 +56,13 @@ export function ActionBar({
           </Button>
         ) : null}
       </div>
-      <div className="action-bar__end">
-        {runAwayReason !== null ? (
-          <p className="action-bar__helper" id={helperId} data-testid="action-reasons">
-            <span className="action-bar__reason">
-              {t('play.disabledAction', { action: t('play.runAway'), reason: runAwayReason })}
-            </span>
-          </p>
-        ) : null}
-        <SeedDisplay seed={seed} />
-      </div>
+      {runAwayReason !== null ? (
+        <p className="action-bar__helper" id={helperId} data-testid="action-reasons">
+          <span className="action-bar__reason">
+            {t('play.disabledAction', { action: t('play.runAway'), reason: runAwayReason })}
+          </span>
+        </p>
+      ) : null}
     </div>
   );
 }

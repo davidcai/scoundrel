@@ -25,6 +25,7 @@ import { DungeonStatus } from '../components/DungeonStatus';
 import { HealthMeter } from '../components/HealthMeter';
 import { PreviewPanel } from '../components/PreviewPanel';
 import { RoomGrid } from '../components/RoomGrid';
+import { SeedDisplay } from '../components/SeedDisplay';
 import { WeaponRail } from '../components/WeaponRail';
 import { preloadArtwork } from '../artwork';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -200,7 +201,6 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
     <ActionBar
       enterButtonRef={enterButtonRef}
       availability={availability}
-      seed={state.seed}
       onEnterNextRoom={() => dispatch({ type: 'enterNextRoom' })}
       onRunAway={() => dispatch({ type: 'runAway' })}
       onUndo={() => dispatch({ type: 'undoRoom' })}
@@ -268,6 +268,10 @@ export function PlayScreen({ session, dispatch, sessionOnly = false }: PlayScree
             )}
           </section>
         </main>
+      </div>
+
+      <div className="play-screen__seed">
+        <SeedDisplay seed={state.seed} />
       </div>
 
       {compact && session.selectedCard !== null ? (

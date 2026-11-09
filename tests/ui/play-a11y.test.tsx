@@ -120,7 +120,7 @@ describe('play accessibility', () => {
     expect(bar).toHaveAttribute('aria-valuetext', t('a11y.healthBar', { health: 20, max: 20 }));
   });
 
-  it('shows the seed in the action bar without header duplicates', () => {
+  it('shows the seed in the page corner without header duplicates', () => {
     openRun(SEED, DEFAULT_RULE_CONFIG);
 
     // The room heading is the only room label; the potion indicator is gone.
@@ -130,11 +130,9 @@ describe('play accessibility', () => {
     expect(document.querySelector('.play-header__room')).toBeNull();
     expect(document.querySelector('.potion')).toBeNull();
 
-    const actionBar = document.querySelector<HTMLElement>('.action-bar');
-    expect(actionBar).not.toBeNull();
-    const seed = actionBar!.querySelector<HTMLElement>('.seed');
+    const seed = document.querySelector<HTMLElement>('.play-screen__seed');
     expect(seed).not.toBeNull();
-    expect(document.querySelector('.play-screen__seed')).toBeNull();
+    expect(document.querySelector('.action-bar .seed')).toBeNull();
     const value = seed!.querySelector<HTMLElement>('.seed__value');
     expect(value?.textContent).toBe(SEED);
     expect(value).toHaveAttribute('aria-label', t('a11y.seed', { seed: SEED }));
