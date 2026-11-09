@@ -187,7 +187,6 @@ export const zhHans = {
   'a11y.storageNotice': '存档数据提示',
 
   'title.continue': '继续游戏',
-  'title.discardRun': '放弃本局',
   'title.discardTitle': '放弃未完成的游戏？',
   'title.discardBody': '本局将记为放弃失败，且无法继续。',
   'title.discardConfirm': '放弃本局',
@@ -201,7 +200,6 @@ export const zhHans = {
   'title.settings': '设置',
   'title.lastResult': '上次结果',
   'title.runReplaced': '未完成的游戏已记为放弃失败。',
-  'title.runDiscarded': '本局已放弃，并记为放弃失败。',
   'title.closeDialog': '关闭',
 
   'stats.title': '统计',
