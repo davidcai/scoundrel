@@ -48,9 +48,8 @@ export function PreviewPanel({ session, titleId, onConfirm, roomActions }: Previ
     return (
       <section className="preview" aria-labelledby={titleId}>
         <h2 className="preview__title" id={titleId}>
-          {t('preview.title')}
+          {t('play.previewEmpty')}
         </h2>
-        <p className="preview__empty">{t('play.previewEmpty')}</p>
         {roomActionsSlot}
       </section>
     );

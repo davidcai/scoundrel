@@ -899,8 +899,7 @@ button {
   font-weight: 600;
 }
 
-.preview__hint,
-.preview__empty {
+.preview__hint {
   color: var(--text-muted);
   font-size: var(--text-small);
 }

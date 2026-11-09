@@ -47,7 +47,7 @@ export const en = {
   'play.enterNextRoom': 'Enter next room',
   'play.runAway': 'Run away',
   'play.undo': 'Undo',
-  'play.previewEmpty': 'Select a card to see its effect.',
+  'play.previewEmpty': 'Select a card to see its effect',
 
   'card.name': '{rank} of {suit}',
   'card.rank.a': 'Ace',
