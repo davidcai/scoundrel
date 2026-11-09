@@ -49,7 +49,7 @@ export function TitleScreen({
   onOpenSettings,
   ruleOptions,
 }: TitleScreenProps) {
-  const { t, localePreference, setLocale } = usePreferences();
+  const { t } = usePreferences();
   const [helpOpen, setHelpOpen] = useState(false);
   const [seedOpen, setSeedOpen] = useState(false);
   const [seedValue, setSeedValue] = useState('');
@@ -193,23 +193,6 @@ export function TitleScreen({
             </Button>
             <Button variant="ghost" onClick={() => setHelpOpen(true)}>
               {t('title.rulesHelp')}
-            </Button>
-          </div>
-
-          <div className="language-toggle" role="group" aria-label={t('language.group')}>
-            <Button
-              variant="ghost"
-              aria-pressed={localePreference === 'en'}
-              onClick={() => setLocale('en')}
-            >
-              {t('language.english')}
-            </Button>
-            <Button
-              variant="ghost"
-              aria-pressed={localePreference === 'zh-Hans'}
-              onClick={() => setLocale('zh-Hans')}
-            >
-              {t('language.chinese')}
             </Button>
           </div>
         </div>

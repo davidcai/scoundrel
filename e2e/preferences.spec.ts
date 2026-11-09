@@ -9,8 +9,10 @@ test.beforeEach(({}, testInfo) => {
 
 test('remembers the selected language across reloads', async ({ page }) => {
   await openTitle(page);
+  await page.getByRole('button', { name: 'Settings' }).click();
   await page.getByRole('button', { name: '简体中文' }).click();
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-Hans');
+  await page.getByRole('button', { name: '关闭设置' }).click();
   await expect(page.getByRole('button', { name: '开始新游戏' })).toBeVisible();
 
   await page.reload();
