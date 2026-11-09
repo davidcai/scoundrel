@@ -52,6 +52,8 @@ The written style guide was first approved on 2026-11-01 with the scope recorded
 
 **Post-approval correction recorded 2026-11-08 (round 21, user-directed).** The Rules and help dialog no longer carries the language/reduced-motion preferences section or the version line; help is rules content only, while language and motion remain in Settings. This supersedes the corresponding help-dialog lines in §6; it does not change tokens, typography, the dark-green approval, or D1–D4.
 
+**Post-approval correction recorded 2026-11-08 (round 22, user-directed).** The Rules and help dialog uses the shared 44×44 icon close control in the panel's top-right corner instead of a text "Close" button; its accessible name remains "Close". This supersedes the help close-control line in §6; it does not change tokens, typography, the dark-green approval, or D1–D4.
+
 ## Visual treatment
 
 Supports [DEC-001](prd.md#dec-001) and [REQ-016](prd.md#req-016).

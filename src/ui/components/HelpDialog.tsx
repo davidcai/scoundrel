@@ -1,5 +1,4 @@
 import { usePreferences } from '../../store/preferences';
-import { Button } from './Button';
 import { Dialog } from './Dialog';
 
 const HELP_TITLE_ID = 'help-dialog-title';
@@ -9,14 +8,17 @@ export function HelpDialog({ open, onClose }: { open: boolean; onClose: () => vo
   const { t } = usePreferences();
 
   return (
-    <Dialog open={open} titleId={HELP_TITLE_ID} onClose={onClose} className="dialog__panel--help">
+    <Dialog
+      open={open}
+      titleId={HELP_TITLE_ID}
+      onClose={onClose}
+      className="dialog__panel--help"
+      closeLabel={t('help.close')}
+    >
       <div className="dialog__header">
         <h2 className="dialog__title" id={HELP_TITLE_ID}>
           {t('help.title')}
         </h2>
-        <Button variant="ghost" onClick={onClose} aria-label={t('help.close')}>
-          {t('help.close')}
-        </Button>
       </div>
 
       <div className="help__body">
