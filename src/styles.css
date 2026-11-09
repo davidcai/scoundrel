@@ -543,6 +543,18 @@ button {
   font-weight: 600;
 }
 
+.health__value {
+  color: var(--health);
+}
+
+.health--wounded .health__value {
+  color: var(--wasted);
+}
+
+.health--critical .health__value {
+  color: var(--damage);
+}
+
 .health__track {
   flex: 0 0 200px;
   width: 200px;
@@ -932,7 +944,7 @@ button {
   display: flex;
   max-width: calc(100vw - 2 * var(--space-5));
   padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--border-1);
+  border: 0;
   border-radius: var(--radius-2);
   background: var(--surface-1);
   box-shadow: var(--shadow-1);

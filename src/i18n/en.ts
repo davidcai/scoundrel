@@ -30,6 +30,8 @@ export const en = {
   'language.chinese': '简体中文',
   'language.group': 'Language',
 
+  'play.healthPrefix': 'HP',
+  'play.healthValue': '{health} / {max}',
   'play.health': 'HP {health} / {max}',
   'play.roomNumber': 'Room {number}',
   'play.finalRoom': 'Final room',

@@ -103,6 +103,19 @@ describe('room card captions', () => {
     expect(container.querySelector('.card__meta-detail')?.textContent).toContain('Carried');
   });
 
+  it('shows only the card type even when the card is not usable', () => {
+    const view = makeView({
+      card: 'diamond-6' as CardId,
+      kind: 'weapon',
+      reason: 'weapon-ineligible',
+    });
+    const { container } = renderWithProviders(<CardTile {...tileProps(view)} />);
+
+    const button = container.querySelector<HTMLButtonElement>('[data-card]')!;
+    expect(container.querySelector('.card__caption')?.textContent).toBe('Weapon');
+    expect(button.getAttribute('aria-label')).toBe('Weapon, Six of diamonds');
+  });
+
   it('omits the carried badge for cards left behind', () => {
     const view = makeView({ card: 'spade-9' as CardId, kind: 'monster' });
     const { container } = renderWithProviders(<CardTile {...tileProps(view)} />);

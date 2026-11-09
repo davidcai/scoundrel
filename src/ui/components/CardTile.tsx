@@ -27,10 +27,7 @@ export const CardTile = forwardRef<HTMLButtonElement, CardTileProps>(function Ca
   ref,
 ) {
   const { t } = usePreferences();
-  const caption = formatCardCaption(t, {
-    kind: view.kind,
-    reason: view.reason,
-  });
+  const caption = formatCardCaption(t, { kind: view.kind });
   const accessibleName = formatCardAccessibleName(t, {
     card: view.card,
     kind: view.kind,

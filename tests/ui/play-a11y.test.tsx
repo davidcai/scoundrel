@@ -91,8 +91,8 @@ describe('play accessibility', () => {
 
     const bar = screen.getByRole('progressbar');
     expect(bar).toHaveAccessibleName(t('play.health', { health: 20, max: 20 }));
-    expect(screen.getAllByText(t('play.health', { health: 20, max: 20 })).length).toBeGreaterThan(
-      0,
+    expect(document.querySelector('.health__label')?.textContent).toBe(
+      t('play.health', { health: 20, max: 20 }),
     );
   });
 

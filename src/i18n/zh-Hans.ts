@@ -30,6 +30,8 @@ export const zhHans = {
   'language.chinese': '简体中文',
   'language.group': '语言',
 
+  'play.healthPrefix': 'HP',
+  'play.healthValue': '{health} / {max}',
   'play.health': 'HP {health} / {max}',
   'play.roomNumber': '第 {number} 个房间',
   'play.finalRoom': '最后一个房间',

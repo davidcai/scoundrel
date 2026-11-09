@@ -82,18 +82,8 @@ export function formatCardNameByValue(t: Translate, card: CardId): string {
 }
 
 /** Visible caption: capitalized card type plus the not-usable reason. */
-export function formatCardCaption(
-  t: Translate,
-  parts: {
-    readonly kind: CardKind;
-    readonly reason?: RejectionReason | null;
-  },
-): string {
-  const pieces: string[] = [formatCardType(t, parts.kind)];
-  if (parts.reason != null) {
-    pieces.push(t('card.state.notUsable', { reason: rejectionText(t, parts.reason) }));
-  }
-  return pieces.join(t('card.captionSeparator'));
+export function formatCardCaption(t: Translate, parts: { readonly kind: CardKind }): string {
+  return formatCardType(t, parts.kind);
 }
 
 /**

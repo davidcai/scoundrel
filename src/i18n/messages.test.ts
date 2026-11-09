@@ -79,11 +79,8 @@ describe('message helpers', () => {
     expect(formatCardCaption(zhT, { kind: 'weapon' })).toBe('武器');
     expect(formatCardCaption(zhT, { kind: 'potion' })).toBe('药水');
 
-    const blocked = formatCardCaption(enT, { kind: 'monster', reason: 'weapon-ineligible' });
-    expect(blocked).toContain(
-      enT('card.state.notUsable', { reason: rejectionText(enT, 'weapon-ineligible') }),
-    );
-    expect(blocked).not.toMatch(/Selected|Carried|Card \d+ of \d+/);
+    expect(formatCardCaption(enT, { kind: 'monster' })).toBe('Monster');
+    expect(formatCardCaption(enT, { kind: 'monster' })).not.toMatch(/Not usable|Selected|Carried/);
   });
 
   it('keeps the visible caption as an exact prefix of the accessible name and announces state', () => {

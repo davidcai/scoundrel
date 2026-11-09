@@ -16,7 +16,8 @@ export function HealthMeter({ health, max }: { health: number; max: number }) {
   return (
     <div className={tone === null ? 'health' : `health health--${tone}`}>
       <span className="health__label" id={labelId}>
-        {t('play.health', { health, max })}
+        <span className="health__prefix">{t('play.healthPrefix')}</span>{' '}
+        <span className="health__value">{t('play.healthValue', { health, max })}</span>
       </span>
       <div
         className="health__track"
