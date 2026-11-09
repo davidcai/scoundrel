@@ -122,6 +122,8 @@ The written style guide was first approved on 2026-11-01 with the scope recorded
 
 **Post-approval correction recorded 2026-11-08 (round 56, user-directed).** Statistics keeps the newest 30 runs (down from 50), and the history table orders its columns Date, Outcome, Score, Seed, Rules, Rooms cleared, Replay. This supersedes the 50-run limit and column order in §5/§6; it does not change tokens, typography, the dark-green approval, or D1–D4.
 
+**Post-approval correction recorded 2026-11-08 (round 57, user-directed).** The statistics history table drops the Rooms cleared column; its columns are Date, Outcome, Score, Seed, Rules, Replay. This supersedes the column list in §5/§6; it does not change tokens, typography, the dark-green approval, or D1–D4.
+
 ## Visual treatment
 
 Supports [DEC-001](prd.md#dec-001) and [REQ-016](prd.md#req-016).

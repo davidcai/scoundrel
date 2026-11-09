@@ -116,7 +116,6 @@ export function StatsScreen({ onBackToTitle, onReplay }: StatsScreenProps) {
                       <th scope="col">{t('stats.columnScore')}</th>
                       <th scope="col">{t('stats.columnSeed')}</th>
                       <th scope="col">{t('stats.columnRules')}</th>
-                      <th scope="col">{t('stats.columnRoomsCleared')}</th>
                       <th scope="col">
                         <span className="visually-hidden">{t('stats.replay')}</span>
                       </th>
@@ -143,9 +142,6 @@ export function StatsScreen({ onBackToTitle, onReplay }: StatsScreenProps) {
                           <code>{entry.seed}</code>
                         </td>
                         <td>{formatRulesDescription(t, locale, entry.config)}</td>
-                        <td className="data-table__numeric">
-                          {formatNumber(locale, entry.roomsCleared)}
-                        </td>
                         <td>
                           <Button
                             variant="ghost"

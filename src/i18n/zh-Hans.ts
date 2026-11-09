@@ -227,7 +227,6 @@ export const zhHans = {
   'stats.columnRules': '规则',
   'stats.columnOutcome': '结果',
   'stats.columnScore': '得分',
-  'stats.columnRoomsCleared': '清空房间',
   'stats.outcomeWon': '胜利',
   'stats.outcomeLost': '失败',
   'stats.outcomeAbandoned': '放弃',

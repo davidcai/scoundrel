@@ -234,7 +234,6 @@ export const en = {
   'stats.columnRules': 'Rules',
   'stats.columnOutcome': 'Outcome',
   'stats.columnScore': 'Score',
-  'stats.columnRoomsCleared': 'Rooms cleared',
   'stats.outcomeWon': 'Won',
   'stats.outcomeLost': 'Lost',
   'stats.outcomeAbandoned': 'Abandoned',

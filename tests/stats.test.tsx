@@ -147,6 +147,8 @@ describe('statistics and history screen', () => {
       t('stats.columnScore'),
       t('stats.columnSeed'),
     ]);
+    expect(headers).toHaveLength(6);
+    expect(headers).not.toContain('Rooms cleared');
   });
 
   it('replays a listed run with its original seed and options', () => {
