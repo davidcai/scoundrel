@@ -87,6 +87,8 @@ describe('approved layout rules', () => {
     expect(phone).toContain('padding-inline: 0');
     expect(phone).toContain('.room-grid {');
     expect(phone).toContain('gap: var(--space-2)');
+    expect(phone).toContain('.room-hint__short');
+    expect(phone).toContain('display: inline');
     expect(phone).toContain('.preview__title');
     expect(phone).toContain('font-size: clamp(0.5rem, 3.2vw, 0.75rem)');
     expect(phone).toContain('flex: 0 0 calc(var(--phone-weapon-width) + var(--space-3))');

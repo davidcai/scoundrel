@@ -51,7 +51,7 @@ describe('language', () => {
     fireEvent.click(screen.getByRole('button', { name: zh('settings.close') }));
     fireEvent.click(screen.getByRole('button', { name: zh('title.newRun') }));
 
-    expect(screen.getAllByText(zh('play.roomHint')).length).toBeGreaterThan(0);
+    expect(document.querySelector('.room-hint__full')?.textContent).toBe(zh('play.roomHint'));
     expect(
       screen.getByRole('heading', { level: 1, name: zh('play.roomNumber', { number: 1 }) }),
     ).toBeInTheDocument();

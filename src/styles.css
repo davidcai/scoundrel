@@ -629,6 +629,10 @@ button {
   font-size: var(--text-small);
 }
 
+.room-hint__short {
+  display: none;
+}
+
 .room-grid-wrap {
   padding: var(--space-2);
 }
@@ -1699,6 +1703,14 @@ button {
 
   .room-grid {
     gap: var(--space-2);
+  }
+
+  .room-hint__full {
+    display: none;
+  }
+
+  .room-hint__short {
+    display: inline;
   }
 
   .preview__title {

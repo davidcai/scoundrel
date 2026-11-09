@@ -44,6 +44,7 @@ export const en = {
   'play.dungeonTitle': 'Dungeon',
   'play.dungeonRemaining': '{count} cards',
   'play.seedPrefix': 'Seed: ',
+  'play.roomHintShort': 'Resolve 3 cards per room',
   'play.roomHint': 'Resolve three cards per room; in the final room, resolve every card.',
   'play.roomHintCleared': 'Room cleared. Enter the next room when ready.',
   'play.actionBar': 'Room actions',

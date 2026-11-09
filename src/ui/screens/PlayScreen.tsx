@@ -242,7 +242,14 @@ export function PlayScreen({
               {formatRoomLabel(t, roomNumber, state.finalRoom)}
             </h1>
             <p className="room-hint" id={roomHintId}>
-              {state.roomCleared ? t('play.roomHintCleared') : t('play.roomHint')}
+              {state.roomCleared ? (
+                t('play.roomHintCleared')
+              ) : (
+                <>
+                  <span className="room-hint__full">{t('play.roomHint')}</span>
+                  <span className="room-hint__short">{t('play.roomHintShort')}</span>
+                </>
+              )}
             </p>
             <div
               className="room-grid-wrap"
