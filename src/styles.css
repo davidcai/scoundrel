@@ -1689,6 +1689,10 @@ button {
     padding-inline: var(--space-3);
   }
 
+  .room-title {
+    font-size: var(--text-h2);
+  }
+
   .play-main__room {
     order: 1;
   }
