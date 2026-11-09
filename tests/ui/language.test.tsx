@@ -41,12 +41,14 @@ describe('language', () => {
     expect(document.documentElement.lang).toBe('en');
   });
 
-  it('carries a switched language into the run', () => {
+  it('carries a language set in settings into the run', () => {
     setBrowserLanguages(['en-US']);
     renderAt();
 
+    fireEvent.click(screen.getByRole('button', { name: en('title.settings') }));
     fireEvent.click(screen.getByRole('button', { name: en('language.chinese') }));
     expect(document.documentElement.lang).toBe('zh-Hans');
+    fireEvent.click(screen.getByRole('button', { name: zh('settings.close') }));
     fireEvent.click(screen.getByRole('button', { name: zh('title.newRun') }));
 
     expect(screen.getAllByText(zh('play.roomHint')).length).toBeGreaterThan(0);

@@ -1593,6 +1593,13 @@ button {
   gap: var(--space-2);
 }
 
+/* Title actions use the light-green accent as their border so they read as
+   one control set; primary and danger keep their own fills/borders. */
+.title-screen__actions .button--ghost,
+.title-screen__actions .button--secondary {
+  border-color: var(--accent);
+}
+
 .title-screen__entries .button {
   width: 100%;
 }

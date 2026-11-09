@@ -72,15 +72,16 @@ describe('title screen', () => {
     expect(window.location.hash).toContain('config=1');
   });
 
-  it('switches language from the title screen and remembers it for the run', () => {
+  it('changes language in settings and remembers it for the run', () => {
     renderTitle();
-
+    fireEvent.click(screen.getByRole('button', { name: t('title.settings') }));
     fireEvent.click(screen.getByRole('button', { name: t('language.chinese') }));
 
     const zh = createTranslator('zh-Hans');
-    expect(screen.getByRole('button', { name: zh('title.newRun') })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(zh('settings.title'));
     expect(document.documentElement.lang).toBe('zh-Hans');
 
+    fireEvent.click(screen.getByRole('button', { name: zh('settings.close') }));
     fireEvent.click(screen.getByRole('button', { name: zh('title.newRun') }));
     expect(screen.getAllByText(zh('play.roomHint')).length).toBeGreaterThan(0);
   });
