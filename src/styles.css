@@ -1593,22 +1593,22 @@ button {
   gap: var(--space-2);
 }
 
-/* Secondary title actions are outlined: transparent fill, a slightly dimmed
-   accent border, and the same surface hover as the danger button. Primary and
-   danger buttons keep their own treatments. */
+/* Secondary title actions are outlined in a dimmed accent; the label uses the
+   same color as the border. Hover uses the danger button's surface. Primary
+   and danger buttons keep their own treatments. */
 .title-screen__actions .button--ghost,
 .title-screen__actions .button--secondary {
+  --title-secondary: color-mix(in srgb, var(--accent) 60%, var(--border-2));
   background: transparent;
-  border-color: var(--border-2);
-  border-color: color-mix(in srgb, var(--accent) 78%, var(--border-2));
-  color: var(--text-1);
+  border-color: var(--title-secondary);
+  color: var(--title-secondary);
 }
 
 .title-screen__actions .button--ghost:not([aria-disabled='true']):hover,
 .title-screen__actions .button--secondary:not([aria-disabled='true']):hover {
   background: var(--surface-3);
-  border-color: color-mix(in srgb, var(--accent) 78%, var(--border-2));
-  color: var(--text-1);
+  border-color: var(--title-secondary);
+  color: var(--title-secondary);
 }
 
 .title-screen__entries .button {
