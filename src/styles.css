@@ -1641,6 +1641,7 @@ button {
 @media (max-width: 767px) {
   .play-main {
     grid-template-columns: minmax(0, 1fr);
+    align-content: start;
   }
 
   .play-main__room {
@@ -1670,22 +1671,30 @@ button {
 
   /* Never let a defeated card grow taller than the equipped weapon card. */
   .kill-stack__thumb {
-    flex: 0 0 min(96px, calc((100vw - 2 * var(--space-6)) / 3));
-    width: min(96px, calc((100vw - 2 * var(--space-6)) / 3));
-    max-height: calc((100vw - 2 * var(--space-6)) / 2);
+    flex: 0 0 min(96px, calc((100vw - 2 * var(--space-6)) / 3.75));
+    width: min(96px, calc((100vw - 2 * var(--space-6)) / 3.75));
+    max-height: calc((100vw - 2 * var(--space-6)) / 2.5);
   }
 
   .kill-stack__thumb .card__frame {
     max-height: inherit;
   }
 
-  .weapon__card,
-  .weapon__card .card__frame {
+  .weapon__card {
     width: 100%;
   }
 
+  .weapon__card .card__frame {
+    width: 80%;
+  }
+
   .weapon__empty-slot {
-    width: 100%;
+    width: 80%;
+  }
+
+  .rail-title {
+    font-size: var(--text-body);
+    white-space: nowrap;
   }
 }
 
